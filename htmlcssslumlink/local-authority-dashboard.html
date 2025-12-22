@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlumLink | Local Authority Dashboard</title>
+
+  <link rel="stylesheet" href="ngo-dashboard.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo-dot"></span>
+      <div>
+        <h4>SLUMLINK</h4>
+        <p>Authority Console</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn-primary" id="createNoticeTop">+ New Notice</button>
+      <div class="profile-icon" id="profileBtn">
+        <span>LA</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard">
+
+    <section class="hero-section">
+      <div class="hero-card">
+        <div class="hero-content">
+          <h1>Local Authority Dashboard</h1>
+          <p>Review complaints, monitor service delivery, and coordinate with NGOs.</p>
+        </div>
+        <div class="hero-shapes">
+          <span class="shape shape-1"></span>
+          <span class="shape shape-2"></span>
+          <span class="shape shape-3"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-grid">
+      <div class="stat-card people">
+        <div class="stat-content">
+          <h3 id="statTotal">0</h3>
+          <p>Total Complaints</p>
+        </div>
+      </div>
+
+      <div class="stat-card areas">
+        <div class="stat-content">
+          <h3 id="statPending">0</h3>
+          <p>Pending</p>
+        </div>
+      </div>
+
+      <div class="stat-card ongoing">
+        <div class="stat-content">
+          <h3 id="statReview">0</h3>
+          <p>In Review</p>
+        </div>
+      </div>
+
+      <div class="stat-card pending">
+        <div class="stat-content">
+          <h3 id="statResolved">0</h3>
+          <p>Resolved</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="content-grid">
+      <section class="card complaint-card">
+        <div class="card-header">
+          <h2>Complaint Checking</h2>
+          <p>Search by complaint ID to view status and details</p>
+        </div>
+
+        <div class="complaint-form">
+          <input class="complaint-input" id="complaintId" type="text" placeholder="e.g., CMP-1024" />
+          <button class="action-btn primary" id="checkComplaint" type="button">Check</button>
+        </div>
+
+        <div class="complaint-result" id="complaintResult" aria-live="polite"></div>
+
+        <div class="complaint-divider"></div>
+
+        <div class="complaint-actions">
+          <button class="action-btn" id="markInReview" type="button">Mark In Review</button>
+          <button class="action-btn" id="markResolved" type="button">Mark Resolved</button>
+        </div>
+        <div class="complaint-hint">Tip: Try <strong>CMP-1024</strong>, <strong>CMP-2041</strong>, or <strong>CMP-3307</strong>.</div>
+      </section>
+
+      <section class="card history-card">
+        <div class="card-header">
+          <h2>Recent Complaints</h2>
+          <p>Latest submissions (demo data stored in this browser)</p>
+        </div>
+
+        <div class="history-list" id="complaintsList"></div>
+      </section>
+    </div>
+
+    <section class="card events-card">
+      <div class="card-header">
+        <h2>Service Updates</h2>
+        <p>Quick overview of ongoing civic actions</p>
+      </div>
+
+      <div class="events-list">
+        <div class="event">
+          <div class="event-badge active"></div>
+          <div class="event-info">
+            <h4>Water Supply Inspection</h4>
+            <div class="event-meta">
+              <span class="location">Korail</span>
+              <span class="families">Scheduled</span>
+            </div>
+          </div>
+          <span class="badge active">Active</span>
+        </div>
+
+        <div class="event">
+          <div class="event-badge pending"></div>
+          <div class="event-info">
+            <h4>Drainage Cleanup Request</h4>
+            <div class="event-meta">
+              <span class="location">Mirpur</span>
+              <span class="families">Crew pending</span>
+            </div>
+          </div>
+          <span class="badge pending">Pending</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="local-authority-dashboard.js"></script>
+</body>
+</html>

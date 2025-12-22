@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlumLink | NGO Dashboard</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="ngo-dashboard.css">
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- Top Navigation -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo-dot"></span>
+      <div>
+        <h4>SLUMLINK</h4>
+        <p>Impact Dashboard</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn-primary" id="createEventTop">+ New Campaign</button>
+      <div class="profile-icon" id="profileBtn">
+        <span>NGO</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dashboard -->
+  <main class="dashboard">
+
+    <!-- Hero Section: Welcome + Impact Stats -->
+    <section class="hero-section">
+      <div class="hero-card">
+        <div class="hero-content">
+          <h1>Welcome back! 👋</h1>
+          <p>Track impact, manage campaigns, and support communities with transparency.</p>
+        </div>
+        <div class="hero-shapes">
+          <span class="shape shape-1"></span>
+          <span class="shape shape-2"></span>
+          <span class="shape shape-3"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Stats Row -->
+    <section class="stats-grid">
+      <div class="stat-card people">
+        <div class="stat-content">
+          <h3>12,450</h3>
+          <p>People Helped</p>
+        </div>
+      </div>
+
+      <div class="stat-card areas">
+        <div class="stat-content">
+          <h3>28</h3>
+          <p>Areas Covered</p>
+        </div>
+      </div>
+
+      <div class="stat-card ongoing">
+        <div class="stat-content">
+          <h3>5</h3>
+          <p>Ongoing Events</p>
+        </div>
+      </div>
+
+      <div class="stat-card pending">
+        <div class="stat-content">
+          <h3>2</h3>
+          <p>Pending Events</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Two-Column Layout: Actions + Aid History -->
+    <div class="content-grid">
+      <!-- Quick Actions Card -->
+      <section class="card action-card">
+        <div class="card-header">
+          <h2>Quick Actions</h2>
+          <p>Manage your campaigns and operations</p>
+        </div>
+
+        <button class="action-btn primary" id="createEvent">
+          Create New Campaign
+        </button>
+
+        <button class="action-btn" id="scanQr">
+          Scan QR Code
+        </button>
+
+        <button class="action-btn" id="ongoingEvents">
+          View All Events
+        </button>
+
+        <button class="action-btn" id="analyticsDashboard">
+          Analytics Dashboard
+        </button>
+      </section>
+
+      <!-- Aid History Card -->
+      <section class="card history-card">
+        <div class="card-header">
+          <h2>Recent Aid Distribution</h2>
+          <p>Your impact timeline</p>
+        </div>
+
+        <div class="history-list">
+          <div class="history-item">
+            <div class="history-marker winter"></div>
+            <div class="history-content">
+              <h4>Winter Blanket Drive</h4>
+              <p>Mirpur • 120 families assisted</p>
+              <span class="date">Jan 15, 2025</span>
+            </div>
+          </div>
+
+          <div class="history-item">
+            <div class="history-marker medical"></div>
+            <div class="history-content">
+              <h4>Medical Camp Support</h4>
+              <p>Korail • 250+ beneficiaries</p>
+              <span class="date">Jan 10, 2025</span>
+            </div>
+          </div>
+
+          <div class="history-item">
+            <div class="history-marker education"></div>
+            <div class="history-content">
+              <h4>Education Scholarship</h4>
+              <p>Dharavi • 45 students enrolled</p>
+              <span class="date">Jan 5, 2025</span>
+            </div>
+          </div>
+
+          <div class="history-item">
+            <div class="history-marker vocational"></div>
+            <div class="history-content">
+              <h4>Vocational Training</h4>
+              <p>Multiple areas • Job placements pending</p>
+              <span class="date">Dec 28, 2024</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Events Overview -->
+    <section class="card events-card">
+      <div class="card-header">
+        <h2>Active Campaigns</h2>
+        <p>Track and manage your ongoing initiatives</p>
+      </div>
+
+      <div class="events-list">
+        <div class="event">
+          <div class="event-badge active"></div>
+          <div class="event-info">
+            <h4>Winter Blanket Drive</h4>
+            <div class="event-meta">
+              <span class="location">Mirpur</span>
+              <span class="families">120 families</span>
+            </div>
+          </div>
+          <span class="badge active">Active</span>
+        </div>
+
+        <div class="event">
+          <div class="event-badge pending"></div>
+          <div class="event-info">
+            <h4>Medical Camp Support</h4>
+            <div class="event-meta">
+              <span class="location">Korail</span>
+              <span class="families">250+ beneficiaries</span>
+            </div>
+          </div>
+          <span class="badge pending">Pending</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JS -->
+  <script src="ngo-dashboard.js"></script>
+</body>
+</html>

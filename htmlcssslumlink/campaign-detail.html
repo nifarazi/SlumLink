@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlumLink | Campaign Details</title>
+
+  <link rel="stylesheet" href="ngo-dashboard.css">
+  <link rel="stylesheet" href="campaigns.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand" id="backLink">
+      <span class="logo-dot"></span>
+      <div>
+        <h4>SLUMLINK</h4>
+        <p>Campaign Details</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn-primary" id="backToList">Back to Campaigns</button>
+      <div class="profile-icon" id="profileBtn">
+        <span>NGO</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="campaigns-page">
+    <section class="campaigns-card">
+      <div class="detail-header">
+        <div>
+          <h1 class="detail-title" id="detailTitle">Campaign</h1>
+          <div class="detail-sub" id="detailSub"></div>
+        </div>
+        <div class="detail-actions">
+          <button class="btn-secondary" id="editBtn" type="button">Edit</button>
+          <button class="btn-tertiary" id="deleteBtn" type="button">Delete</button>
+        </div>
+      </div>
+
+      <div class="notice" id="notice" aria-live="polite"></div>
+
+      <form id="detailForm" class="detail-form">
+        <div class="detail-grid">
+          <div class="field">
+            <label for="title">Title</label>
+            <input id="title" name="title" type="text" disabled />
+          </div>
+
+          <div class="field">
+            <label for="category">Category</label>
+            <select id="category" name="category" disabled>
+              <option>Education</option>
+              <option>Health</option>
+              <option>Food</option>
+              <option>Women Empowerment</option>
+              <option>Child Welfare</option>
+              <option>Workshop</option>
+              <option>Employment</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="slumArea">Target Slum Area</label>
+            <input id="slumArea" name="slumArea" type="text" disabled />
+          </div>
+
+          <div class="field">
+            <label for="date">Date</label>
+            <input id="date" name="date" type="date" disabled />
+          </div>
+
+          <div class="field">
+            <label for="time">Time</label>
+            <input id="time" name="time" type="time" disabled />
+          </div>
+
+          <div class="field">
+            <label for="gender">Target Gender</label>
+            <select id="gender" name="gender" disabled>
+              <option value="both">Both</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="ageGroup">Age Group</label>
+            <select id="ageGroup" name="ageGroup" disabled>
+              <option value="child">Child</option>
+              <option value="adult">Adult</option>
+              <option value="both">Both</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="ageRange">Age Range</label>
+            <input id="ageRange" name="ageRange" type="text" disabled />
+          </div>
+
+          <div class="field">
+            <label for="status">Status</label>
+            <select id="status" name="status" disabled>
+              <option value="pending">Pending</option>
+              <option value="finished">Finished</option>
+            </select>
+          </div>
+
+          <div class="field" id="peopleHelpedWrap" hidden>
+            <label for="peopleHelped">People Helped</label>
+            <input id="peopleHelped" name="peopleHelped" type="number" min="0" disabled />
+          </div>
+
+          <div class="field" id="requiredEducationWrap" hidden>
+            <label for="requiredEducation">Required Education</label>
+            <select id="requiredEducation" name="requiredEducation" disabled>
+              <option value="">Select</option>
+              <option value="none">No requirement</option>
+              <option value="primary">Primary</option>
+              <option value="secondary">Secondary</option>
+              <option value="higher-secondary">Higher Secondary</option>
+              <option value="graduate">Graduate</option>
+            </select>
+          </div>
+
+          <div class="field" id="requiredSkillsWrap" hidden>
+            <label for="requiredSkills">Skills NGO Requires</label>
+            <select id="requiredSkills" name="requiredSkills" multiple disabled>
+              <option value="tailoring">Tailoring</option>
+              <option value="embroidery">Embroidery</option>
+              <option value="sewing">Sewing</option>
+              <option value="plumbing">Plumbing</option>
+              <option value="electric">Electrical</option>
+              <option value="driving">Driving</option>
+              <option value="delivery">Delivery</option>
+              <option value="cooking">Cooking</option>
+              <option value="computer basics">Computer Basics</option>
+              <option value="digital literacy">Digital Literacy</option>
+              <option value="teaching">Teaching</option>
+              <option value="healthcare assistant">Healthcare Assistant</option>
+              <option value="construction">Construction</option>
+              <option value="retail sales">Retail Sales</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" rows="4" disabled></textarea>
+        </div>
+
+        <div class="detail-save" id="saveRow" hidden>
+          <button class="btn-primary" type="submit" id="saveBtn">Save Changes</button>
+          <button class="btn-secondary" type="button" id="cancelBtn">Cancel</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="campaign-detail.js"></script>
+  <script src="ngo-dashboard.js"></script>
+</body>
+</html>

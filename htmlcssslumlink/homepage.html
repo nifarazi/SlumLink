@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlumLink – Homepage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="homepage.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="homepage.html" aria-label="SlumLink homepage">
+        <span class="logo-dot" aria-hidden="true"></span>
+        <span class="brand__text">
+          <span class="brand__name">SlumLink</span>
+          <span class="brand__tag">Community • NGOs • Authorities</span>
+        </span>
+      </a>
+
+      <nav class="nav" aria-label="Primary">
+        <a class="nav__link" href="#about">About</a>
+        <a class="nav__link" href="#impact">Impact</a>
+        <a class="nav__link" href="#register-household">Household</a>
+        <a class="nav__link" href="#register-organization">Organization</a>
+      </nav>
+
+      <div class="topbar__actions">
+        <a class="btn btn--ghost" href="#signin">Sign In</a>
+        <a class="btn btn--primary" href="#register-organization">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="page">
+    <section class="hero" aria-label="Introduction">
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <p class="kicker">Transparent support that reaches the right people.</p>
+          <h1>Visibility. Dignity. Progress — for every slum family.</h1>
+          <p class="lead">
+            SlumLink connects households, NGOs, and local authorities to track aid, resolve complaints,
+            and measure real-world outcomes.
+          </p>
+
+          <div class="cta-row">
+            <a href="#register-household" class="btn btn--primary">Register Household</a>
+            <a href="#register-organization" class="btn btn--soft">Register Organization</a>
+          </div>
+
+          <div class="quick-stats" aria-label="Highlights">
+            <div class="stat">
+              <div class="stat__num">10k+</div>
+              <div class="stat__label">Families visible</div>
+            </div>
+            <div class="stat">
+              <div class="stat__num">500+</div>
+              <div class="stat__label">Aid events tracked</div>
+            </div>
+            <div class="stat">
+              <div class="stat__num">2k+</div>
+              <div class="stat__label">Complaints resolved</div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero__card" aria-label="Quick actions">
+          <h2>Start in seconds</h2>
+          <p class="muted">
+            Pick your path — household support, NGO operations, or authority case management.
+          </p>
+          <div class="action-list">
+            <a class="action" href="#register-household">
+              <span class="action__title">Household</span>
+              <span class="action__desc">Register and access support</span>
+            </a>
+            <a class="action" href="#register-organization">
+              <span class="action__title">Organization</span>
+              <span class="action__desc">Create & manage campaigns</span>
+            </a>
+            <a class="action" href="#signin">
+              <span class="action__title">Sign In</span>
+              <span class="action__desc">Choose your role and continue</span>
+            </a>
+          </div>
+
+          <div class="note">
+            Tip: If you’re a household, sign in as <strong>Slum Dweller</strong>.
+          </div>
+        </aside>
+      </div>
+
+      <div class="hero__glow" aria-hidden="true"></div>
+      <div class="hero__glow hero__glow--two" aria-hidden="true"></div>
+    </section>
+
+    <section id="about" class="section">
+      <div class="container">
+        <header class="section__head">
+          <h2>About SlumLink</h2>
+          <p class="muted">
+            A single platform for verified records, smarter outreach, and measurable progress.
+          </p>
+        </header>
+
+        <div class="feature-grid">
+          <article class="feature">
+            <h3>Verified visibility</h3>
+            <p>Households become visible and trackable—so support is targeted and fair.</p>
+          </article>
+          <article class="feature">
+            <h3>Transparent aid records</h3>
+            <p>NGOs can plan and document campaigns with consistent data and clear outcomes.</p>
+          </article>
+          <article class="feature">
+            <h3>Complaint resolution</h3>
+            <p>Authorities can track complaints and updates—so issues don’t get lost.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="impact" class="section section--tint">
+      <div class="container">
+        <header class="section__head">
+          <h2>Our Impact</h2>
+          <p class="muted">Real numbers, real accountability.</p>
+        </header>
+
+        <div class="impact-grid" role="list">
+          <div class="impact" role="listitem">
+            <div class="impact__icon" aria-hidden="true">📌</div>
+            <div>
+              <div class="impact__k">10,000+</div>
+              <div class="impact__v">Families registered</div>
+            </div>
+          </div>
+          <div class="impact" role="listitem">
+            <div class="impact__icon" aria-hidden="true">📊</div>
+            <div>
+              <div class="impact__k">500+</div>
+              <div class="impact__v">Aid events tracked (QR)</div>
+            </div>
+          </div>
+          <div class="impact" role="listitem">
+            <div class="impact__icon" aria-hidden="true">🛠️</div>
+            <div>
+              <div class="impact__k">2,000+</div>
+              <div class="impact__v">Complaints resolved</div>
+            </div>
+          </div>
+          <div class="impact" role="listitem">
+            <div class="impact__icon" aria-hidden="true">💼</div>
+            <div>
+              <div class="impact__k">1,200+</div>
+              <div class="impact__v">Job matches via skills</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="register-household" class="section">
+      <div class="container">
+        <header class="section__head">
+          <h2>Register Household</h2>
+          <p class="muted">For families: get visibility, access support, and track updates.</p>
+        </header>
+
+        <div class="cta-split">
+          <div class="cta-card">
+            <h3>Household access</h3>
+            <p>Use the sign-in page and select the <strong>Slum Dweller</strong> role.</p>
+            <div class="cta-row">
+              <a class="btn btn--primary" href="index.html">Go to Sign In</a>
+              <a class="btn btn--ghost" href="#signin">Learn how</a>
+            </div>
+          </div>
+          <div class="cta-card cta-card--soft">
+            <h3>What you can do</h3>
+            <ul class="checklist">
+              <li>Submit and track complaints</li>
+              <li>View campaigns and assistance details</li>
+              <li>Keep household information updated</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="register-organization" class="section section--tint">
+      <div class="container">
+        <header class="section__head">
+          <h2>Register Organization</h2>
+          <p class="muted">For NGOs: onboard, run campaigns, and measure outcomes.</p>
+        </header>
+
+        <div class="cta-split">
+          <div class="cta-card">
+            <h3>NGO registration</h3>
+            <p>Register your organization to access the NGO dashboard and campaign tools.</p>
+            <div class="cta-row">
+              <a class="btn btn--primary" href="signup.html">Register Organization</a>
+              <a class="btn btn--soft" href="ngo-dashboard.html">Preview NGO Dashboard</a>
+            </div>
+          </div>
+          <div class="cta-card cta-card--soft">
+            <h3>What you can manage</h3>
+            <ul class="checklist">
+              <li>Create and edit campaigns</li>
+              <li>View all campaigns with status</li>
+              <li>Record people helped for finished work</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="signin" class="section">
+      <div class="container">
+        <header class="section__head">
+          <h2>Sign In</h2>
+          <p class="muted">Choose your role and continue to your dashboard.</p>
+        </header>
+
+        <div class="signin-card">
+          <div>
+            <h3>Role-based access</h3>
+            <p>
+              NGOs, local authorities, slum households, and admins each get a tailored view.
+            </p>
+          </div>
+          <a class="btn btn--primary" href="index.html">Open Sign In</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <div class="footer__logo" aria-hidden="true"></div>
+        <div>
+          <div class="footer__name">SlumLink</div>
+          <div class="footer__tag muted">Transparent aid • Verified records • Measurable impact</div>
+        </div>
+      </div>
+      <div class="footer__links">
+        <a href="#about">About</a>
+        <a href="#impact">Impact</a>
+        <a href="#register-organization">Register</a>
+        <a href="#signin">Sign In</a>
+      </div>
+      <div class="footer__copy muted">
+        <span id="year">2025</span> SlumLink. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <script src="homepage.js"></script>
+</body>
+</html>

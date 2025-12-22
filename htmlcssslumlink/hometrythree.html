@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlumLink — Home</title>
+  <style>
+    :root{
+      /* Core palette (tuned to match the screenshot’s warm + earthy tones) */
+      --cream-0:#fbf4e9;
+      --cream-1:#f7eddc;
+      --cream-2:#f3e2ca;
+      --sand-0:#efd7bd;
+      --sand-1:#e7c7a7;
+      --tan-0:#d7b08c;
+      --tan-1:#c99672;
+      --sage-0:#dde7d9;
+      --sage-1:#cfe0d3;
+      --sage-2:#bcd0c0;
+      --ink:#2f2220;
+      --ink-2:#3a2a26;
+      --muted:#6b5a52;
+      --stroke:rgba(47,34,32,.12);
+
+      --radius-xl:24px;
+      --radius-lg:18px;
+      --radius-md:14px;
+      --shadow: 0 14px 35px rgba(47,34,32,.14);
+      --shadow-soft: 0 8px 18px rgba(47,34,32,.12);
+      --shadow-tiny: 0 6px 12px rgba(47,34,32,.10);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--ink);
+      background: var(--cream-0);
+      overflow-x:hidden;
+    }
+
+    /* Page frame */
+    .frame{
+      width:min(1280px, 92vw);
+      margin:0 auto;
+      padding:26px 0 60px;
+    }
+
+    /* Top navigation */
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      padding:18px 18px;
+      border-radius: 22px;
+      background: rgba(251,244,233,.85);
+      border:1px solid var(--stroke);
+      box-shadow: 0 10px 26px rgba(47,34,32,.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding-left:8px;
+    }
+    .brand-badge{
+      width:34px;height:34px;border-radius:50%;
+      background: linear-gradient(135deg, #caa187, #b1806a);
+      box-shadow: 0 10px 22px rgba(47,34,32,.12);
+      border:1px solid rgba(255,255,255,.55);
+    }
+    .brand-name{
+      font-weight:700;
+      letter-spacing:.06em;
+      color:#9a6b58;
+      font-size:20px;
+    }
+
+    .nav-links{
+      display:flex;
+      align-items:center;
+      gap:26px;
+      margin-left:auto;
+      margin-right:16px;
+      font-size:18px;
+      color:#8a6a5e;
+    }
+    .nav-links a{
+      color:inherit;
+      text-decoration:none;
+      padding:6px 8px;
+      border-radius:10px;
+      transition: .18s ease;
+    }
+    .nav-links a:hover{
+      background: rgba(231,199,167,.32);
+      color:#6e4f45;
+    }
+
+    .btn{
+      border:0;
+      cursor:pointer;
+      font-weight:600;
+      font-size:18px;
+      padding:10px 18px;
+      border-radius:999px;
+      background: linear-gradient(180deg, #e8c7a6, #dfb790);
+      color:var(--ink);
+      box-shadow: 0 10px 22px rgba(47,34,32,.14);
+      border: 1px solid rgba(47,34,32,.10);
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); filter:saturate(1.02); box-shadow: 0 16px 30px rgba(47,34,32,.16); }
+    .btn:active{ transform: translateY(0px); box-shadow: 0 10px 18px rgba(47,34,32,.12); }
+
+    /* Hero background */
+    .hero{
+      margin-top:18px;
+      border-radius: 28px;
+      min-height: 690px;
+      position:relative;
+      overflow:hidden;
+      border:1px solid var(--stroke);
+      box-shadow: 0 18px 45px rgba(47,34,32,.10);
+      background:
+        radial-gradient(900px 500px at 20% 25%, rgba(205,226,212,.65), transparent 55%),
+        radial-gradient(900px 600px at 75% 65%, rgba(231,199,167,.70), transparent 55%),
+        linear-gradient(135deg, var(--sage-0) 0%, var(--cream-1) 45%, var(--sand-0) 100%);
+    }
+
+    /* Decorative circles (right side) */
+    .orb{ position:absolute; border-radius:50%; pointer-events:none; opacity:.28; }
+    .orb.one{
+      width:420px;height:420px;
+      right:-90px; top:34px;
+      background: #b47b63;
+      opacity:.22;
+    }
+    .orb.two{
+      width:320px;height:320px;
+      right:90px; top:90px;
+      background: #caa187;
+      opacity:.18;
+      border:1px solid rgba(47,34,32,.18);
+    }
+    .orb.three{
+      width:280px;height:280px;
+      right:-10px; top:160px;
+      background: #8f5a47;
+      opacity:.14;
+    }
+    .orb.ring{
+      width:520px;height:520px;
+      right:-120px; top:-60px;
+      background: transparent;
+      border:1px solid rgba(47,34,32,.20);
+      opacity:.20;
+    }
+
+    /* Hero layout */
+    .hero-inner{
+      padding:64px 58px 54px;
+      display:grid;
+      grid-template-columns: 1.12fr .88fr;
+      gap:46px;
+      align-items:start;
+    }
+
+    /* Left content */
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:999px;
+      background: rgba(251,244,233,.65);
+      border:1px solid rgba(47,34,32,.10);
+      box-shadow: 0 10px 18px rgba(47,34,32,.06);
+      color:#4a3731;
+      font-weight:600;
+      width: fit-content;
+    }
+    .pill-dot{
+      width:10px;height:10px;border-radius:50%;
+      background:#b47b63;
+      box-shadow: 0 6px 12px rgba(47,34,32,.16);
+    }
+
+    h1{
+      margin:22px 0 14px;
+      font-size:56px;
+      line-height:1.02;
+      letter-spacing:-.02em;
+      color:#2c1e1a;
+      text-shadow: 0 1px 0 rgba(255,255,255,.35);
+    }
+
+    .lead{
+      margin:0;
+      max-width: 620px;
+      font-size:19px;
+      line-height:1.55;
+      color: rgba(47,34,32,.78);
+    }
+
+    .stats{
+      margin-top:46px;
+      display:flex;
+      gap:20px;
+      flex-wrap:wrap;
+    }
+    .stat{
+      width: 188px;
+      padding:18px 18px;
+      background: rgba(251,244,233,.85);
+      border:1px solid rgba(47,34,32,.12);
+      border-radius: 16px;
+      box-shadow: var(--shadow-tiny);
+    }
+    .stat strong{
+      display:block;
+      font-size:24px;
+      letter-spacing:-.01em;
+      margin-bottom:6px;
+    }
+    .stat span{
+      display:block;
+      color: rgba(47,34,32,.76);
+      font-size:16px;
+      line-height:1.35;
+    }
+
+    /* Right card */
+    .panel{
+      border-radius: var(--radius-xl);
+      background: rgba(251,244,233,.88);
+      border:1px solid rgba(47,34,32,.12);
+      box-shadow: var(--shadow);
+      padding:26px 26px 22px;
+      position:relative;
+      margin-top: 30px;
+    }
+
+    .panel h3{
+      margin:0 0 8px;
+      font-size:22px;
+      color:#2c1e1a;
+    }
+
+    .panel p{
+      margin:0 0 18px;
+      color: rgba(47,34,32,.75);
+      font-size:16.5px;
+      line-height:1.45;
+    }
+
+    .choice{
+      border-radius:18px;
+      padding:18px 18px;
+      border:1px solid rgba(47,34,32,.10);
+      box-shadow: 0 10px 20px rgba(47,34,32,.08);
+      cursor:pointer;
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+      user-select:none;
+    }
+
+    .choice + .choice{ margin-top:14px; }
+
+    .choice .title{
+      font-weight:800;
+      font-size:24px;
+      margin-bottom:4px;
+      color:#2c1e1a;
+    }
+
+    .choice .sub{
+      font-size:22px;
+      color: rgba(47,34,32,.70);
+    }
+
+    .choice.household{ background: rgba(205,226,212,.70); }
+    .choice.org{ background: rgba(231,199,167,.75); }
+    .choice.signin{ background: rgba(231,199,167,.45); }
+
+    .choice:hover{ transform: translateY(-1px); box-shadow: 0 16px 30px rgba(47,34,32,.12); filter:saturate(1.02); }
+    .choice:active{ transform: translateY(0px); box-shadow: 0 10px 20px rgba(47,34,32,.10); }
+
+    .choice.selected{
+      outline: 3px solid rgba(180,123,99,.32);
+      box-shadow: 0 20px 42px rgba(47,34,32,.16);
+    }
+
+    /* About section text (visible like screenshot bottom) */
+    .about{
+      padding: 46px 58px 54px;
+      position:relative;
+    }
+    .about h2{
+      margin: 0 0 10px;
+      font-size:34px;
+      letter-spacing:-.01em;
+      color:#2c1e1a;
+    }
+    .about p{
+      margin:0;
+      font-size:18px;
+      color: rgba(47,34,32,.78);
+      max-width: 780px;
+    }
+
+    /* Responsive */
+    @media (max-width: 980px){
+      .hero-inner{ grid-template-columns: 1fr; padding:44px 26px; }
+      h1{ font-size:46px; }
+      .panel{ margin-top: 6px; }
+      .about{ padding: 32px 26px 42px; }
+      .nav-links{ display:none; }
+    }
+
+    @media (max-width: 520px){
+      h1{ font-size:40px; }
+      .stat{ width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- File name requested: hometrythree (save this file as hometrythree.html) -->
+  <div class="frame">
+    <header class="nav">
+      <div class="brand" aria-label="SlumLink">
+        <div class="brand-badge" aria-hidden="true"></div>
+        <div class="brand-name">SLUMLINK</div>
+      </div>
+
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#about">About</a>
+        <a href="#impact">Impact</a>
+        <a href="#household">Household</a>
+        <a href="#organization">Organization</a>
+      </nav>
+
+      <button class="btn" id="topSignInBtn" type="button">Sign In</button>
+    </header>
+
+    <main class="hero">
+      <!-- Decorative orbs to match screenshot -->
+      <div class="orb ring"></div>
+      <div class="orb one"></div>
+      <div class="orb two"></div>
+      <div class="orb three"></div>
+
+      <section class="hero-inner">
+        <!-- Left column -->
+        <div>
+          <div class="pill"><span class="pill-dot"></span> Transparent support that reaches the right people.</div>
+
+          <h1>Visibility. Dignity.Progress<br/>— for every slum family.</h1>
+
+          <p class="lead">
+            SlumLink connects households, NGOs, and local authorities to track aid,
+            resolve complaints, and measure real-world outcomes.
+          </p>
+
+          <div class="stats" aria-label="Highlights">
+            <div class="stat">
+              <strong>10k+</strong>
+              <span>Families visible</span>
+            </div>
+            <div class="stat">
+              <strong>500+</strong>
+              <span>Aids events tracked</span>
+            </div>
+            <div class="stat">
+              <strong>2K+</strong>
+              <span>Complaints resolved</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column (Start in seconds card) -->
+        <aside class="panel" aria-label="Start in seconds">
+          <h3>Start in seconds</h3>
+          <p>Pick your path — household support, NGO operations, or authority case management.</p>
+
+          <div class="choice household" data-target="household">
+            <div class="title">Household</div>
+            <div class="sub">Register and access support</div>
+          </div>
+
+          <div class="choice org" data-target="organization">
+            <div class="title">Organization</div>
+            <div class="sub">Create and manage campaigns</div>
+          </div>
+
+          <div class="choice signin" data-target="signin">
+            <div class="title">Sign In</div>
+            <div class="sub">Choose your role and continue</div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="about" id="about">
+        <h2>About SlumLink</h2>
+        <p>A single platform for verified records, smarter outreach, and measurable progress.</p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Light interaction: highlight selection + simulate navigation
+    const choices = document.querySelectorAll('.choice');
+    const topBtn = document.getElementById('topSignInBtn');
+
+    function selectChoice(el){
+      choices.forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    choices.forEach(choice => {
+      choice.addEventListener('click', () => {
+        selectChoice(choice);
+        const target = choice.dataset.target;
+
+        // You can replace these with real routes/pages later
+        if(target === 'household'){
+          window.location.hash = '#household';
+        } else if(target === 'organization'){
+          window.location.hash = '#organization';
+        } else {
+          // sign-in modal/page placeholder
+          alert('Sign-in flow goes here (role selection page).');
+        }
+      });
+    });
+
+    topBtn.addEventListener('click', () => {
+      // same as card sign-in
+      alert('Sign-in flow goes here (role selection page).');
+    });
+  </script>
+</body>
+</html>

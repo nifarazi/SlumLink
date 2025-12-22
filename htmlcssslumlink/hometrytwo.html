@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLUMLINK</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.5;
+            color: #333;
+            background-color: #fefefe;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header styles - matches screenshot */
+        header {
+            background-color: #ffffff;
+            padding: 20px 0;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            color: #2c5530;
+            letter-spacing: 1px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-right: 30px;
+        }
+        
+        nav ul li a {
+            text-decoration: none;
+            color: #555;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        nav ul li:first-child a {
+            color: #2c5530;
+            font-weight: 600;
+        }
+        
+        .sign-in-btn {
+            background-color: #2c5530;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        
+        /* Hero section - matches screenshot */
+        .hero {
+            padding: 70px 0 40px;
+            text-align: center;
+        }
+        
+        .tagline {
+            font-size: 18px;
+            color: #2c5530;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .main-heading {
+            font-size: 42px;
+            color: #1a1a1a;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 25px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .main-heading span {
+            color: #2c5530;
+        }
+        
+        .description {
+            font-size: 18px;
+            color: #444;
+            max-width: 850px;
+            margin: 0 auto 60px;
+            line-height: 1.6;
+        }
+        
+        /* Stats section - matches screenshot */
+        .stats {
+            display: flex;
+            justify-content: center;
+            border-top: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 40px 0;
+            margin-bottom: 60px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 0 40px;
+        }
+        
+        .stat-number {
+            font-size: 48px;
+            font-weight: 800;
+            color: #2c5530;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 16px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        /* Path section - matches screenshot */
+        .path-section {
+            padding: 0 0 80px;
+            text-align: center;
+        }
+        
+        .path-title {
+            font-size: 32px;
+            color: #1a1a1a;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .path-subtitle {
+            font-size: 18px;
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto 50px;
+        }
+        
+        .paths {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .path-card {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 40px 30px;
+            width: 350px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .path-card h3 {
+            font-size: 24px;
+            color: #2c5530;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .path-card p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        .path-btn {
+            background-color: #2c5530;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        
+        .path-btn:hover {
+            background-color: #3a6b3d;
+        }
+        
+        .path-card.sign-in {
+            border-color: #2c5530;
+            background-color: #f8f9fa;
+        }
+        
+        .path-card.sign-in h3 {
+            color: #1a1a1a;
+        }
+        
+        .path-card.sign-in .path-btn {
+            background-color: #1a1a1a;
+        }
+        
+        .path-card.sign-in .path-btn:hover {
+            background-color: #333;
+        }
+        
+        /* About section - matches screenshot */
+        .about-section {
+            padding: 80px 0;
+            background-color: #f8f9fa;
+            text-align: center;
+        }
+        
+        .about-title {
+            font-size: 32px;
+            color: #2c5530;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+        
+        .about-description {
+            font-size: 20px;
+            color: #444;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #2c5530;
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+        
+        .footer-text {
+            color: rgba(255, 255, 255, 0.85);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 992px) {
+            .paths {
+                flex-wrap: wrap;
+            }
+            
+            .path-card {
+                width: 100%;
+                max-width: 350px;
+            }
+            
+            .main-heading {
+                font-size: 36px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            nav ul {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            nav ul li {
+                margin: 0 15px 10px;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            .stat-item {
+                padding: 0;
+            }
+            
+            .main-heading {
+                font-size: 30px;
+            }
+            
+            .path-title, .about-title {
+                font-size: 28px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .main-heading {
+                font-size: 26px;
+            }
+            
+            .path-card {
+                padding: 30px 20px;
+            }
+            
+            .path-title, .about-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">SLUMLINK</div>
+                <nav>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Impact</a></li>
+                        <li><a href="#">Household Organization</a></li>
+                    </ul>
+                </nav>
+                <button class="sign-in-btn">Sign In</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="tagline">Transparent support that reaches the right people.</div>
+            <h1 class="main-heading">Visibility. Dignity. Progress <span>— for every slum family.</span></h1>
+            <p class="description">SlumLink connects households, NGOs, and local authorities to track aid, resolve complaints, and measure real-world outcomes.</p>
+            
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">10k+</div>
+                    <div class="stat-label">Families visible</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">Aid events tracked</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">2K+</div>
+                    <div class="stat-label">Complaints resolved</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Path Selection -->
+    <section class="path-section">
+        <div class="container">
+            <h2 class="path-title">Start in seconds</h2>
+            <p class="path-subtitle">Pick your path — household support, NGO operations, or authority case management.</p>
+            
+            <div class="paths">
+                <!-- Household Card -->
+                <div class="path-card">
+                    <h3>Household</h3>
+                    <p>Register and access support</p>
+                    <button class="path-btn">Register and access support</button>
+                </div>
+                
+                <!-- Organization Card -->
+                <div class="path-card">
+                    <h3>Organization</h3>
+                    <p>Create and manage campaigns</p>
+                    <button class="path-btn">Create and manage campaigns</button>
+                </div>
+                
+                <!-- Sign In Card -->
+                <div class="path-card sign-in">
+                    <h3>Sign In</h3>
+                    <p>Choose your role and continue</p>
+                    <button class="path-btn">Choose your role and continue</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section">
+        <div class="container">
+            <h2 class="about-title">About SlumLink</h2>
+            <p class="about-description">A single platform for verified records, smarter outreach, and measurable progress.</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-logo">SLUMLINK</div>
+            <p class="footer-text">Connecting households, NGOs, and local authorities for transparent aid distribution and community progress tracking.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Simple interactivity for buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sign In button
+            const signInBtn = document.querySelector('.sign-in-btn');
+            signInBtn.addEventListener('click', function() {
+                alert('Sign In functionality would be implemented here.');
+            });
+            
+            // Path buttons
+            const pathBtns = document.querySelectorAll('.path-btn');
+            pathBtns.forEach(button => {
+                button.addEventListener('click', function() {
+                    const card = this.closest('.path-card');
+                    const title = card.querySelector('h3').textContent;
+                    
+                    if (title === 'Household') {
+                        alert('Redirecting to Household registration page...');
+                    } else if (title === 'Organization') {
+                        alert('Redirecting to Organization campaign management...');
+                    } else if (title === 'Sign In') {
+                        alert('Opening role selection for Sign In...');
+                    }
+                });
+            });
+            
+            // Navigation links
+            const navLinks = document.querySelectorAll('nav a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const linkText = this.textContent;
+                    alert(`${linkText} page would load here.`);
+                });
+            });
+            
+            // Simple animation for stats
+            const statNumbers = document.querySelectorAll('.stat-number');
+            const observerOptions = {
+                threshold: 0.5,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const stat = entry.target;
+                        const originalText = stat.textContent;
+                        const value = parseInt(originalText);
+                        
+                        // Only animate if it's a number (not already animated)
+                        if (!isNaN(value) && !stat.classList.contains('animated')) {
+                            stat.classList.add('animated');
+                            
+                            let counter = 0;
+                            const increment = value / 60; // Animate over ~1 second
+                            
+                            const updateCounter = () => {
+                                counter += increment;
+                                if (counter < value) {
+                                    stat.textContent = Math.floor(counter) + originalText.replace(value, '');
+                                    setTimeout(updateCounter, 20);
+                                } else {
+                                    stat.textContent = originalText;
+                                }
+                            };
+                            
+                            updateCounter();
+                        }
+                    }
+                });
+            }, observerOptions);
+            
+            statNumbers.forEach(stat => {
+                observer.observe(stat);
+            });
+        });
+    </script>
+</body>
+</html>

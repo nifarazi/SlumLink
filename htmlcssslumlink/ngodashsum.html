@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlumLink | Slum Analytics</title>
+
+  <!-- Base dashboard styles -->
+  <link rel="stylesheet" href="ngo-dashboard.css" />
+  <!-- Page-specific styles -->
+  <link rel="stylesheet" href="ngodashsum.css" />
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+  <!-- Top Navigation -->
+  <header class="topbar">
+    <div class="brand" id="brandHome">
+      <span class="logo-dot"></span>
+      <div>
+        <h4>SLUMLINK</h4>
+        <p>Slum Analytics</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn-primary" id="backToDashboard">Back to Dashboard</button>
+      <div class="profile-icon" id="profileBtn" title="Profile">
+        <span>NGO</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard">
+    <!-- Hero -->
+    <section class="hero-section">
+      <div class="hero-card">
+        <div class="hero-content">
+          <h1>One step away from a full-fledged report</h1>
+          <p>
+            Select a slum area to generate a graphical report of how many people you helped this month.
+          </p>
+        </div>
+        <div class="hero-shapes">
+          <span class="shape shape-1"></span>
+          <span class="shape shape-2"></span>
+          <span class="shape shape-3"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analytics Card -->
+    <section class="card analytics-card">
+      <div class="card-header">
+        <h2>Monthly Impact Summary</h2>
+        <p>Choose an area to view your impact snapshot</p>
+      </div>
+
+      <div class="controls">
+        <label class="control" for="slumAreaSelect">
+          <span class="control-label">Select slum area</span>
+          <select id="slumAreaSelect" class="control-select" aria-label="Select slum area">
+            <option value="mirpur">Mirpur</option>
+            <option value="korail">Korail</option>
+            <option value="dharavi">Dharavi</option>
+            <option value="kibera">Kibera</option>
+          </select>
+        </label>
+
+        <div class="summary" aria-live="polite">
+          <div class="summary-item">
+            <div class="summary-label">Month</div>
+            <div class="summary-value" id="monthLabel">—</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">People helped</div>
+            <div class="summary-value" id="peopleHelped">—</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Campaigns</div>
+            <div class="summary-value" id="campaignCount">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <div class="chart-title" id="chartTitle">Impact by category (this month)</div>
+        <canvas id="impactChart" width="960" height="360" aria-label="Impact chart" role="img"></canvas>
+        <div class="chart-note">This is a preview snapshot; your full report will appear here.</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="ngodashsum.js"></script>
+</body>
+</html>

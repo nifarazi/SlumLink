@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlumLink | Campaigns</title>
+
+  <link rel="stylesheet" href="ngo-dashboard.css">
+  <link rel="stylesheet" href="campaigns.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand" id="homeLink">
+      <span class="logo-dot"></span>
+      <div>
+        <h4>SLUMLINK</h4>
+        <p>Campaigns</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn-primary" id="newCampaign">+ New Campaign</button>
+      <div class="profile-icon" id="profileBtn">
+        <span>NGO</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="campaigns-page">
+    <section class="campaigns-hero">
+      <div class="campaigns-hero-card">
+        <div>
+          <h1>All Campaigns</h1>
+          <p>Sorted by date. Filter by status, open details, edit, or delete.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="campaigns-card">
+      <div class="campaigns-toolbar">
+        <div class="filters" role="tablist" aria-label="Campaign filters">
+          <button class="filter is-active" type="button" data-filter="all" aria-selected="true">All</button>
+          <button class="filter" type="button" data-filter="pending" aria-selected="false">Pending</button>
+          <button class="filter" type="button" data-filter="finished" aria-selected="false">Finished</button>
+        </div>
+
+        <div class="summary" id="summary"></div>
+      </div>
+
+      <div class="campaigns-list" id="campaignsList"></div>
+    </section>
+  </main>
+
+  <script src="campaigns.js"></script>
+  <script src="ngo-dashboard.js"></script>
+</body>
+</html>

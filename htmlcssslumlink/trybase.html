@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SLUMLINK • NGO Dashboard Base</title>
+
+  <!-- Font in your Figma: Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *{ box-sizing: border-box; }
+
+    :root{
+      /* Frame size from Figma (header rectangle is 1440×97) */
+      --frame-w: 1440px;
+      --frame-h: 1024px;
+
+      /* Header */
+      --header-h: 64px;
+      --header-bg: #FFF4E6;
+
+      --header-pad-x: 18px;
+
+      /* Header element sizing (scaled down) */
+      --logo-size: 36px;
+      --logo-radius: 14px;
+      --brand-font: 26px;
+
+      --pill-w: 118px;
+      --pill-h: 40px;
+      --pill-radius: 18px;
+      --user-font: 22px;
+
+      /* Text color for SLUMLINK: A4624D @ 86% (from your Figma panel) */
+      --brand-rgb: 164, 98, 77;
+      --brand-opacity: 0.86;
+
+      /* Main background gradient (Figma) */
+      --g1: #CBB093; /* 22% */
+      --g2: #DAC4AD; /* 45% */
+      --g3: #C0E0D0; /* 76% */
+
+      /* Button + logo fill (Figma: Linear A4624D -> DFA477 @ 75%) */
+      --chip-a: 164, 98, 77;   /* #A4624D */
+      --chip-b: 223, 164, 119; /* #DFA477 */
+      --chip-opacity: 0.75;
+    }
+
+    html, body{
+      height: 100%;
+      margin: 0;
+      font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: #111; /* outside the frame (so you can see the exact 1440px layout) */
+    }
+
+    /* Center the 1440px design like Figma canvas */
+    .canvas{
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .frame{
+      position: relative;
+      /* Target 1440×1024, but always fit inside the viewport */
+      width: min(var(--frame-w), calc(100vw - 32px));
+      height: min(var(--frame-h), calc(100vh - 32px));
+      background: #0000;
+      overflow: hidden;
+      border-radius: 0;
+
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header bar: Rectangle 163 (1440×97) */
+    .header{
+      height: var(--header-h);
+      background: var(--header-bg);
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--header-pad-x);
+    }
+
+    /* Main gradient area (fills remaining space) */
+    .stage{
+      flex: 1;
+
+      /* Figma: Linear gradient dragged from top-left to bottom-right */
+      background: linear-gradient(
+        to bottom right,
+        var(--g1) 0%,
+        var(--g1) 22%,
+        var(--g2) 45%,
+        var(--g3) 76%,
+        var(--g3) 100%
+      );
+    }
+
+    /* Logo block: Rectangle 77 (50×50, radius 20) at X=29, Y=23 */
+    .logo-mark{
+      width: var(--logo-size);
+      height: var(--logo-size);
+      border-radius: var(--logo-radius);
+
+      /* Figma shows Linear @ 75% */
+      background: linear-gradient(
+        90deg,
+        rgba(var(--chip-a), var(--chip-opacity)) 0%,
+        rgba(var(--chip-b), var(--chip-opacity)) 100%
+      );
+    }
+
+    /* SLUMLINK text: Poppins Regular 36 at X=87, Y=21 */
+    .logo-text{
+      font-size: var(--brand-font);
+      font-weight: 400; /* Regular */
+      line-height: 1;
+      letter-spacing: 0;
+      color: rgba(var(--brand-rgb), var(--brand-opacity));
+      text-transform: uppercase;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    /* User pill: Rectangle 164 at X=1284, Y=23, W=126, H=51, radius 20 */
+    .user-pill{
+      width: var(--pill-w);
+      height: var(--pill-h);
+      border-radius: var(--pill-radius);
+
+      background: linear-gradient(
+        90deg,
+        rgba(var(--chip-a), var(--chip-opacity)) 0%,
+        rgba(var(--chip-b), var(--chip-opacity)) 100%
+      );
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Mastul text: Poppins Regular 32 at X=1295, Y=26 */
+    .user-name{
+      font-size: var(--user-font);
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: 0;
+      color: #FFFFFF;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .brand-wrap{
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Frame already fits via min(); no scaling needed */
+  </style>
+</head>
+<body>
+  <div class="canvas">
+    <div class="frame" aria-label="NGO Dashboard Frame">
+      <div class="header" aria-label="Header">
+        <div class="brand-wrap" aria-label="SlumLink">
+          <div class="logo-mark" aria-hidden="true"></div>
+          <div class="logo-text">SLUMLINK</div>
+        </div>
+
+        <div class="user-pill" aria-label="User">
+          <span class="user-name">Mastul</span>
+        </div>
+      </div>
+
+      <div class="stage" aria-hidden="true"></div>
+    </div>
+  </div>
+</body>
+</html>

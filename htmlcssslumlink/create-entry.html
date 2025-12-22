@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlumLink | Create</title>
+
+  <link rel="stylesheet" href="ngo-dashboard.css">
+  <link rel="stylesheet" href="create-entry.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand" id="homeLink">
+      <span class="logo-dot"></span>
+      <div>
+        <h4>SLUMLINK</h4>
+        <p>Create & Manage</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn-primary" id="backToDashboard">Back to Dashboard</button>
+      <div class="profile-icon" id="profileBtn">
+        <span>NGO</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="create-page">
+    <section class="create-hero">
+      <div class="create-hero-card">
+        <div>
+          <h1>Create a Campaign</h1>
+          <p>Create campaigns and target the right audience with the right skills.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="create-card">
+      <form id="createForm" class="form">
+        <input type="hidden" id="entryType" name="entryType" value="campaign" />
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="title">Title</label>
+            <input id="title" name="title" type="text" placeholder="e.g., Winter Blanket Drive" required />
+          </div>
+
+          <div class="field">
+            <label for="category">Category</label>
+            <select id="category" name="category" required>
+              <option value="">Select</option>
+              <option>Education</option>
+              <option>Health</option>
+              <option>Food</option>
+              <option>Women Empowerment</option>
+              <option>Child Welfare</option>
+              <option>Workshop</option>
+              <option>Employment</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="slumArea">Target Slum Area</label>
+            <input id="slumArea" name="slumArea" type="text" placeholder="e.g., Korail, Dharavi" required />
+          </div>
+
+          <div class="field">
+            <label for="date">Date</label>
+            <input id="date" name="date" type="date" required />
+          </div>
+
+          <div class="field">
+            <label for="time">Time</label>
+            <input id="time" name="time" type="time" required />
+          </div>
+
+          <div class="field">
+            <label for="gender">Target Gender</label>
+            <select id="gender" name="gender" required>
+              <option value="">Select</option>
+              <option value="both">Both</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="ageGroup">Age Group</label>
+            <select id="ageGroup" name="ageGroup" required>
+              <option value="">Select</option>
+              <option value="child">Child</option>
+              <option value="adult">Adult</option>
+              <option value="both">Both</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="ageRange">Age Range</label>
+            <input id="ageRange" name="ageRange" type="text" placeholder="e.g., 6-12 or 18-40" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" rows="4" placeholder="Write a short description..." required></textarea>
+        </div>
+
+        <div class="type-panels" id="extraFields" hidden>
+          <div class="panel">
+            <div class="panel-title">Extra Requirements</div>
+            <div class="form-grid">
+              <div class="field">
+                <label for="requiredEducation">Required Education</label>
+                <select id="requiredEducation" name="requiredEducation">
+                  <option value="">Select</option>
+                  <option value="none">No requirement</option>
+                  <option value="primary">Primary</option>
+                  <option value="secondary">Secondary</option>
+                  <option value="higher-secondary">Higher Secondary</option>
+                  <option value="graduate">Graduate</option>
+                </select>
+                <div class="hint">Shown when category is Workshop or Employment.</div>
+              </div>
+              <div class="field">
+                <label for="requiredSkills">Skills NGO Requires</label>
+                <select id="requiredSkills" name="requiredSkills" multiple>
+                  <option value="tailoring">Tailoring</option>
+                  <option value="embroidery">Embroidery</option>
+                  <option value="sewing">Sewing</option>
+                  <option value="plumbing">Plumbing</option>
+                  <option value="electric">Electrical</option>
+                  <option value="driving">Driving</option>
+                  <option value="delivery">Delivery</option>
+                  <option value="cooking">Cooking</option>
+                  <option value="computer basics">Computer Basics</option>
+                  <option value="digital literacy">Digital Literacy</option>
+                  <option value="teaching">Teaching</option>
+                  <option value="healthcare assistant">Healthcare Assistant</option>
+                  <option value="construction">Construction</option>
+                  <option value="retail sales">Retail Sales</option>
+                </select>
+                <div class="hint">Select one or more skills (Ctrl/⌘ + click for multiple).</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-secondary" type="button" id="previewMatch">Preview who gets notified</button>
+          <button class="btn-primary" type="submit">Save</button>
+        </div>
+
+        <div class="notice" id="notice" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section class="manage-card">
+      <div class="manage-header">
+        <div>
+          <h2>Manage Created Items</h2>
+          <p>All your created campaigns (saved in this browser).</p>
+        </div>
+        <button class="btn-tertiary" id="clearAll" type="button">Clear All</button>
+      </div>
+
+      <div id="itemsList" class="items"></div>
+    </section>
+  </main>
+
+  <script src="create-entry.js"></script>
+  <script src="ngo-dashboard.js"></script>
+</body>
+</html>
