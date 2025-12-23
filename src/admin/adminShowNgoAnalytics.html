@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SLUMLINK Dashboard</title>
+  <link rel="stylesheet" href="adminSlumAnalytics.css" />
+  <!-- Poppins font for this project -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="logo">SLUMLINK</div>
+    <input type="text" placeholder="Search" class="search" />
+    <div class="top-right">
+          <span class="admin">Admin ▾</span>
+          <a class="bell" href="adminNotification.html" title="Notifications">🔔</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <ul>
+          <li class="active"><a href="adminSlumAnalytics.html">📊 Slum Analytics</a></li>
+          <li><a href="adminNgoAnalytics.html">📈 NGO Analytics</a></li>
+          <li><a href="adminSlumResidents.html">🏠 Slum Residents</a></li>
+          <li><a href="adminFieldAgents.html">🧑‍💼 Field Agents</a></li>
+          <li><a href="adminVerifyNgo.html">✔ Verify NGOs</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <div class="main-grid">
+        <div class="left-column">
+          <section class="aid-section">
+            <div class="aid-header">
+              <h2>Aid Distribution</h2>
+              <div class="date-range">Last 30 days</div>
+            </div>
+
+            <div class="donut-chart" role="img" aria-label="Aid distribution donut chart">
+              <svg class="chart-svg" viewBox="0 0 32 32">
+                <!-- Background circle -->
+                <circle r="16" cx="16" cy="16" fill="#f3f3f3"></circle>
+                <!-- Food segment (42%) - dark color -->
+                <circle r="10" cx="16" cy="16" fill="transparent" stroke="#5A4A42" stroke-width="6" stroke-dasharray="26.4 62.8" stroke-dashoffset="0" stroke-linecap="round"></circle>
+                <!-- Shelter segment (25%) - light color, offset to start after Food -->
+                <circle r="10" cx="16" cy="16" fill="transparent" stroke="#D4B5A0" stroke-width="6" stroke-dasharray="15.7 62.8" stroke-dashoffset="-26.4" stroke-linecap="round"></circle>
+                <!-- Clothing segment (33%) - accent brown color, offset to start after Shelter -->
+                <circle r="10" cx="16" cy="16" fill="transparent" stroke="#AD7562" stroke-width="6" stroke-dasharray="20.7 62.8" stroke-dashoffset="-42.1" stroke-linecap="round"></circle>
+              </svg>
+            </div>
+
+            <div class="legend" aria-hidden="false">
+              <div class="legend-item"><span class="legend-dot" style="background:#5A4A42"></span><span class="legend-label">Food</span> <span class="legend-value">42%</span></div>
+              <div class="legend-item"><span class="legend-dot" style="background:#D4B5A0"></span><span class="legend-label">Shelter</span> <span class="legend-value">25%</span></div>
+              <div class="legend-item"><span class="legend-dot" style="background:#AD7562"></span><span class="legend-label">Clothing</span> <span class="legend-value">33%</span></div>
+            </div>
+          </section>
+
+          <section class="development-section">
+            <div class="development-header"><h2>Development Work Activity</h2></div>
+            <div class="update-info">Most recent update: 2 days ago</div>
+
+            <div class="bar-chart" aria-hidden="false">
+              <div class="bar-group">
+                <div class="bar bar-dark" style="height:80%"></div>
+                <div class="bar bar-light" style="height:60%"></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-dark" style="height:60%"></div>
+                <div class="bar bar-light" style="height:40%"></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-dark" style="height:90%"></div>
+                <div class="bar bar-light" style="height:70%"></div>
+              </div>
+            </div>
+
+            <div class="chart-legend">
+              <div class="chart-legend-item"><span style="display:inline-block;width:12px;height:12px;background:#5A4A42;border-radius:2px"></span> Completed</div>
+              <div class="chart-legend-item"><span style="display:inline-block;width:12px;height:12px;background:#D4B5A0;border-radius:2px"></span> In progress</div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="right-sidebar">
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Total Dwellers helped</div><div class="stat-value">3,214</div></div>
+            <div class="stat-card"><div class="stat-label">Aids distributed</div><div class="stat-value">12,840</div></div>
+            <div class="stat-card"><div class="stat-label">Total Projects</div><div class="stat-value">14</div></div>
+          </div>
+
+          <div class="urgent-card">
+            <div class="urgent-label">Most helped sector</div>
+            <div class="urgent-subtitle">Food</div>
+            <div class="urgent-value">42%</div>
+          </div>
+
+          <div class="growth-card">
+            <div class="growth-label">Monthly Growth</div>
+            <div class="growth-value">+6.2%</div>
+            <div class="mini-chart"><svg viewBox="0 0 100 40"><polyline points="0,30 20,20 40,10 60,15 80,8 100,4" fill="none" stroke="#5A4A42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></div>
+          </div>
+
+          <button class="btn-primary" id="exportBtn">Generate Report</button>
+          <button class="btn-secondary" id="goBackBtn">Go Back</button>
+        </aside>
+      </div>
+    </main>
+  </div>
+  <!-- logout modal markup -->
+  <div class="modal-overlay" id="logoutModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+      <div class="modal-header" id="logoutTitle">Log out</div>
+      <div class="modal-body">You're currently signed in as Admin. Do you want to log out and return to the home page?</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelLogout">Cancel</button>
+        <button class="btn btn-primary" id="confirmLogout">Log out</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="adminSlumAnalytics.js"></script>
+  <script>
+    // Make each .card button navigate to the show page for that slum.
+    // Adds ?slum=Name so the show page can read which slum to display.
+    document.addEventListener('DOMContentLoaded', function () {
+      var cards = document.querySelectorAll('.card');
+      cards.forEach(function (card) {
+        card.addEventListener('click', function () {
+          var name = (card.textContent || '').trim();
+          var target = 'adminShowSlumAnalytics.html';
+          if (name) {
+            target += '?slum=' + encodeURIComponent(name);
+          }
+          window.location.href = target;
+        });
+        // make keyboard accessible
+        card.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            card.click();
+          }
+        });
+      });
+
+      // Export Report button - generates and downloads a report
+      var exportBtn = document.getElementById('exportBtn');
+      if (exportBtn) {
+        exportBtn.addEventListener('click', function () {
+          var slumName = new URLSearchParams(window.location.search).get('slum') || 'Slum Report';
+          var report = 'SLUMLINK - ' + slumName + ' Report\n';
+          report += '=====================================\n\n';
+          report += 'Generated on: ' + new Date().toLocaleString() + '\n\n';
+          report += 'Aid Distribution:\n';
+          report += '- Food: 42%\n';
+          report += '- Shelter: 25%\n';
+          report += '- Clothing: 33%\n\n';
+          report += 'Statistics:\n';
+          report += '- Households: 3,214\n';
+          report += '- Population: 12,840\n';
+          report += '- Active Projects: 14\n\n';
+          report += 'Urgent Issues: Water access (3 issues)\n';
+          
+          var blob = new Blob([report], { type: 'text/plain' });
+          var url = window.URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = slumName.replace(/\s+/g, '_') + '_report.txt';
+          a.click();
+          window.URL.revokeObjectURL(url);
+        });
+      }
+
+      // Go Back button - returns to admin analytics dashboard
+      var goBackBtn = document.getElementById('goBackBtn');
+      if (goBackBtn) {
+        goBackBtn.addEventListener('click', function () {
+          window.location.href = 'adminSlumAnalytics.html';
+        });
+      }
+    });
+  </script>
+</body>
+</html>

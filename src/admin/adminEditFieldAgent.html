@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SLUMLINK · Edit Field Agent</title>
+  <link rel="stylesheet" href="adminSlumAnalytics.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Scoped page styles for the Edit Field Agent profile card */
+    .content {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+    }
+
+    /* Profile Card */
+    .content .profile-card {
+      background: #fbf3e8;
+      width: 720px; /* increased width for a larger edit box */
+      padding: 40px; /* slightly more interior spacing */
+      border-radius: 25px;
+      position: relative;
+      box-shadow: 0 12px 30px rgba(97,55,41,0.14);
+    }
+
+    /* Header */
+    .profile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .profile-header h2 { 
+      color: #9b745c;
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0.2px;
+    }
+
+    .profile-header img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    /* Info */
+    .info {
+      margin: 24px 0;
+      color: #9b745c;
+      font-size: 16px;
+    }
+
+    .info p {
+      margin-bottom: 6px;
+    }
+
+    /* Edit Section */
+    .edit-section label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      color: #9b745c;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .edit-section input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: none;
+      background: #e6cfb7;
+      color: #6e4f3f;
+      font-size: 14px;
+    }
+
+    /* Button */
+    .save-btn {
+      margin-top: 18px;
+      float: right;
+      padding: 10px 18px;
+      border-radius: 18px;
+      border: none;
+      background: #9b745c;
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    /* Small responsive tweak */
+    @media (max-width: 820px) {
+      .content .profile-card { width: calc(100% - 40px); padding: 22px; }
+      .profile-header img { width: 72px; height: 72px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">SLUMLINK</div>
+    <input type="text" placeholder="Search" class="search" />
+    <div class="top-right">
+      <span class="admin">Admin ▾</span>
+  <a class="bell" href="adminNotification.html" title="Notifications">🔔</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <ul>
+  <li><a href="adminSlumAnalytics.html">📊 Slum Analytics</a></li>
+  <li><a href="adminNgoAnalytics.html">📈 NGO Analytics</a></li>
+  <li><a href="adminSlumResidents.html">🏠 Slum Residents</a></li>
+  <li class="active"><a href="adminFieldAgents.html">🧑‍💼 Field Agents</a></li>
+  <li><a href="adminVerifyNgo.html">✔ Verify NGOs</a></li>
+      </ul>
+    </aside>
+
+    <main class="content">
+      <div class="profile-card">
+
+        <div class="profile-header">
+          <h2 id="agentName">Nanjiba Farazi</h2>
+          <img id="agentAvatar" src="profilepic/profile1.webp" alt="Profile">
+        </div>
+
+        <div class="info">
+          <p id="agentLocation"><strong>Location:</strong> Korail</p>
+          <p id="agentPhone"><strong>Phone Number:</strong> 01321663844</p>
+          <p id="agentEmail"><strong>Email:</strong> nanjibafarazi@gmail.com</p>
+        </div>
+
+        <form class="edit-section" action="#" method="post">
+          <label for="email">Edit Email:</label>
+          <input id="email" name="email" type="email" placeholder="Type new Email" value="nanjibafarazi@gmail.com">
+
+          <label for="phone">Edit Phone Number:</label>
+          <input id="phone" name="phone" type="text" placeholder="Type new Phone Number" value="01321663844">
+
+          <button type="submit" class="save-btn">Save Changes</button>
+        </form>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="logoutModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+      <div class="modal-header" id="logoutTitle">Log out</div>
+      <div class="modal-body">You're currently signed in as Admin. Do you want to log out and return to the home page?</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelLogout">Cancel</button>
+        <button class="btn btn-primary" id="confirmLogout">Log out</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="adminSlumAnalytics.js"></script>
+  <script>
+    // Read agent data from query string and populate the page
+    document.addEventListener('DOMContentLoaded', function () {
+      const params = new URLSearchParams(window.location.search);
+      const name = params.get('name');
+      const location = params.get('location');
+      const phone = params.get('phone');
+      const email = params.get('email');
+
+      if (name) {
+        const nameEl = document.getElementById('agentName');
+        if (nameEl) nameEl.textContent = decodeURIComponent(name);
+      }
+
+      if (location) {
+        const locEl = document.getElementById('agentLocation');
+        if (locEl) locEl.innerHTML = '<strong>Location:</strong> ' + decodeURIComponent(location);
+      }
+
+      if (phone) {
+        const phoneEl = document.getElementById('agentPhone');
+        if (phoneEl) phoneEl.innerHTML = '<strong>Phone Number:</strong> ' + decodeURIComponent(phone);
+        const phoneInput = document.getElementById('phone');
+        if (phoneInput) phoneInput.value = decodeURIComponent(phone);
+      }
+
+      if (email) {
+        const emailEl = document.getElementById('agentEmail');
+        if (emailEl) emailEl.innerHTML = '<strong>Email:</strong> ' + decodeURIComponent(email);
+        const emailInput = document.getElementById('email');
+        if (emailInput) emailInput.value = decodeURIComponent(email);
+      }
+    });
+  </script>
+</body>
+</html>

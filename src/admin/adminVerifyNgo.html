@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SLUMLINK · Verify NGOs</title>
+  <link rel="stylesheet" href="adminSlumAnalytics.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">SLUMLINK</div>
+    <input type="text" placeholder="Search" class="search" />
+    <div class="top-right">
+      <span class="admin">Admin ▾</span>
+      <a class="bell" href="adminNotification.html" title="Notifications">🔔</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <ul>
+        <li><a href="adminSlumAnalytics.html">📊 Slum Analytics</a></li>
+        <li><a href="adminNgoAnalytics.html">📈 NGO Analytics</a></li>
+        <li><a href="adminSlumResidents.html">🏠 Slum Residents</a></li>
+        <li><a href="adminFieldAgents.html">🧑‍💼 Field Agents</a></li>
+        <li class="active"><a href="adminVerifyNgo.html">✔ Verify NGOs</a></li>
+      </ul>
+    </aside>
+
+    <main class="content">
+      <h2>Verify NGOs</h2>
+      <p>Placeholder for NGO verification workflow.</p>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="logoutModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+      <div class="modal-header" id="logoutTitle">Log out</div>
+      <div class="modal-body">You're currently signed in as Admin. Do you want to log out and return to the home page?</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelLogout">Cancel</button>
+        <button class="btn btn-primary" id="confirmLogout">Log out</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="adminSlumAnalytics.js"></script>
+</body>
+</html>

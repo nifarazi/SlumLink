@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Redirecting — Admin</title>
+  <!-- Quick meta-refresh fallback to go back to site root -->
+  <meta http-equiv="refresh" content="0; url=../../index.html">
+  <script>
+    // JavaScript redirect to the site root (parent index.html)
+    (function () {
+      var target = '../../index.html';
+      try {
+        // Use replace to avoid creating history entries
+        location.replace(target);
+      } catch (e) {
+        location.href = target;
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting to the admin dashboard — <a href="adminSlumAnalytics.html">Open dashboard</a>.</p>
+</body>
+</html>
