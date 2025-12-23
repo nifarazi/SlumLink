@@ -1,0 +1,131 @@
+/* Palette & base */
+:root{
+  --bg1: #F5DFC5;
+  --bg2: #8F8273;
+  --accent: #A4624D; /* title + nav */
+  --card-bg: #FFFFFF;
+  --text: #222222;
+  --muted: #6B6B6B;
+  --input-bg: #F3F3F3;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body.signup-body{
+  margin:0;
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+}
+
+/* Two-column shell */
+.signup-shell{ 
+  display:grid; 
+  grid-template-columns: 48% 52%; 
+  min-height:100dvh; 
+  background: linear-gradient(235deg, var(--bg1), var(--bg2));
+}
+
+/* Left visual */
+.visual{ position:relative; overflow:hidden; }
+.visual::after{ content:""; position:absolute; inset:0; background: rgba(255,255,255,0.5); z-index:1; }
+.visual-bg{ 
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover; 
+  opacity:.5; z-index:0; 
+}
+.visual-content{ position:absolute; top:24px; left:0; right:0; z-index:2; padding: 0 24px; display:flex; flex-direction:column; align-items:center; text-align:center; }
+.brand{ display:flex; align-items:center; gap:10px; font-weight:700; color:#000; }
+.logo-mark{ 
+  width:25px; height:25px; border-radius:20%; 
+  background: linear-gradient(135deg, #A4624D, #DFA477); 
+  display:inline-block; 
+}
+.logo-text{ font-size:25px; letter-spacing:1.2px; color: rgba(164,98,77,0.86); }
+.headline{ margin-top:18px; display:flex; flex-direction:column; gap:8px; }
+.rise{ font-weight:700; color:#000; font-size:30px; }
+.heard{ font-weight:700; color:#A4624D; font-size:30px; }
+
+/* Right content */
+.content{ display:flex; align-items:center; justify-content:center; padding: 40px; }
+.card{ 
+  position:relative; 
+  width:min(720px, 92%); 
+  background: var(--card-bg); 
+  border-radius:40px; 
+  box-shadow: 0 12px 30px rgba(0,0,0,.12); 
+  padding:24px; 
+  display:flex; 
+  flex-direction:column; 
+  min-height:115vh; 
+  max-height:115vh; 
+}
+.card-head{ display:flex; flex-direction:column; align-items:stretch; gap:12px; margin-bottom:16px; }
+.card-title{ margin:0; font-size:30px; font-weight:700; color: var(--accent); text-align:left; padding-top: 20px; }
+
+/* Progress: thin lines */
+.progress{ display:flex; gap:5px; align-items:center; justify-content:center; width:100%; padding-top: 15px;}
+.bar{ height:4px; flex:1; border-radius:2px; background:#F5DFC5; }
+.bar.is-active{ background: var(--accent); }
+
+/* Form layout */
+.form{ display:block; }
+.form{ display:block; overflow:auto; flex:1; }
+.fields{ 
+  display:grid; 
+  grid-template-columns: repeat(2, minmax(0,1fr)); 
+  gap:14px; 
+}
+.field{ display:flex; flex-direction:column; gap:8px; }
+.field span{ font-size:13px; color:#444; font-weight:700; }
+.field input,
+.field select{
+  width:100%; 
+  padding:12px 14px; 
+  border:none; 
+  border-radius:12px; 
+  background: var(--input-bg); 
+  color: var(--text); 
+  outline:none; 
+  box-shadow: inset 0 0 0 1px #e0e0e0; 
+}
+.pwd-wrap{ display:flex; align-items:center; gap:8px; }
+.toggle-pwd{ 
+  display:inline-flex; align-items:center; justify-content:center;
+  width:72px; height:36px; padding:0;
+  border-radius:10px; border:1px solid #e2e2e2; 
+  background:#fff; color: var(--accent); font-size:12px; cursor:pointer; 
+  flex:0 0 auto;
+}
+.toggle-pwd:hover{ box-shadow: 0 2px 8px rgba(0,0,0,.10); }
+.field input::placeholder{ color:#9b9b9b }
+.span-2{ grid-column: span 2; }
+
+/* Submit (removed) */
+/* No primary submit button per spec */
+
+/* Navigation buttons at bottom of card */
+.nav-arrows{
+    display:flex; justify-content:space-between; align-items:center; margin-top:auto;
+    padding-top: 20px; 
+}
+.nav-btn{ 
+  width:44px; height:44px; border-radius:50%; 
+  display:grid; place-items:center; 
+  background: var(--accent); color: #fff; 
+  border:none; box-shadow: 0 6px 16px rgba(0,0,0,.14);
+  transition: all .3s ease;
+  cursor: pointer;
+}
+.nav-btn:hover{ 
+    background: #E8B1A0;
+    transform: scale(1.05);
+}
+.segment-title{ margin:16px 0 8px; font-size:16px; font-weight:700; color: var(--accent); }
+.segments{ display:grid; gap:10px; }
+
+
+/* Responsive */
+@media (max-width: 960px){
+  .signup-shell{ grid-template-columns: 1fr; }
+  .visual{ display:none; }
+  .card{ width:100%; }
+  .span-2{ grid-column:auto; }
+}

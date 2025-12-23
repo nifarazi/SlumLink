@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SLUMLINK | Sign Up</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./signup.css" />
+  </head>
+  <body class="signup-body">
+    <div class="signup-shell">
+      <!-- Left visual column -->
+      <aside class="visual" aria-hidden="false">
+        <div class="visual-content">
+          <div class="brand">
+            <span class="logo-mark" aria-hidden="true"></span>
+            <span class="logo-text">SLUMLINK</span>
+          </div>
+          <h1 class="headline">
+            <span class="rise">Together We Rise.</span>
+            <span class="heard">Sign Up To Be Heard.</span>
+          </h1>
+        </div>
+        <img class="visual-bg" src="images/Slum_signUp.jpg" alt="Background: slum settlement" />
+      </aside>
+
+      <!-- Right content column -->
+      <main class="content" aria-label="Sign Up Form">
+        <section class="card" aria-labelledby="card-title">
+          <header class="card-head">
+            <div class="progress" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="3">
+              <span class="bar is-active"></span>
+              <span class="bar"></span>
+              <span class="bar"></span>
+            </div>
+            <h2 id="card-title" class="card-title">Personal Information</h2>
+          </header>
+
+          <form id="signupForm" class="form" novalidate>
+            <div class="fields">
+              <!-- Single column: Full Name -->
+              <label class="field span-2">
+                <span>Full Name</span>
+                <input type="text" name="fullName" placeholder="e.g., Rahim Ahmed" required />
+              </label>
+
+              <!-- Two columns: Date of Birth + Gender -->
+              <label class="field">
+                <span>Date of Birth</span>
+                <input type="date" name="dob" placeholder="DD/MM/YYYY" required />
+              </label>
+              <label class="field">
+                <span>Gender</span>
+                <select name="gender" required>
+                  <option value="" disabled selected>Select gender</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Others</option>
+                </select>
+              </label>
+
+              <!-- Two columns: Education + Occupation -->
+              <label class="field">
+                <span>Education</span>
+                <input type="text" name="education" placeholder="e.g., Primary" />
+              </label>
+              <label class="field">
+                <span>Occupation</span>
+                <input type="text" name="occupation" placeholder="e.g., Tailor" />
+              </label>
+
+              <!-- Single column: Income Range -->
+              <label class="field span-2">
+                <span>Income Range</span>
+                <select name="income" required>
+                  <option value="" disabled selected>Select range</option>
+                  <option>No Income</option>
+                  <option>1-5000</option>
+                  <option>5000-15000</option>
+                  <option>15000-30000</option>
+                  <option>30000-50000</option>
+                  <option>50000 and above</option>
+                </select>
+              </label>
+
+              <!-- Two columns: Area + District -->
+              <label class="field">
+                <span>Area</span>
+                <input type="text" name="area" placeholder="e.g., Korail" />
+              </label>
+              <label class="field">
+                <span>District</span>
+                <input type="text" name="district" placeholder="e.g., Dhaka" />
+              </label>
+
+              <!-- Single column: Division -->
+              <label class="field span-2">
+                <span>Division</span>
+                <input type="text" name="division" placeholder="e.g., Dhaka Division" />
+              </label>
+
+              <!-- Two columns: Mobile + Family Members -->
+              <label class="field">
+                <span>Mobile Number</span>
+                <input type="tel" name="mobile" placeholder="e.g., 017XXXXXXXX" required />
+              </label>
+              <label class="field">
+                <span>Number of Family Members</span>
+                <input type="number" name="members" min="1" placeholder="e.g., 4" required />
+              </label>
+            </div>
+
+            
+          </form>
+
+          <!-- Navigation arrows -->
+          <div class="nav-arrows">
+            <button class="nav-btn left" aria-label="Previous step">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </button>
+            <button class="nav-btn right" aria-label="Next step">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./signup.js" type="module"></script>
+  </body>
+</html>

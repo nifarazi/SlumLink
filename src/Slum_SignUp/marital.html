@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SLUMLINK | Marital Information</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./signup.css" />
+  </head>
+  <body class="signup-body">
+    <div class="signup-shell">
+      <!-- Left visual column (same as signup) -->
+      <aside class="visual" aria-hidden="false">
+        <div class="visual-content">
+          <div class="brand">
+            <span class="logo-mark" aria-hidden="true"></span>
+            <span class="logo-text">SLUMLINK</span>
+          </div>
+          <h1 class="headline">
+            <span class="rise">Together We Rise.</span>
+            <span class="heard">Sign Up To Be Heard.</span>
+          </h1>
+        </div>
+        <img class="visual-bg" src="images/Slum_signUp.jpg" alt="Background: slum settlement" />
+      </aside>
+
+      <!-- Right content column -->
+      <main class="content" aria-label="Marital Information Form">
+        <section class="card" aria-labelledby="card-title">
+          <header class="card-head">
+            <!-- Progress: only middle segment active (step 2) -->
+            <div class="progress" role="progressbar" aria-valuenow="2" aria-valuemin="1" aria-valuemax="3">
+              <span class="bar"></span>
+              <span class="bar is-active"></span>
+              <span class="bar"></span>
+            </div>
+            <h2 id="card-title" class="card-title">Marital Information</h2>
+          </header>
+
+          <form id="maritalForm" class="form" novalidate>
+            <div class="fields">
+              <!-- Marital status dropdown -->
+              <label class="field span-2">
+                <span>Marital Status</span>
+                <select name="maritalStatus" id="maritalStatus" required>
+                  <option value="" disabled selected>Select status</option>
+                  <option value="married">Married</option>
+                  <option value="unmarried">Unmarried</option>
+                  <option value="divorced">Divorced</option>
+                </select>
+              </label>
+
+              <!-- Number of spouse (visible only when married) -->
+              <label class="field span-2" id="spouseCountWrap" style="display:none;">
+                <span>Number of Spouse</span>
+                <input type="number" min="1" max="100" name="spouseCount" id="spouseCount" placeholder="e.g., 1" />
+              </label>
+            </div>
+
+            <!-- Dynamic spouse segments -->
+            <div id="spouseSegments" class="segments" aria-live="polite"></div>
+
+            <!-- Only nav buttons, no submit -->
+          </form>
+
+          <!-- Navigation arrows -->
+          <div class="nav-arrows">
+            <button class="nav-btn left" aria-label="Previous step">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </button>
+            <button class="nav-btn right" aria-label="Next step">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./marital.js" type="module"></script>
+  </body>
+</html>
