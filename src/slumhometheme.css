@@ -52,14 +52,14 @@ body{
 
 .canvas{
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
 }
 
 .frame{
-  width: min(var(--frame-w), calc(100vw - 32px));
-  min-height: min(1024px, calc(100vh - 32px));
+  width: 100%;
+  min-height: 100vh;
   overflow: hidden;
   background: transparent;
   display: flex;
