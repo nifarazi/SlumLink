@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register New Organization</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="signup.css" />
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+</head>
+
+<body>
+  <a href="javascript:history.back()" class="back-btn" aria-label="Back">
+    <i class="fas fa-arrow-left"></i>
+  </a>
+  <div class="layout-frame">
+    <div class="layout-wrapper">
+
+      <!-- LEFT: Brand / Message panel -->
+      <aside class="hero" aria-label="Registration message">
+        <div class="hero__logo-brand">
+          <span class="hero__logo-mark" aria-hidden="true"></span>
+          <span class="hero__logo-text">SLUMLINK</span>
+        </div>
+
+        <h1 class="hero__title">Register New Organization</h1>
+
+        <p class="hero__lead">
+          Register your organization, and stand with the unseen—uplift vulnerable slum communities.
+        </p>
+
+        <p class="hero__sub">
+          Trusted onboarding, transparent histories, and real accountability for every family you support.
+        </p>
+
+        <!-- Decorative blobs -->
+        <div class="blob blob--one" aria-hidden="true"></div>
+        <div class="blob blob--two" aria-hidden="true"></div>
+      </aside>
+
+      <!-- RIGHT: Form panel -->
+      <section class="card" aria-label="Organization sign up form">
+        <header class="card__head">
+          <h2>Create Account</h2>
+          <p>Please enter your organization details to register.</p>
+        </header>
+
+        <form class="form" id="orgForm" novalidate>
+          <div class="field">
+            <label for="orgName">Organization Name</label>
+            <input id="orgName" name="orgName" type="text" placeholder="e.g., SHODESH Foundation" required />
+          </div>
+
+          <div class="grid2">
+            <div class="field">
+              <label for="email">Email Address</label>
+              <input id="email" name="email" type="email" placeholder="org@email.com" required />
+            </div>
+
+            <div class="field">
+              <label for="phone">Contact Number</label>
+              <input id="phone" name="phone" type="tel" placeholder="01XXXXXXXXX"
+                     inputmode="numeric" pattern="^(?:\\+?88)?01[3-9]\\d{8}$" required />
+              <div class="hint">Example: 017XXXXXXXX or +88017XXXXXXXX</div>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="field">
+              <label for="license">Organization License</label>
+              <input id="license" name="license" type="file" accept=".pdf,.png,.jpg,.jpeg" required />
+              <div class="hint">Upload PDF / JPG / PNG</div>
+            </div>
+
+            <div class="field">
+              <label for="orgAge">Organization Age (years)</label>
+              <input id="orgAge" name="orgAge" type="number" min="0" max="200" placeholder="e.g., 5" required />
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="field">
+              <label for="password">Password</label>
+              <input id="password" name="password" type="password" minlength="8"
+                     placeholder="Minimum 8 characters" required />
+              <div class="hint">Use 8+ characters. Mix letters & numbers.</div>
+            </div>
+
+            <div class="field">
+              <label for="confirmPassword">Confirm Password</label>
+              <input id="confirmPassword" name="confirmPassword" type="password" minlength="8"
+                     placeholder="Re-type password" required />
+              <div class="hint">Must match the password.</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <button class="btn" type="submit">Register Account</button>
+
+          <div class="alt">
+            Already registered? <a href="/src/signin.html">Sign In</a>
+          </div>
+        </form>
+      </section>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -6,7 +6,7 @@ const roleConfig = {
     hint: "Use the official email you registered with SlumLink.",
     showSignup: true,
     signupLinkText: "Register your organization",
-    signupHref: "/htmlcssslumlink/signup.html"
+    signupHref: "/src/ngo/signup.html"
   },
   authority: {
     label: "Official email",
@@ -20,7 +20,7 @@ const roleConfig = {
     hint: "Use family code given during registration.",
     showSignup: true,
     signupLinkText: "Sign up",
-    signupHref: "/htmlcssslumlink/signup.html"
+    signupHref: "/src/ngo/signup.html"
   },
   admin: {
     label: "Admin ID",
