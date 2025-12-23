@@ -64,7 +64,23 @@
 
   leftBtn?.addEventListener('click', () => {
     save();
-    // No previous step from first page; keep as-is or navigate back if needed
+    const ref = document.referrer || '';
+    let cameFromIndex = false;
+    try {
+      const refUrl = new URL(ref, window.location.href);
+      const p = refUrl.pathname || '';
+      // Treat "/" or any path ending with "/index.html" as coming from index
+      cameFromIndex = p === '/' || /(^|\/)index\.html(\?|#|$)/.test(p);
+    } catch {
+      cameFromIndex = ref.includes('index.html');
+    }
+
+    if (cameFromIndex) {
+      window.location.href = '/index.html';
+    } else {
+      // Ensure signin preselects Slum Dweller
+      window.location.href = '/src/signin.html?role=dweller';
+    }
   });
 
   rightBtn?.addEventListener('click', () => {

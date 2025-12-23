@@ -20,7 +20,7 @@ const roleConfig = {
     hint: "Use family code given during registration.",
     showSignup: true,
     signupLinkText: "Sign up",
-    signupHref: "/src/ngo/signup.html"
+    signupHref: "/src/Slum_SignUp/signup.html"
   },
   admin: {
     label: "Admin ID",
@@ -100,6 +100,13 @@ function applyRole(selectedRole) {
 }
 
 if (roleSelect) {
+  // Pick up role from URL, e.g., /src/signin.html?role=dweller
+  const params = new URLSearchParams(window.location.search);
+  const urlRole = params.get("role");
+  if (urlRole && roleConfig[urlRole]) {
+    roleSelect.value = urlRole;
+  }
+
   roleSelect.addEventListener("change", () => applyRole(roleSelect.value));
   applyRole(roleSelect.value);
 }

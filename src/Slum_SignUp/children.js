@@ -160,6 +160,7 @@
     if (!form) return;
     if (!validateAllVisible(form)) return;
     save();
-    alert('Registration information completed.');
+    // Proceed to signin with role preselected to Slum Dweller
+    window.location.href = '/src/signin.html?role=dweller';
   });
 })();

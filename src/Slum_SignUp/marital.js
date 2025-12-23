@@ -24,7 +24,7 @@
       <div class="fields">
         <label class="field span-2">
           <span>Full Name</span>
-          <input type="text" name="spouse_${index}_name" placeholder="e.g., Rahim Uddin" />
+          <input type="text" name="spouse_${index}_name" placeholder="e.g., Jamila Begum" />
         </label>
         <label class="field">
           <span>Date of Birth</span>
