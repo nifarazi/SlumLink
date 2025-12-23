@@ -128,3 +128,18 @@ togglePasswordBtn?.addEventListener("click", () => {
     icon.classList.add("fa-eye-slash");
   }
 });
+
+// Handle sign-in submit: redirect Admin to analytics
+const signinForm = document.querySelector(".signin-form");
+signinForm?.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const role = roleSelect?.value;
+  // Minimal routing per request: Admin -> Admin Slum Analytics
+  if (role === "admin") {
+    window.location.href = "admin/adminSlumAnalytics.html";
+    return;
+  }
+
+  // Keep other roles on page for now (demo prototype)
+});
