@@ -129,17 +129,33 @@ togglePasswordBtn?.addEventListener("click", () => {
   }
 });
 
-// Handle sign-in submit: redirect Admin to analytics
+// Handle sign-in submit: redirect to appropriate dashboard
 const signinForm = document.querySelector(".signin-form");
 signinForm?.addEventListener("submit", (e) => {
   e.preventDefault();
 
   const role = roleSelect?.value;
-  // Minimal routing per request: Admin -> Admin Slum Analytics
-  if (role === "admin") {
-    window.location.href = "admin/adminSlumAnalytics.html";
+  const identifier = identifierInput?.value?.trim();
+  const password = passwordInput?.value?.trim();
+
+  // Basic validation
+  if (!identifier || !password) {
+    alert("Please enter both " + (role === "dweller" ? "family code" : role === "authority" ? "official email" : role === "admin" ? "admin ID" : "email") + " and password");
     return;
   }
 
-  // Keep other roles on page for now (demo prototype)
+  // Route based on role
+  if (role === "ngo") {
+    // Redirect to NGO Dashboard
+    window.location.href = "/src/ngo/ngo-dashboard.html";
+  } else if (role === "admin") {
+    // Redirect to Admin Dashboard
+    window.location.href = "/src/admin/adminSlumAnalytics.html";
+  } else if (role === "authority") {
+    // Placeholder for Local Authority Dashboard
+    alert("Local Authority dashboard coming soon!");
+  } else if (role === "dweller") {
+    // Placeholder for Dweller Dashboard
+    alert("Slum Dweller dashboard coming soon!");
+  }
 });
