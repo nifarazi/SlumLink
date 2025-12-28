@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SLUMLINK · Slum Residents</title>
+  <link rel="stylesheet" href="adminSlumAnalytics.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">SLUMLINK</div>
+    <input type="text" placeholder="Search" class="search" />
+    <div class="top-right">
+      <span class="admin">Admin ▾</span>
+      <a class="bell" href="adminNotification.html" title="Notifications">🔔</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <ul>
+        <li><a href="adminSlumAnalytics.html">📊 Slum Analytics</a></li>
+        <li><a href="adminNgoAnalytics.html">📈 NGO Analytics</a></li>
+        <li class="active"><a href="adminSlumResidents.html">🏠 Slum Residents</a></li>
+        <li><a href="adminFieldAgents.html">🧑‍💼 Field Agents</a></li>
+        <li><a href="adminVerifyNgo.html">✔ Verify NGOs</a></li>
+      </ul>
+    </aside>
+
+    <main class="content">
+      <div class="page-header">
+        <div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="card-header">
+          <h2>Accounts awaiting verification</h2>
+          <p>Approve or reject after reviewing submitted documents.</p>
+        </div>
+        <div class="table-wrapper">
+          <table class="pending-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Slum</th>
+                <th>NID</th>
+                <th>Birth Certificate</th>
+                <th>Marriage Certificate</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="pendingTableBody">
+              <!-- injected by script -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div style="margin-top: 20px; text-align: center;">
+        <a href="adminSlumResidents.html" class="btn btn-secondary" style="text-decoration: none; padding: 8px 16px;">
+          ← Go Back
+        </a>
+      </div>
+    </main>
+  </div>
+
+  <!-- Approve Confirmation Modal -->
+  <div class="modal-overlay" id="approveModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">Approve Account</div>
+      <div class="modal-body" id="approveModalBody">Are you sure you want to approve this account?</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelApprove">Cancel</button>
+        <button class="btn btn-primary" id="confirmApprove">Approve</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reject Confirmation Modal -->
+  <div class="modal-overlay" id="rejectModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">Reject Account</div>
+      <div class="modal-body" id="rejectModalBody">Are you sure you want to reject this account?</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelReject">Cancel</button>
+        <button class="btn btn-secondary" id="confirmReject">Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">Success</div>
+      <div class="modal-body" id="successModalBody"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="closeSuccess">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="logoutModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+      <div class="modal-header" id="logoutTitle">Log out</div>
+      <div class="modal-body">You're currently signed in as Admin. Do you want to log out and return to the home page?</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelLogout">Cancel</button>
+        <button class="btn btn-primary" id="confirmLogout">Log out</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="imageModal" aria-hidden="true">
+    <div class="image-modal" role="dialog" aria-modal="true">
+      <button class="close-image-modal" id="closeImageModal" aria-label="Close">&times;</button>
+      <img id="modalImage" src="" alt="Document preview">
+      <div class="image-caption" id="imageCaption"></div>
+      <button class="btn btn-primary" id="downloadImage" style="margin-top: 15px;">
+        📥 Download Image
+      </button>
+    </div>
+  </div>
+
+  <script src="adminSlumAnalytics.js"></script>
+  <script>
+    // Sample pending accounts; replace with API later
+    var pendingAccounts = [
+      {
+        name: 'Shima Akter',
+        slum: 'Korail',
+        nid: 'profilepic/NID.jpg',
+        birth: 'profilepic/birthcertificate.jpg',
+        marriage: 'profilepic/marraigeertificate.png'
+      },
+      {
+        name: 'Rahim Uddin',
+        slum: 'Molla',
+        nid: 'profilepic/NID.jpg',
+        birth: 'profilepic/birthcertificate.jpg',
+        marriage: ''
+      },
+      {
+        name: 'Fatema Noor',
+        slum: 'Pora Basti',
+        nid: 'profilepic/NID.jpg',
+        birth: 'profilepic/birthcertificate.jpg',
+        marriage: 'profilepic/marraigeertificate.png'
+      },
+      {
+        name: 'Amina Khan',
+        slum: 'Kallyanpur',
+        nid: 'profilepic/NID.jpg',
+        birth: 'profilepic/birthcertificate.jpg',
+        marriage: ''
+      },
+      {
+        name: 'Rashed Ali',
+        slum: 'Begun Bari',
+        nid: 'profilepic/NID.jpg',
+        birth: 'profilepic/birthcertificate.jpg',
+        marriage: 'profilepic/marraigeertificate.png'
+      },
+      {
+        name: 'Nazma Begum',
+        slum: 'DuariPara',
+        nid: 'profilepic/NID.jpg',
+        birth: 'profilepic/birthcertificate.jpg',
+        marriage: ''
+      }
+    ];
+
+    var currentApproveIdx = -1;
+    var currentRejectIdx = -1;
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var params = new URLSearchParams(window.location.search);
+      var slumFilter = params.get('slum');
+      var label = document.getElementById('pendingSlumLabel');
+      if (label) {
+        label.textContent = slumFilter ? ('Reviewing pending accounts for ' + slumFilter) : 'Review and verify resident documents.';
+      }
+
+      var tbody = document.getElementById('pendingTableBody');
+
+      function renderRows() {
+        tbody.innerHTML = '';
+        var filtered = pendingAccounts.filter(function (acct) {
+          return !slumFilter || acct.slum.toLowerCase() === slumFilter.toLowerCase();
+        });
+
+        filtered.forEach(function (acct, idx) {
+          var tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${acct.name}</td>
+            <td>${acct.slum}</td>
+            <td><img class="doc-thumb" src="${acct.nid}" alt="NID for ${acct.name}" data-caption="NID - ${acct.name}" style="cursor:pointer;"></td>
+            <td>${acct.birth ? `<img class="doc-thumb" src="${acct.birth}" alt="Birth certificate for ${acct.name}" data-caption="Birth Certificate - ${acct.name}" style="cursor:pointer;">` : '—'}</td>
+            <td>${acct.marriage ? `<img class="doc-thumb" src="${acct.marriage}" alt="Marriage certificate for ${acct.name}" data-caption="Marriage Certificate - ${acct.name}" style="cursor:pointer;">` : '—'}</td>
+            <td class="pending-actions">
+              <button class="btn btn-primary" data-action="approve" data-idx="${idx}">Approve</button>
+              <button class="btn btn-secondary" data-action="reject" data-idx="${idx}">Reject</button>
+            </td>`;
+          tbody.appendChild(tr);
+        });
+
+        if (!filtered.length) {
+          var empty = document.createElement('tr');
+          empty.innerHTML = '<td colspan="6" style="text-align:center;color:#8b6f5a;">No pending accounts for this slum.</td>';
+          tbody.appendChild(empty);
+        }
+      }
+
+      tbody.addEventListener('click', function (e) {
+        var btn = e.target;
+        if (btn.tagName === 'BUTTON') {
+          var idx = parseInt(btn.getAttribute('data-idx'), 10);
+          var action = btn.getAttribute('data-action');
+          var filtered = pendingAccounts.filter(function (acct) {
+            return !slumFilter || acct.slum.toLowerCase() === slumFilter.toLowerCase();
+          });
+          var acct = filtered[idx];
+          if (!acct) return;
+          
+          if (action === 'approve') {
+            currentApproveIdx = pendingAccounts.indexOf(acct);
+            openApproveModal(acct.name);
+          } else {
+            currentRejectIdx = pendingAccounts.indexOf(acct);
+            openRejectModal(acct.name);
+          }
+        }
+      });
+
+      renderRows();
+
+      // Image modal functionality
+      var imageModal = document.getElementById('imageModal');
+      var modalImage = document.getElementById('modalImage');
+      var imageCaption = document.getElementById('imageCaption');
+      var closeImageModal = document.getElementById('closeImageModal');
+
+      tbody.addEventListener('click', function (e) {
+        if (e.target.classList.contains('doc-thumb')) {
+          imageModal.classList.add('show');
+          imageModal.setAttribute('aria-hidden', 'false');
+          modalImage.src = e.target.src;
+          imageCaption.textContent = e.target.getAttribute('data-caption') || e.target.alt;
+        }
+      });
+
+      closeImageModal.addEventListener('click', function () {
+        imageModal.classList.remove('show');
+        imageModal.setAttribute('aria-hidden', 'true');
+      });
+
+      imageModal.addEventListener('click', function (e) {
+        if (e.target === imageModal) {
+          imageModal.classList.remove('show');
+          imageModal.setAttribute('aria-hidden', 'true');
+        }
+      });
+
+      // Download image functionality
+      var downloadBtn = document.getElementById('downloadImage');
+      downloadBtn.addEventListener('click', function () {
+        var imageSrc = modalImage.src;
+        var fileName = imageCaption.textContent.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.jpg';
+        
+        fetch(imageSrc)
+          .then(response => response.blob())
+          .then(blob => {
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+          })
+          .catch(() => alert('Failed to download image'));
+      });
+
+      // Modal functions
+      function openApproveModal(name) {
+        var modal = document.getElementById('approveModal');
+        var body = document.getElementById('approveModalBody');
+        body.textContent = 'Are you sure you want to approve ' + name + '?';
+        modal.setAttribute('aria-hidden', 'false');
+        modal.classList.add('show');
+      }
+
+      function closeApproveModal() {
+        var modal = document.getElementById('approveModal');
+        modal.setAttribute('aria-hidden', 'true');
+        modal.classList.remove('show');
+        currentApproveIdx = -1;
+      }
+
+      function openRejectModal(name) {
+        var modal = document.getElementById('rejectModal');
+        var body = document.getElementById('rejectModalBody');
+        body.textContent = 'Are you sure you want to reject ' + name + '?';
+        modal.setAttribute('aria-hidden', 'false');
+        modal.classList.add('show');
+      }
+
+      function closeRejectModal() {
+        var modal = document.getElementById('rejectModal');
+        modal.setAttribute('aria-hidden', 'true');
+        modal.classList.remove('show');
+        currentRejectIdx = -1;
+      }
+
+      function showSuccessModal(message) {
+        var modal = document.getElementById('successModal');
+        var body = document.getElementById('successModalBody');
+        body.textContent = message;
+        modal.setAttribute('aria-hidden', 'false');
+        modal.classList.add('show');
+      }
+
+      function closeSuccessModal() {
+        var modal = document.getElementById('successModal');
+        modal.setAttribute('aria-hidden', 'true');
+        modal.classList.remove('show');
+      }
+
+      document.getElementById('cancelApprove').addEventListener('click', closeApproveModal);
+      
+      document.getElementById('confirmApprove').addEventListener('click', function() {
+        if (currentApproveIdx >= 0) {
+          var acct = pendingAccounts[currentApproveIdx];
+          pendingAccounts.splice(currentApproveIdx, 1);
+          closeApproveModal();
+          showSuccessModal('Account approved for ' + acct.name);
+          renderRows();
+        }
+      });
+
+      document.getElementById('approveModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeApproveModal();
+        }
+      });
+
+      document.getElementById('cancelReject').addEventListener('click', closeRejectModal);
+      
+      document.getElementById('confirmReject').addEventListener('click', function() {
+        if (currentRejectIdx >= 0) {
+          var acct = pendingAccounts[currentRejectIdx];
+          pendingAccounts.splice(currentRejectIdx, 1);
+          closeRejectModal();
+          showSuccessModal('Account rejected for ' + acct.name);
+          renderRows();
+        }
+      });
+
+      document.getElementById('rejectModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeRejectModal();
+        }
+      });
+
+      document.getElementById('closeSuccess').addEventListener('click', closeSuccessModal);
+
+      document.getElementById('successModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeSuccessModal();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

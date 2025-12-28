@@ -134,6 +134,11 @@ body {
   gap: 35px;
 }
 
+/* Card container for positioning dropdown */
+.card-container {
+  position: relative;
+}
+
 .card {
   /* button background: #f3d0a4 at 30% opacity (more transparent) */
   background: rgba(243,208,164);
@@ -154,6 +159,7 @@ body {
   appearance: none;
   outline: none;
   padding: 0 20px; /* keep horizontal padding for text */
+  width: 100%;
 }
 
 /* Hover, focus and active states to make clicks feel highlighted */
@@ -173,6 +179,54 @@ body {
   background: rgba(243,208,164);
   box-shadow: 0 10px 20px rgba(97,55,41,0.7);
   transform: translateY(1px);
+}
+
+/* Dropdown menu styles */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #FFF4E6;
+  border-radius: 15px;
+  margin-top: 10px;
+  box-shadow: 0 6px 12px rgba(97,55,41,0.62);
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity 200ms ease, visibility 200ms ease, transform 200ms ease;
+  z-index: 100;
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: block;
+  padding: 12px 16px;
+  color: #AD7562;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease;
+  border-bottom: 1px solid rgba(173,117,98,0.15);
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: rgba(173,117,98,0.1);
+}
+
+.dropdown-item:active {
+  background: rgba(173,117,98,0.2);
 }
 
 /* Modal (logout) styles matching main theme */
@@ -227,6 +281,65 @@ body {
 .modal-actions .btn-primary {
   background: #AD7562;
   color: white;
+}
+
+/* Pending accounts table */
+.pending-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  table-layout: auto;
+}
+
+.pending-table thead {
+  display: table-header-group;
+}
+
+.pending-table tbody {
+  display: table-row-group;
+}
+
+.pending-table th {
+  padding: 10px;
+  text-align: left;
+  color: #AD7562;
+  border-bottom: 2px solid rgba(173,117,98,0.2);
+}
+
+.pending-table td {
+  padding: 10px;
+  color: #8b6f5a;
+  border-bottom: 1px solid rgba(173,117,98,0.12);
+  vertical-align: middle;
+}
+
+.pending-table tbody tr {
+  display: table-row;
+}
+
+.pending-table tbody tr:hover {
+  background: rgba(173,117,98,0.06);
+}
+
+.doc-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(173,117,98,0.25);
+  background: #f9f1e7;
+}
+
+.pending-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  display: block;
+  width: 100%;
 }
 
 /* Styles for the Field Agents table card (keeps .card button styles untouched) */
@@ -561,4 +674,69 @@ body {
 .btn-primary:hover,
 .btn-secondary:hover {
   opacity: 0.8;
+}
+
+/* Document thumbnail images */
+.doc-thumb {
+  max-width: 100px;
+  max-height: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  object-fit: cover;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.doc-thumb:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Image viewer modal */
+.image-modal {
+  position: relative;
+  max-width: 95vw;
+  max-height: 95vh;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.close-image-modal {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  font-size: 32px;
+  color: #666;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  z-index: 1;
+}
+
+.close-image-modal:hover {
+  color: #AD7562;
+}
+
+#modalImage {
+  max-width: 90vw;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.image-caption {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #8b6f5a;
+  text-align: center;
 }
