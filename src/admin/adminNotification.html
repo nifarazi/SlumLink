@@ -28,8 +28,22 @@
     </aside>
 
     <main class="content">
-      <h2>Notifications</h2>
-      <p>Notifications placeholder — show recent alerts here.</p>
+      <div class="page-header">
+        <div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="card-header">
+          <h2>Notifications</h2>
+          <p>Recent alerts and updates from the system.</p>
+        </div>
+        <div style="padding: 20px;">
+          <div id="notificationsList" style="display: flex; flex-direction: column; gap: 15px;">
+            <!-- Notifications will be populated by JavaScript -->
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -45,5 +59,120 @@
   </div>
 
   <script src="adminSlumAnalytics.js"></script>
-</body>
+  <script>
+    var notifications = [
+      {
+        type: 'NGO Signup',
+        message: 'New NGO "Hope Foundation Bangladesh" has signed up and is awaiting verification.',
+        icon: '📋',
+        time: '2 hours ago',
+        link: 'adminVerifyNgo.html'
+      },
+      {
+        type: 'Slum Resident',
+        message: 'New pending account "Shima Akter" from slum "Korail" awaiting verification.',
+        icon: '👤',
+        time: '4 hours ago',
+        link: 'SlumPendingAccounts.html?slum=Korail'
+      },
+      {
+        type: 'NGO Signup',
+        message: 'New NGO "Green Earth Initiative" has signed up and is awaiting verification.',
+        icon: '📋',
+        time: '6 hours ago',
+        link: 'adminVerifyNgo.html'
+      },
+      {
+        type: 'Slum Resident',
+        message: 'New pending account "Rahim Uddin" from slum "Molla" awaiting verification.',
+        icon: '👤',
+        time: '8 hours ago',
+        link: 'SlumPendingAccounts.html?slum=Molla'
+      },
+      {
+        type: 'NGO Signup',
+        message: 'New NGO "Women Empowerment Trust" has signed up and is awaiting verification.',
+        icon: '📋',
+        time: '1 day ago',
+        link: 'adminVerifyNgo.html'
+      },
+      {
+        type: 'Slum Resident',
+        message: 'New pending account "Fatema Noor" from slum "Pora Basti" awaiting verification.',
+        icon: '👤',
+        time: '1 day ago',
+        link: 'SlumPendingAccounts.html?slum=Pora%20Basti'
+      },
+      {
+        type: 'Active Resident',
+        message: 'Resident "Rahim Ahmed" from "Molla" has added new documents for review.',
+        icon: '📄',
+        time: '3 hours ago',
+        link: 'SlumActiveAccounts.html?slum=Molla'
+      },
+      {
+        type: 'Active Resident',
+        message: 'Resident "Fatima Begum" from "Korail" has added new documents for review.',
+        icon: '📄',
+        time: '5 hours ago',
+        link: 'SlumActiveAccounts.html?slum=Korail'
+      }
+    ];
+
+    function renderNotifications() {
+      var container = document.getElementById('notificationsList');
+      container.innerHTML = '';
+
+      if (notifications.length === 0) {
+        var empty = document.createElement('div');
+        empty.style.textAlign = 'center';
+        empty.style.color = '#8b6f5a';
+        empty.style.padding = '20px';
+        empty.textContent = 'No notifications at this time.';
+        container.appendChild(empty);
+        return;
+      }
+
+      notifications.forEach(function(notif, index) {
+        var notifBox = document.createElement('div');
+        notifBox.style.cssText = 'border: 1px solid #e0d5c7; border-radius: 8px; padding: 15px; background-color: #fafaf8; cursor: pointer; transition: all 0.3s ease; display: flex; justify-content: space-between; align-items: center;';
+        notifBox.onmouseover = function() {
+          notifBox.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+          notifBox.style.backgroundColor = '#f5f0e8';
+        };
+        notifBox.onmouseout = function() {
+          notifBox.style.boxShadow = 'none';
+          notifBox.style.backgroundColor = '#fafaf8';
+        };
+        
+        var contentDiv = document.createElement('div');
+        contentDiv.style.flex = '1';
+        
+        var typeSpan = document.createElement('span');
+        typeSpan.textContent = notif.icon + ' ' + notif.type;
+        typeSpan.style.cssText = 'font-weight: 600; color: #5a4a3a; font-size: 14px; display: block; margin-bottom: 5px;';
+        contentDiv.appendChild(typeSpan);
+        
+        var messageSpan = document.createElement('span');
+        messageSpan.textContent = notif.message;
+        messageSpan.style.cssText = 'color: #6b5b4b; font-size: 14px; display: block; margin-bottom: 5px;';
+        contentDiv.appendChild(messageSpan);
+        
+        var timeSpan = document.createElement('span');
+        timeSpan.textContent = notif.time;
+        timeSpan.style.cssText = 'color: #a89a8a; font-size: 12px;';
+        contentDiv.appendChild(timeSpan);
+        
+        notifBox.appendChild(contentDiv);
+        
+        notifBox.onclick = function() {
+          window.location.href = notif.link;
+        };
+        
+        container.appendChild(notifBox);
+      });
+    }
+
+    renderNotifications();
+  </script>
 </html>

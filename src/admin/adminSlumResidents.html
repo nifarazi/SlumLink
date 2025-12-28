@@ -31,21 +31,101 @@
       
 
       <div class="card-grid">
-        <button class="card" type="button">Molla</button>
-        <button class="card" type="button">Korail</button>
-        <button class="card" type="button">Begun Bari</button>
+        <div class="card-container">
+          <button class="card" type="button">Molla</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-type="active">Active Accounts</a>
+            <a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>
+          </div>
+        </div>
 
-        <button class="card" type="button">DuariPara</button>
-        <button class="card" type="button">Kallyanpur</button>
-        <button class="card" type="button">Pora Basti</button>
+        <div class="card-container">
+          <button class="card" type="button">Korail</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-type="active">Active Accounts</a>
+            <a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>
+          </div>
+        </div>
 
-        <button class="card" type="button">Pura</button>
-        <button class="card" type="button">Nubur</button>
-        <button class="card" type="button">Mannan</button>
+        <div class="card-container">
+          <button class="card" type="button">Begun Bari</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-type="active">Active Accounts</a>
+            <a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>
+          </div>
+        </div>
 
-        <button class="card" type="button">Basbari</button>
-        <button class="card" type="button">Chalantika</button>
-        <button class="card" type="button">Nama Para</button>
+        <div class="card-container">
+          <button class="card" type="button">DuariPara</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-type="active">Active Accounts</a>
+            <a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card" type="button">Kallyanpur</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-type="active">Active Accounts</a>
+            <a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card" type="button">Pora Basti</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-type="active">Active Accounts</a>
+            <a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card" type="button">Pura</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-type="active">Active Accounts</a>
+            <a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card" type="button">Nubur</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-type="active">Active Accounts</a>
+            <a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card" type="button">Mannan</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-type="active">Active Accounts</a>
+            <a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card" type="button">Basbari</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-type="active">Active Accounts</a>
+            <a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card" type="button">Chalantika</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-type="active">Active Accounts</a>
+            <a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card" type="button">Nama Para</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-type="active">Active Accounts</a>
+            <a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>
+          </div>
+        </div>
       </div>
 
     </main>
@@ -63,5 +143,67 @@
   </div>
 
   <script src="adminSlumAnalytics.js"></script>
+  <script>
+    // Handle dropdown menu display and card click behavior
+    document.addEventListener('DOMContentLoaded', function () {
+      var cardContainers = document.querySelectorAll('.card-container');
+      
+      cardContainers.forEach(function (container) {
+        var card = container.querySelector('.card');
+        var dropdown = container.querySelector('.dropdown-menu');
+        var dropdownItems = dropdown.querySelectorAll('.dropdown-item');
+        
+        // Toggle dropdown on card click
+        card.addEventListener('click', function (e) {
+          e.stopPropagation();
+          // Close other dropdowns
+          document.querySelectorAll('.dropdown-menu').forEach(function (menu) {
+            if (menu !== dropdown) {
+              menu.classList.remove('show');
+            }
+          });
+          dropdown.classList.toggle('show');
+        });
+        
+        // Handle dropdown item clicks
+        dropdownItems.forEach(function (item) {
+          item.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var slumName = (card.textContent || '').trim();
+            var accountType = item.getAttribute('data-type');
+
+            if (accountType === 'pending') {
+              var pendingUrl = 'SlumPendingAccounts.html';
+              if (slumName) pendingUrl += '?slum=' + encodeURIComponent(slumName);
+              window.location.href = pendingUrl;
+            } else if (accountType === 'active') {
+              var activeUrl = 'SlumActiveAccounts.html';
+              if (slumName) activeUrl += '?slum=' + encodeURIComponent(slumName);
+              window.location.href = activeUrl;
+            } else {
+              var target = 'adminShowSlumAnalytics.html?slum=' + encodeURIComponent(slumName) + '&type=' + accountType;
+              window.location.href = target;
+            }
+          });
+        });
+        
+        // Keyboard accessibility for card
+        card.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            card.click();
+          }
+        });
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function () {
+        document.querySelectorAll('.dropdown-menu').forEach(function (menu) {
+          menu.classList.remove('show');
+        });
+      });
+    });
+  </script>
 </body>
 </html>
