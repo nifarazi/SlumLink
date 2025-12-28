@@ -718,6 +718,13 @@
       });
     });
 
+    // Analytics Dashboard navigation
+    document.querySelector('button[data-toast="Opening Analytics Dashboard"]')?.addEventListener("click", (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = "./analytics-dashboard.html";
+    });
+
     // Brand click (go to home)
     document.getElementById("brandBtn").addEventListener("click", (e)=> {
       e.preventDefault();
