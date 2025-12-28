@@ -1,0 +1,584 @@
+<!-- localauthority/analytics-dashboard.html (UPDATED: Figma panel tint + only Back button + single stable chart) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlumLink | Analytics Dashboard</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --sand:#CBB093;
+      --sand2:#DAC4AD;
+      --paper:#FFF4E6;
+      --terra:#A4624D;     /* figma stop 1 */
+      --peach:#DFA477;     /* figma stop 2 */
+      --ink:#613729;
+
+      --header-h:56px;
+      --radius-lg:26px;
+      --radius-md:18px;
+
+      --border: rgba(97, 55, 41, 0.18);
+      --shadowCard: 0 10px 24px rgba(97, 55, 41, 0.10);
+      --shadowHover: 0 16px 36px rgba(97, 55, 41, 0.14);
+
+      --transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    *{ box-sizing:border-box; margin:0; }
+    html,body{ height:100%; }
+
+    body{
+      font-family:"Poppins", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(
+        to bottom right,
+        #CBB093 0%,
+        #CBB093 22%,
+        #DAC4AD 45%,
+        #C0E0D0 76%,
+        #C0E0D0 100%
+      );
+      background-attachment: fixed;
+      overflow-x:hidden;
+      padding-bottom: 72px;
+    }
+
+    /* ===== Header ===== */
+    .topbar{
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: var(--header-h);
+      z-index: 50;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 0 73px 0 70px;
+
+      background: #FFF4E6;
+      border-bottom: none;
+      box-shadow: none;
+    }
+
+    .brand{
+      display:inline-flex;
+      align-items:center;
+      gap: 10px;
+      cursor:pointer;
+      transition: var(--transition);
+      user-select:none;
+    }
+    .brand:hover{ transform: translateY(-1px); }
+
+    .brand-mark{
+      width: 32px; height: 32px;
+      border-radius: 14px;
+      background: linear-gradient(143.48deg, rgba(164, 98, 77, 0.75) 38.34%, rgba(223, 164, 119, 0.75) 78.43%);
+    }
+
+    .brand-text{
+      font-weight: 500;
+      font-size: 20px;
+      color: rgba(164, 98, 77, 0.86);
+      text-transform: uppercase;
+      line-height: 1;
+      white-space: nowrap;
+      letter-spacing: 0.04em;
+    }
+
+    .pill-btn{
+      height: 34px;
+      padding: 0 14px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor:pointer;
+      border: 1px solid rgba(97,55,41,0.14);
+      background: rgba(255,244,230,0.85);
+      color: rgba(97,55,41,0.78);
+      transition: var(--transition);
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .pill-btn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(97,55,41,0.22);
+      color: rgba(97,55,41,0.92);
+      box-shadow: 0 10px 18px rgba(97,55,41,0.10);
+    }
+    .pill-btn:active{ transform: translateY(0); }
+
+    /* ===== Layout ===== */
+    .container{
+      max-width: 1360px;
+      margin: calc(var(--header-h) + 26px) auto 52px;
+      padding: 0 28px;
+      display:flex;
+      flex-direction:column;
+      gap: 18px;
+    }
+
+    .hero{
+      background: rgba(255, 244, 230, 0.94);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadowCard);
+      padding: 26px 30px;
+      position: relative;
+      overflow:hidden;
+    }
+
+    .hero h1{
+      font-size: 44px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: rgba(47,34,32,0.90);
+      margin-bottom: 8px;
+      line-height: 1.1;
+    }
+
+    .hero p{
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(97, 55, 41, 0.62);
+      max-width: 760px;
+    }
+
+    /* ✅ BIG PANEL: use your figma "little upper layer" tint */
+    .report-panel{
+      background: linear-gradient(
+        135deg,
+        rgba(164,98,77,0.34),
+        rgba(223,164,119,0.34)
+      );
+      border: 1px solid rgba(97,55,41,0.22);
+      border-radius: 40px; /* matches your figma radius 40 */
+      box-shadow: 0 18px 40px rgba(97,55,41,0.14);
+      overflow:hidden;
+    }
+
+    .report-inner{
+      padding: 28px;
+      display:flex;
+      flex-direction:column;
+      gap: 18px;
+    }
+
+    .top-row{
+      display:grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card{
+      border-radius: 22px;
+      background: rgba(255,244,230,0.92);
+      border: 1px solid rgba(97,55,41,0.18);
+      box-shadow: 0 10px 24px rgba(97,55,41,0.10);
+      padding: 20px;
+    }
+
+    .card-title{
+      font-size: 20px;
+      font-weight: 800;
+      color: rgba(97,55,41,0.70);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+    }
+
+    .select-wrap{
+      position: relative;
+    }
+
+    select{
+      width: 100%;
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid rgba(97,55,41,0.18);
+      background: rgba(255,255,255,0.55);
+      padding: 0 44px 0 14px;
+      font-weight: 700;
+      font-size: 15px;
+      color: rgba(47,34,32,0.86);
+      outline: none;
+      appearance: none;
+      transition: var(--transition);
+    }
+
+    select:focus{
+      border-color: rgba(164,98,77,0.30);
+      box-shadow: 0 12px 24px rgba(164,98,77,0.10);
+    }
+
+    .select-ic{
+      position:absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events:none;
+      color: rgba(97,55,41,0.70);
+      font-size: 16px;
+    }
+
+    .metric{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+      gap: 8px;
+      min-height: 130px;
+    }
+
+    .metric-line{
+      width: 92px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(47,34,32,0.75);
+      opacity: 0.85;
+      margin-bottom: 4px;
+    }
+
+    .metric-num{
+      font-size: 44px;
+      font-weight: 900;
+      color: rgba(47,34,32,0.86);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .metric-label{
+      font-size: 18px;
+      font-weight: 800;
+      color: rgba(97,55,41,0.64);
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+    }
+
+    /* ===== Chart area (only one) ===== */
+    .chart-card{
+      border-radius: 22px;
+      background: rgba(255,244,230,0.92);
+      border: 1px solid rgba(97,55,41,0.18);
+      box-shadow: 0 10px 24px rgba(97,55,41,0.10);
+      padding: 18px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      min-height: 330px;
+    }
+
+    .chart-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+
+    .chart-head h3{
+      font-size: 16px;
+      font-weight: 900;
+      color: rgba(47,34,32,0.86);
+    }
+
+    .chip{
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(97,55,41,0.14);
+      background: rgba(223,164,119,0.14);
+      color: rgba(97,55,41,0.78);
+      white-space: nowrap;
+    }
+
+    .chart-wrap{
+      height: 260px; /* fixed height so it never grows */
+      width: 100%;
+    }
+    .chart-wrap canvas{
+      width: 100% !important;
+      height: 100% !important;
+      display:block;
+    }
+
+    .hint{
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(97,55,41,0.62);
+      line-height: 1.55;
+    }
+
+    .disabled{
+      opacity: 0.55;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 1180px){
+      .top-row{ grid-template-columns: 1fr; }
+      .hero h1{ font-size: 36px; }
+      .topbar{ padding: 0 16px; }
+    }
+
+    @media (max-width: 680px){
+      .container{ padding: 0 16px; }
+      .hero{ padding: 22px 18px; }
+      .hero h1{ font-size: 30px; }
+      .pill-btn{ height: 32px; font-size: 13px; padding: 0 12px; border-radius: 13px; }
+      .metric-num{ font-size: 38px; }
+      .metric-label{ font-size: 16px; }
+      .report-inner{ padding: 18px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar" aria-label="Header">
+    <div class="brand" id="brandBtn" aria-label="SlumLink Home" role="button" tabindex="0">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div class="brand-text">SLUMLINK</div>
+    </div>
+
+    <!-- ✅ ONLY Back button (Logout removed) -->
+    <button class="pill-btn" id="backBtn" type="button" aria-label="Back to dashboard">
+      <i class="fas fa-arrow-left" aria-hidden="true"></i>
+      <span>Back to Dashboard</span>
+    </button>
+  </header>
+
+  <main class="container">
+    <section class="hero" aria-label="Analytics intro">
+      <h1>One step away from a full-fledged report</h1>
+      <p>Select a slum area to generate a graphical report.</p>
+    </section>
+
+    <section class="report-panel" aria-label="Report panel">
+      <div class="report-inner">
+        <div class="top-row">
+          <div class="card">
+            <div class="card-title">TARGET SLUM AREA</div>
+            <div class="select-wrap">
+              <select id="slumSelect" aria-label="Select slum area">
+                <option value="">Select</option>
+                <option value="korail">Korail</option>
+                <option value="mirpur">Mirpur</option>
+                <option value="rampura">Rampura</option>
+                <option value="kamrangirchar">Kamrangirchar</option>
+              </select>
+              <i class="fas fa-chevron-down select-ic" aria-hidden="true"></i>
+            </div>
+            <p class="hint" style="margin-top:12px;">
+              You’ll get one simple report: category-wise people helped + impact percentage inside that slum.
+            </p>
+          </div>
+
+          <div class="card metric" aria-label="People helped">
+            <div class="metric-line"></div>
+            <div class="metric-num" id="peopleHelped">—</div>
+            <div class="metric-label">PEOPLE HELPED</div>
+          </div>
+
+          <div class="card metric" aria-label="Campaigns">
+            <div class="metric-line"></div>
+            <div class="metric-num" id="campaignCount">—</div>
+            <div class="metric-label">CAMPAIGNS</div>
+          </div>
+        </div>
+
+        <div class="chart-card disabled" id="chartCard" aria-label="Impact chart">
+          <div class="chart-head">
+            <h3>Impact by Category (People Helped)</h3>
+            <span class="chip" id="slumChip">Select a slum</span>
+          </div>
+
+          <div class="chart-wrap">
+            <canvas id="impactChart"></canvas>
+          </div>
+
+          <p class="hint" id="impactHint">
+            Select a slum area to generate the chart.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ✅ Simple sample data (replace later with DB)
+    // Categories that match SlumLink NGO concept:
+    // Food, Health, Education, Shelter, Water & Sanitation
+    const DATA = {
+      korail: {
+        name: "Korail",
+        peopleHelped: 13240,
+        campaigns: 42,
+        categories: {
+          Food: 3200,
+          Health: 2800,
+          Education: 2300,
+          Shelter: 2100,
+          "Water & Sanitation": 2840
+        }
+      },
+      mirpur: {
+        name: "Mirpur",
+        peopleHelped: 9840,
+        campaigns: 31,
+        categories: {
+          Food: 2400,
+          Health: 2100,
+          Education: 1800,
+          Shelter: 1400,
+          "Water & Sanitation": 2140
+        }
+      },
+      rampura: {
+        name: "Rampura",
+        peopleHelped: 7650,
+        campaigns: 24,
+        categories: {
+          Food: 1700,
+          Health: 1600,
+          Education: 1500,
+          Shelter: 1200,
+          "Water & Sanitation": 1650
+        }
+      },
+      kamrangirchar: {
+        name: "Kamrangirchar",
+        peopleHelped: 11420,
+        campaigns: 37,
+        categories: {
+          Food: 2800,
+          Health: 2400,
+          Education: 2100,
+          Shelter: 1600,
+          "Water & Sanitation": 2520
+        }
+      }
+    };
+
+    const slumSelect = document.getElementById("slumSelect");
+    const peopleEl = document.getElementById("peopleHelped");
+    const campEl = document.getElementById("campaignCount");
+    const chartCard = document.getElementById("chartCard");
+    const slumChip = document.getElementById("slumChip");
+    const impactHint = document.getElementById("impactHint");
+
+    function formatNumber(n){
+      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // ✅ ONE chart instance only (prevents "keeps increasing")
+    let chartInstance = null;
+
+    function renderChartFor(key){
+      const d = DATA[key];
+      const labels = Object.keys(d.categories);
+      const values = Object.values(d.categories);
+      const total = values.reduce((a,b)=>a+b,0);
+
+      // Build % labels for tooltip
+      const percentOf = (v) => Math.round((v / total) * 100);
+
+      // Destroy old chart properly
+      if(chartInstance){
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+
+      const ctx = document.getElementById("impactChart").getContext("2d");
+
+      chartInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "People helped",
+            data: values,
+            borderWidth: 0,
+            borderRadius: 12
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false, // ✅ prevents canvas from stretching page
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (c) => {
+                  const v = c.parsed.y;
+                  return ` ${formatNumber(v)} people (${percentOf(v)}%)`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: {
+              beginAtZero: true,
+              ticks: { callback: (v) => formatNumber(v) }
+            }
+          }
+        }
+      });
+
+      slumChip.textContent = d.name;
+      impactHint.textContent = `Impact share is shown as % in tooltip for ${d.name}. (Hover on bars.)`;
+    }
+
+    slumSelect.addEventListener("change", ()=>{
+      const key = slumSelect.value;
+
+      if(!key){
+        peopleEl.textContent = "—";
+        campEl.textContent = "—";
+        chartCard.classList.add("disabled");
+        slumChip.textContent = "Select a slum";
+        impactHint.textContent = "Select a slum area to generate the chart.";
+        if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+        return;
+      }
+
+      const d = DATA[key];
+      peopleEl.textContent = formatNumber(d.peopleHelped);
+      campEl.textContent = formatNumber(d.campaigns);
+      chartCard.classList.remove("disabled");
+
+      renderChartFor(key);
+    });
+
+    // Header actions
+    const brandBtn = document.getElementById("brandBtn");
+    const backBtn = document.getElementById("backBtn");
+
+    function goHome(){ window.location.href = "/"; }
+    brandBtn.addEventListener("click", goHome);
+    brandBtn.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); goHome(); } });
+
+    // Back to Local Authority dashboard
+    backBtn.addEventListener("click", ()=>{
+      window.location.href = "./local-dashboard.html";
+    });
+  </script>
+</body>
+</html>
