@@ -88,7 +88,7 @@
 
         <aside class="right-sidebar">
           <div class="stats-grid">
-            <div class="stat-card"><div class="stat-label">Total Dwellers helped</div><div class="stat-value">3,214</div></div>
+            <div class="stat-card" id="dwellersCard"><div class="stat-label">Total Dwellers helped</div><div class="stat-value">3,214</div></div>
             <div class="stat-card"><div class="stat-label">Aids distributed</div><div class="stat-value">12,840</div></div>
             <div class="stat-card"><div class="stat-label">Total Projects</div><div class="stat-value">14</div></div>
           </div>
@@ -111,6 +111,30 @@
       </div>
     </main>
   </div>
+  <!-- Dweller History Modal -->
+  <div class="modal-overlay" id="dwellerModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dwellerTitle">
+      <div class="modal-header" id="dwellerTitle">Dweller History</div>
+      <div class="modal-body dweller-history">
+        <table class="dweller-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Unique ID</th>
+              <th>Slum</th>
+            </tr>
+          </thead>
+          <tbody id="dwellerTableBody">
+            <!-- Dweller records will be populated here -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="closeDwellerModal">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- logout modal markup -->
   <div class="modal-overlay" id="logoutModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
@@ -125,9 +149,66 @@
 
   <script src="adminSlumAnalytics.js"></script>
   <script>
-    // Make each .card button navigate to the show page for that slum.
-    // Adds ?slum=Name so the show page can read which slum to display.
+    // Sample dweller data
+    const dwellerData = [
+      { name: 'Ahmed Hassan', id: 'DW001', slum: 'Molla' },
+      { name: 'Fatima Khan', id: 'DW002', slum: 'Korail' },
+      { name: 'Raj Kumar', id: 'DW003', slum: 'Begun Bari' },
+      { name: 'Amina Begum', id: 'DW004', slum: 'DuariPara' },
+      { name: 'Hassan Ali', id: 'DW005', slum: 'Kallyanpur' },
+      { name: 'Nasrin Akter', id: 'DW006', slum: 'Pora Basti' },
+      { name: 'Karim Ahmed', id: 'DW007', slum: 'Pura' },
+      { name: 'Rehana Begum', id: 'DW008', slum: 'Nubur' },
+      { name: 'Mohammad Habib', id: 'DW009', slum: 'Mannan' },
+      { name: 'Salma Akter', id: 'DW010', slum: 'Basbari' },
+      { name: 'Ibrahim Khan', id: 'DW011', slum: 'Chalantika' },
+      { name: 'Leyla Hassan', id: 'DW012', slum: 'Nama Para' }
+    ];
+
     document.addEventListener('DOMContentLoaded', function () {
+      // Handle Total Dwellers Helped click
+      const dwellersCard = document.getElementById('dwellersCard');
+      const dwellerModal = document.getElementById('dwellerModal');
+      const closeDwellerBtn = document.getElementById('closeDwellerModal');
+      const dwellerTableBody = document.getElementById('dwellerTableBody');
+
+      if (dwellersCard) {
+        dwellersCard.addEventListener('click', function () {
+          // Populate table with dweller data
+          dwellerTableBody.innerHTML = '';
+          dwellerData.forEach(function (dweller) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${dweller.name}</td>
+              <td>${dweller.id}</td>
+              <td>${dweller.slum}</td>
+            `;
+            dwellerTableBody.appendChild(row);
+          });
+          dwellerModal.classList.add('show');
+          dwellerModal.setAttribute('aria-hidden', 'false');
+        });
+      }
+
+      if (closeDwellerBtn) {
+        closeDwellerBtn.addEventListener('click', function () {
+          dwellerModal.classList.remove('show');
+          dwellerModal.setAttribute('aria-hidden', 'true');
+        });
+      }
+
+      // Close modal when clicking outside
+      if (dwellerModal) {
+        dwellerModal.addEventListener('click', function (e) {
+          if (e.target === dwellerModal) {
+            dwellerModal.classList.remove('show');
+            dwellerModal.setAttribute('aria-hidden', 'true');
+          }
+        });
+      }
+
+      // Make each .card button navigate to the show page for that slum.
+      // Adds ?slum=Name so the show page can read which slum to display.
       var cards = document.querySelectorAll('.card');
       cards.forEach(function (card) {
         card.addEventListener('click', function () {
