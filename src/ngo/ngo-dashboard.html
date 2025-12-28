@@ -620,6 +620,13 @@
       toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2200);
     }
 
+    // Analytics Dashboard navigation - register FIRST before toast handler
+    document.querySelector('button[data-toast="Opening Analytics Dashboard"]')?.addEventListener("click", (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = "ngoanalytics-dashboard.html";
+    });
+
     document.querySelectorAll("[data-toast]").forEach(el=>{
       el.addEventListener("click", function(e){
         e.preventDefault();
