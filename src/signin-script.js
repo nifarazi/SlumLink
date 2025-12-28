@@ -152,8 +152,8 @@ signinForm?.addEventListener("submit", (e) => {
     // Redirect to Admin Dashboard
     window.location.href = "/src/admin/adminSlumAnalytics.html";
   } else if (role === "authority") {
-    // Placeholder for Local Authority Dashboard
-    alert("Local Authority dashboard coming soon!");
+    // Redirect to Local Authority Dashboard
+    window.location.href = "/src/localauthority/local-dashboard.html";
   } else if (role === "dweller") {
     // Placeholder for Dweller Dashboard
     alert("Slum Dweller dashboard coming soon!");
