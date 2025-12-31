@@ -109,6 +109,20 @@ if (roleSelect) {
 
   roleSelect.addEventListener("change", () => applyRole(roleSelect.value));
   applyRole(roleSelect.value);
+
+  // Show one-time alert if redirected after signup with submitted flag
+  const submitted = params.get("submitted");
+  if (submitted === "1") {
+    // Show alert
+    setTimeout(() => {
+      alert("Account Creation Application has been submitted successfully.");
+    }, 0);
+    // Clean the URL to avoid repeat alerts on refresh
+    params.delete("submitted");
+    const qs = params.toString();
+    const newUrl = window.location.pathname + (qs ? ("?" + qs) : "");
+    window.history.replaceState(null, '', newUrl);
+  }
 }
 
 // eye toggle (closed -> open)

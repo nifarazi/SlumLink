@@ -324,7 +324,7 @@
       console.error('Failed to compile submission', e);
     }
 
-    // Proceed to signin with role preselected to Slum Dweller
-    window.location.href = '/src/signin.html?role=dweller';
+    // Proceed to signin with role preselected to Slum Dweller and show success notice
+    window.location.href = '/src/signin.html?role=dweller&submitted=1';
   });
 })();
