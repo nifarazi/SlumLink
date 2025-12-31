@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slum Dwellers - Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./dashboard.css" />
+</head>
+<body>
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="brand" aria-label="SLUMLINK Brand">
+        <span class="logo-mark" aria-hidden="true"></span>
+        <span class="logo-text">SLUMLINK</span>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn" data-target="#dashboard">Dashboard</button>
+        <button class="nav-btn" data-target="#profile">Profile</button>
+        <button class="nav-btn" data-target="#submit-complaint">Submit Complaint</button>
+        <button class="nav-btn" data-target="#complaint-status">Complaint Status</button>
+        <button class="nav-btn" data-target="#aid-services">Aid and Services</button>
+        <button class="nav-btn" data-target="#qr-code">QR Code</button>
+        <button class="nav-btn" data-target="#logout">Logout</button>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <section class="content-body">
+        <!-- Top bar: profile left, slum id + notifications right -->
+        <div class="profile-bar">
+          <div class="profile-info">
+            <img src="./images_Slum/profile.png" alt="Profile" class="profile-avatar" />
+            <div class="profile-text">
+              <div class="name">Hasan Mia</div>
+              <div class="phone">Phone: +8801701513788</div>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="slum-id" aria-label="Slum ID">Slum ID: HSN01348</div>
+            <button class="notif-icon has-notifications" aria-label="Notifications">
+              <img src="./images_Slum/Notif%20Icon.png" alt="Notifications" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Welcome messages -->
+        <div class="welcome-text">
+          <div class="welcome-title">Welcome Back, Hasan Mia</div>
+          <div class="welcome-subtitle">Access quick actions below to report issues, view aid and manage your profile.</div>
+        </div>
+
+        <!-- Quick actions grid: 6 identical cards in 2 rows -->
+        <div class="quick-actions">
+          <div class="action-card">
+            <div class="action-header">
+              <img src="./images_Slum/user%20(1).png" alt="User" class="action-icon" />
+              <div class="action-title">My Profile</div>
+            </div>
+            <div class="action-desc">View and update your personal Information.</div>
+            <button class="action-btn">View Profile</button>
+          </div>
+
+          <div class="action-card">
+            <div class="action-header">
+              <img src="./images_Slum/upload.png" alt="Upload" class="action-icon" />
+              <div class="action-title">Submit Complaint</div>
+            </div>
+            <div class="action-desc">Report issues related to any problems faced in your area.</div>
+            <button class="action-btn">New Complaint</button>
+          </div>
+
+          <div class="action-card">
+            <div class="action-header">
+              <img src="./images_Slum/clipboard.png" alt="Clipboard" class="action-icon" />
+              <div class="action-title">Complaint Status</div>
+            </div>
+            <div class="action-desc">Track the progress and updates of your submitted complaints.</div>
+            <button class="action-btn">View Status</button>
+          </div>
+
+          <div class="action-card">
+            <div class="action-header">
+              <img src="./images_Slum/first-aid-kit.png" alt="First Aid Kit" class="action-icon" />
+              <div class="action-title">Aids and Services</div>
+            </div>
+            <div class="action-desc">View received aid and available community services.</div>
+            <button class="action-btn">View Aids And Services</button>
+          </div>
+
+          <div class="action-card">
+            <div class="action-header">
+              <img src="./images_Slum/qr-code.png" alt="QR Code" class="action-icon" />
+              <div class="action-title">QR Code</div>
+            </div>
+            <div class="action-desc">Open your personal QR for sharing profile or quick access.</div>
+            <button class="action-btn">View QR Code</button>
+          </div>
+
+          <div class="action-card">
+            <div class="action-header">
+              <img src="./images_Slum/logout.png" alt="Logout" class="action-icon" />
+              <div class="action-title">Logout</div>
+            </div>
+            <div class="action-desc">Sign out of your account securely.</div>
+            <button class="action-btn">Logout</button>
+          </div>
+        </div>
+
+        <!-- Lower two-column section: Recent Complaint (left) and Quick Tips (right) -->
+        <div class="lower-columns">
+          <!-- Left panel spanning width of two cards -->
+          <div class="left-pane">
+            <div class="panel-card">
+              <div class="panel-title">Recent Complaint</div>
+              <div class="complaint-list"><!-- Populated via JS with dummy data --></div>
+            </div>
+          </div>
+
+          <!-- Right panel same height as left -->
+          <div class="right-pane">
+            <div class="panel-card">
+              <div class="panel-title">Quick Tips</div>
+              <div class="tips-text">Use "Submit Complaint" to quickly report urgent issues. Keep your profile updated for faster aid processing.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- jsPDF for PDF generation -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" integrity="sha256-3zqKcYfF1nsPGYVa3xtHGutU5Cw0E6oM1f+GdrKOkYE=" crossorigin="anonymous"></script>
+
+  <!-- Complaint Detail Modal -->
+  <div class="complaint-modal" id="complaintModal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-title" id="modalTitle">Complaint Title</div>
+          <div class="modal-category" id="modalCategory">Category</div>
+          <div class="modal-area" id="modalArea">Area</div>
+        </div>
+        <div class="modal-status-wrap">
+          <div class="status-badge" id="modalStatus">Status</div>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-description-card">
+          <div class="modal-description" id="modalDescription"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <a id="downloadAttachmentBtn" class="btn outlined" href="#" target="_blank" rel="noopener">Download Attachment</a>
+        <button id="downloadComplaintBtn" class="btn primary" type="button">Download Complaint</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./dashboard.js"></script>
+</body>
+</html>

@@ -39,6 +39,10 @@
             <option>Others</option>
           </select>
         </label>
+        <label class="field span-2">
+          <span>NID Number</span>
+          <input type="text" name="spouse_${index}_nid" inputmode="numeric" placeholder="Enter National ID" />
+        </label>
         <label class="field">
           <span>Education</span>
           <input type="text" name="spouse_${index}_education" placeholder="e.g., Secondary" />
@@ -63,6 +67,10 @@
           <span>Mobile Number</span>
           <input type="tel" name="spouse_${index}_mobile" placeholder="e.g., 017XXXXXXXX" />
         </label>
+        <label class="field span-2">
+          <span>Marriage Certificate (Upload)</span>
+          <input type="file" name="spouse_${index}_marriage_certificate" accept=".pdf,image/*" />
+        </label>
       </div>`;
     return wrap;
   }
@@ -71,6 +79,14 @@
     clearSegments();
     const count = Math.max(1, Math.min(Number(n) || 0, 4));
     for(let i=1;i<=count;i++) segments.appendChild(makeSpouseSegment(i));
+  }
+
+  function sanitizeSpouseCount(){
+    if (!spouseCountInput) return 1;
+    const raw = Number(spouseCountInput.value);
+    const sanitized = Number.isFinite(raw) ? Math.min(4, Math.max(1, raw)) : 1;
+    if (String(sanitized) !== String(spouseCountInput.value)) spouseCountInput.value = String(sanitized);
+    return sanitized;
   }
 
   function collectFormData(frm){
@@ -87,7 +103,8 @@
     if (data.maritalStatus === 'married') {
       spouseCountWrap.style.display = '';
       if (data.spouseCount) spouseCountInput.value = data.spouseCount;
-      renderSegments(spouseCountInput.value || 1);
+      const n = sanitizeSpouseCount();
+      renderSegments(n || 1);
     } else {
       spouseCountWrap.style.display = 'none';
       clearSegments();
@@ -130,7 +147,8 @@
     if (v === 'married'){
       spouseCountWrap.style.display = '';
       if (!spouseCountInput.value) spouseCountInput.value = '1';
-      renderSegments(spouseCountInput.value);
+      const n = sanitizeSpouseCount();
+      renderSegments(n);
     } else {
       spouseCountWrap.style.display = 'none';
       clearSegments();
@@ -138,7 +156,11 @@
     save();
   });
 
-  spouseCountInput?.addEventListener('input', () => { renderSegments(spouseCountInput.value); save(); });
+  spouseCountInput?.addEventListener('input', () => {
+    const n = sanitizeSpouseCount();
+    renderSegments(n);
+    save();
+  });
 
   // Autosave
   form?.addEventListener('input', save);
@@ -151,6 +173,17 @@
   });
   document.querySelector('.nav-btn.right')?.addEventListener('click', () => {
     if (!form) return;
+    // Ensure spouse count obeys minimum when married
+    if (maritalStatus?.value === 'married') {
+      const n = sanitizeSpouseCount();
+      if (n < 1 || n > 4) {
+        spouseCountInput.setCustomValidity('Spouse count must be between 1 and 4');
+        spouseCountInput.reportValidity();
+        spouseCountInput.focus();
+        return;
+      }
+      spouseCountInput.setCustomValidity('');
+    }
     if (!validateAllVisible(form)) return;
     save();
     window.location.href = './children.html';

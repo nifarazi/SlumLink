@@ -1,0 +1,249 @@
+/* Layout */
+* { box-sizing: border-box; }
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: linear-gradient(to bottom, #DFA477 65%, #F5DFC5 100%);
+  box-shadow: 6px 0 18px rgba(0, 0, 0, 0.12);
+
+}
+
+/* Brand (match SignUp page) */
+.brand { display:flex; align-items:center; gap:10px; min-height:56px; }
+.logo-mark {
+  width: 37px;
+  height: 37px;
+  border-radius: 14px;
+  background: linear-gradient(143.48deg,
+    rgba(164, 98, 77, 0.75) 38.34%,
+    rgba(223, 164, 119, 0.75) 78.43%
+  ); 
+  margin-left: 10px;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+.logo-text {
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: 25px;
+  line-height: 1;
+  font-weight: 500;
+  color: rgba(164, 98, 77, 0.86);
+  text-transform: uppercase;
+  white-space: nowrap;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.nav { display: flex;
+     flex-direction: column;
+     width: 100%;
+}
+
+.nav-btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  padding: 12px 14px;
+  background: #A4624D; /* Button background */
+  color: #FFFFFF;      /* Font color white */
+  height: 60px;
+  font-size: 15px;
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-weight: 600;
+  text-align: left;
+  transition: background 0.3s ease, transform 0.12s ease, opacity 0.3s ease;
+}
+.welcome-title { font-size: 20px; font-weight: 600; color: #2f2724; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.welcome-subtitle { font-size: 14px; color: #444; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.nav-btn:hover { 
+    background: #cd856f;
+    transform: scale(0.98);
+ }
+
+/* Right content */
+.content {
+  background: linear-gradient(135deg, #DFA477 10%,  #C0E0D0 100%);
+  padding: 24px;
+}
+.content-body { display: grid; gap: 16px; }
+
+/* Top bar */
+.profile-bar { display: flex; align-items: center; justify-content: space-between; }
+.profile-info { display: flex; align-items: center; gap: 12px; }
+.profile-avatar { width: 55px; height: 55px; object-fit: cover; border: 2px solid rgba(0,0,0,0.08); }
+.profile-text { display: flex; flex-direction: column; line-height: 1.2; }
+.profile-text .name { font-weight: 800; color: #2f2724; font-size: 20px; }
+.profile-text .phone { font-size: 12px; color: #4f4f4f; font-size: 15px;}
+
+.top-actions { display: flex; align-items: center; gap: 12px; }
+.slum-id { background: #fff; color: #000; border-radius: 10px; padding: 6px 12px; border: 1px solid rgba(0,0,0,0.1); font-weight: 600; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.notif-icon { position: relative; width: 20px; height: 25px; padding: 0; border: none; background: transparent; cursor: pointer; }
+.notif-icon img { width: 100%; height: 100%; display: block; }
+.notif-icon.has-notifications::after { content: ""; position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: #ff2d2d; border-radius: 50%; border: 2px solid #fff; }
+
+/* Welcome text */
+.welcome-text { margin-top: 4px; }
+.welcome-title { font-size: 25px; font-weight: 800; color: #2f2724; }
+.welcome-subtitle { font-size: 15px; color: #444; }
+
+/* Quick actions grid */
+.quick-actions { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+.action-card { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.action-header { display: flex; align-items: center; gap: 10px; }
+.action-icon { width: 28px; height: 28px; }
+.action-title { font-weight: 800; font-size: 20px; color: #A4624D; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.action-desc { font-size: 14px; color: #000; }
+.action-btn { appearance: none; border: none; cursor: pointer; padding: 8px 12px; background: #A4624D; color: #FFFFFF; font-weight: 600; border-radius: 8px; transition: background 0.35s ease, transform 0.12s ease; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin-top: auto; }
+.action-btn:hover { background: #cd856f; transform: scale(1.03); }
+
+/* Lower two-column section */
+.lower-columns { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: stretch; }
+.left-pane, .right-pane { display: contents; }
+.panel-card { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; height: 100%; }
+.panel-title { font-weight: 800; font-size: 20px; color: #2f2724; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.complaint-list { display: grid; grid-template-rows: repeat(2, minmax(0, auto)); gap: 12px; }
+.complaint-card { background: #fff; cursor:pointer; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; padding: 12px; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 6px 8px; align-items: center; transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.complaint-card:hover { background-color: #FFF4EC; border-color: rgba(164, 98, 77, 0.25); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+.complaint-title { grid-column: 1 / 2; font-weight: 600; color: #A4624D; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.complaint-category { grid-column: 1 / 2; font-size: 13px; color: #555; font-weight: 400;}
+.status-badge { grid-column: 2 / 3; grid-row: 1 / span 2; align-self: center; padding: 6px 10px; border-radius: 8px; font-weight: 700; color: #fff; font-size: 12px; text-transform: capitalize; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; width: 120px; display: inline-flex; justify-content: center; }
+.status-badge.pending { background: #FF0000; }
+.status-badge.in-progress { background: #FF8400; }
+.status-badge.resolved { background: #349357; }
+.tips-text { font-size: 15px; color: #444; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .dashboard-layout { grid-template-columns: 220px 1fr; }
+  .quick-actions { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .lower-columns { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  /* Use flex layout on mobile; remove sticky behavior */
+  .dashboard-layout { display: flex; flex-direction: column; }
+  /* Logo centered at top, sidebar row below */
+  .sidebar {
+    position: unset; z-index: 2;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px; padding: 10px 12px;
+  }
+  .brand { 
+    margin: 0; 
+    padding: 0; 
+    width: 100%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+  }
+  .logo-mark { margin: 0; }
+  .logo-text { font-size: 18px; margin: 0; text-align: center; }
+  .nav { 
+    display:flex; flex-direction: row; flex-wrap: wrap; gap: 8px; 
+    width: 100%; justify-content: center; 
+    overflow: visible; 
+  }
+  .nav-btn {
+    flex: 1 1 auto; /* allow wrapping into multiple rows */
+    height: auto; padding: 10px 12px; border-radius: 20px;
+    white-space: nowrap; text-align: center;
+  }
+  .quick-actions { grid-template-columns: 1fr; }
+  .lower-columns { grid-template-columns: 1fr; }
+}
+
+/* Extra small screens: wrap nav to multiple rows so all options are visible */
+@media (max-width: 480px) {
+  .sidebar { gap: 8px; padding: 8px 10px; }
+  .logo-text { font-size: 16px; }
+  .nav { flex-wrap: wrap; justify-content: center; overflow: visible; }
+  .nav-btn { flex: 1 1 auto; padding: 8px 10px; font-size: 14px; }
+}
+
+/* Complaint Detail Modal */
+.complaint-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  padding: 24px;
+}
+.complaint-modal.open { display: flex; }
+
+.modal-content {
+  width: min(860px, 92vw);
+  background: #D8D8D8; /* Requested popup background */
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.25);
+  padding: 20px 20px 16px;
+}
+
+.modal-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: start;
+}
+.modal-title { font-weight: 800; font-size: 22px; color: #2f2724; }
+.modal-category { font-size: 14px; color: #4a4a4a; margin-top: 4px; }
+.modal-area { font-size: 14px; color: #4a4a4a; margin-top: 2px; }
+.modal-status-wrap { display: flex; align-items: start; }
+
+.modal-body { margin-top: 14px; }
+.modal-description-card {
+  background: #FFFFFF; /* White card for description */
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 16px;
+}
+.modal-description { color: #2f2724; font-size: 15px; line-height: 1.55; white-space: pre-wrap; }
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  justify-content: center; /* center align row */
+}
+
+.btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  transition: transform 0.12s ease, opacity 0.2s ease, background 0.25s ease, color 0.25s ease;
+  text-align: center; /* center label text */
+}
+.modal-actions .btn { flex: 1 1 0; } /* take full width equally */
+.btn.primary { background: #A4624D; color: #FFFFFF; }
+.btn.primary:hover { background: #cd856f; transform: translateY(-1px); }
+.btn.outlined {
+  background: transparent;
+  color: #A4624D;
+  border: 2px solid #A4624D;
+}
+.btn.outlined:hover { background: #FFF4EC; }
+.btn[aria-disabled="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Reuse status-badge colors inside modal; already defined above */

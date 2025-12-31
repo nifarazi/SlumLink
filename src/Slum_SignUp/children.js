@@ -10,6 +10,7 @@
   const form = document.getElementById('childrenForm');
   const countInput = document.getElementById('childrenCount');
   const segments = document.getElementById('childrenSegments');
+  const MARITAL_STORAGE_KEY = 'SLUMLINK_MARITAL';
 
   function safeJsonParse(raw, fallback){ try { return JSON.parse(raw); } catch { return fallback; } }
   function clearSegments(){ segments.innerHTML = ''; }
@@ -60,6 +61,10 @@
         <label class="field span-2">
           <span>Preferred Job</span>
           <input type="text" name="child_${index}_preferred_job" placeholder="e.g., Electrician" />
+        </label>
+        <label class="field span-2">
+          <span>Birth Certificate (Upload)</span>
+          <input type="file" name="child_${index}_birth_certificate" accept=".pdf,image/*" />
         </label>
       </div>
     `;
@@ -131,6 +136,27 @@
   // Initial load
   if (form) fillForm(form, load());
 
+  // Apply rule: if marital status is 'unmarried', force children count to 0 and disable editing
+  function applyMaritalChildrenRule(){
+    const raw = localStorage.getItem(MARITAL_STORAGE_KEY);
+    const marital = raw ? safeJsonParse(raw, {}) : {};
+    const status = (marital?.maritalStatus || '').toLowerCase();
+    if (status === 'unmarried'){
+      if (countInput){
+        countInput.value = '0';
+        countInput.disabled = true;
+        renderSegments(0);
+      }
+      // Persist the enforced 0
+      save();
+    } else {
+      if (countInput){
+        countInput.disabled = false;
+      }
+    }
+  }
+  applyMaritalChildrenRule();
+
   // Events
   countInput?.addEventListener('input', () => { renderSegments(countInput.value); save(); });
   form?.addEventListener('input', save);
@@ -142,10 +168,14 @@
       const targetName = btn.getAttribute('data-target');
       const input = form?.querySelector(`[name="${CSS.escape(targetName || '')}"]`);
       if (!input) return;
+      const img = btn.querySelector('img');
+      // Set initial icon based on current input type
+      if (img) img.src = (input.type === 'password') ? 'images/hide.png' : 'images/view.png';
       btn.addEventListener('click', () => {
         const showing = input.type === 'text';
         input.type = showing ? 'password' : 'text';
-        btn.textContent = showing ? 'Show' : 'Hide';
+        if (img) img.src = showing ? 'images/hide.png' : 'images/view.png';
+        btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
       });
     });
   }
