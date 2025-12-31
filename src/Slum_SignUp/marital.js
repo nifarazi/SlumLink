@@ -93,7 +93,22 @@
     const data = {};
     frm.querySelectorAll('input, select, textarea').forEach(el => {
       if (!el.name) return;
-      if (el.type === 'checkbox') data[el.name] = el.checked; else data[el.name] = el.value;
+      if (el.type === 'checkbox') {
+        data[el.name] = el.checked;
+      } else if (el.type === 'file') {
+        const file = el.files && el.files[0];
+        const stored = el.dataset.dataUrl || '';
+        if (file && el.dataset.dataUrl) {
+          data[el.name] = stored; // Data URL
+          data[el.name + '_filename'] = file.name;
+        } else if (stored) {
+          data[el.name] = stored; // previously saved
+        } else {
+          data[el.name] = '';
+        }
+      } else {
+        data[el.name] = el.value;
+      }
     });
     return data;
   }
@@ -164,7 +179,29 @@
 
   // Autosave
   form?.addEventListener('input', save);
-  form?.addEventListener('change', save);
+  // Read file inputs as Data URLs on change
+  form?.addEventListener('change', (ev) => {
+    const el = ev.target;
+    if (!(el instanceof HTMLElement)) { save(); return; }
+    if (el.tagName.toLowerCase() === 'input' && (el.getAttribute('type') || '').toLowerCase() === 'file') {
+      const input = el;
+      const files = input.files;
+      if (files && files[0]) {
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+          input.dataset.dataUrl = String(reader.result || '');
+          save();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        input.dataset.dataUrl = '';
+        save();
+      }
+    } else {
+      save();
+    }
+  });
 
   // Navigation
   document.querySelector('.nav-btn.left')?.addEventListener('click', () => {

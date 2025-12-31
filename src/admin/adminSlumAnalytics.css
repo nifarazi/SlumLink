@@ -332,8 +332,32 @@ body {
 
 .pending-actions {
   display: flex;
-  gap: 8px;
+  flex-direction: column; /* stack buttons vertically */
+  gap: 0;                 /* use explicit margins for spacing */
+  align-items: center;     /* center horizontally */
+  justify-content: center; /* center vertically within the cell */
+  text-align: center;      /* center any inline text */
+  height: 100%;            /* match row height */
+}
+
+/* Ensure inner container stretches to cell height for perfect centering */
+.pending-actions > div {
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Make action buttons uniform size */
+.pending-actions button {
+  width: 150px; /* equal width for all buttons */
+}
+
+/* Add 10px bottom margin for first two buttons (PDF, Approve) */
+.pending-actions button:not(:last-child) {
+  margin-bottom: 10px;
 }
 
 .table-wrapper {
@@ -348,6 +372,47 @@ body {
   border-radius: 25px;
   padding: 25px;
 }
+
+/* Pending cards grid */
+.pending-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 1100px) {
+  .pending-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .pending-cards { grid-template-columns: 1fr; }
+}
+
+.pending-card {
+  background: #FFF4E6;
+  border-radius: 16px;
+  border: none; /* remove borders for clean card look */
+  box-shadow: 0 6px 12px rgba(97,55,41,0.12);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pending-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  color: #AD7562;
+  font-weight: 700;
+}
+.pending-name { font-size: 16px; }
+.pending-slum { font-size: 14px; color: #8b6f5a; }
+.pending-card-body { display: flex; flex-direction: column; gap: 10px; }
+.info-row { font-size: 14px; color: #8b6f5a; }
+.info-label { font-weight: 700; color: #2f2724; margin-right: 6px; }
+.section-title { font-weight: 700; color: #AD7562; font-size: 14px; }
+.doc-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.doc-block { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.doc-label { font-weight: 700; font-size: 12px; color: #2f2724; }
+.pending-card-actions { display: flex; flex-direction: column; gap: 8px; align-items: center; }
 
 /* Header */
 .table-card .card-header {

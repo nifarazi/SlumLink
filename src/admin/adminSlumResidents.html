@@ -146,33 +146,23 @@
   <script>
     // Handle dropdown menu display and card click behavior
     document.addEventListener('DOMContentLoaded', function () {
-      var cardContainers = document.querySelectorAll('.card-container');
-      
-      cardContainers.forEach(function (container) {
+      function wireCard(container){
         var card = container.querySelector('.card');
         var dropdown = container.querySelector('.dropdown-menu');
         var dropdownItems = dropdown.querySelectorAll('.dropdown-item');
-        
-        // Toggle dropdown on card click
         card.addEventListener('click', function (e) {
           e.stopPropagation();
-          // Close other dropdowns
           document.querySelectorAll('.dropdown-menu').forEach(function (menu) {
-            if (menu !== dropdown) {
-              menu.classList.remove('show');
-            }
+            if (menu !== dropdown) { menu.classList.remove('show'); }
           });
           dropdown.classList.toggle('show');
         });
-        
-        // Handle dropdown item clicks
         dropdownItems.forEach(function (item) {
           item.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
             var slumName = (card.textContent || '').trim();
             var accountType = item.getAttribute('data-type');
-
             if (accountType === 'pending') {
               var pendingUrl = 'SlumPendingAccounts.html';
               if (slumName) pendingUrl += '?slum=' + encodeURIComponent(slumName);
@@ -187,21 +177,48 @@
             }
           });
         });
-        
-        // Keyboard accessibility for card
         card.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            card.click();
-          }
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
         });
+      }
+
+      // Wire existing static cards
+      document.querySelectorAll('.card-container').forEach(wireCard);
+
+      // Read applications to append any new slum buttons
+      function safeJsonParse(raw, fb){ try { return JSON.parse(raw); } catch { return fb; } }
+      var LIST_KEY = 'SLUMLINK_APPLICATIONS';
+      var apps = safeJsonParse(localStorage.getItem(LIST_KEY), []);
+      var dynamicSlums = new Set();
+      (apps || []).forEach(function(app){
+        var s = String(app.slum || '').trim();
+        if (s) dynamicSlums.add(s);
       });
-      
+      // Collect existing slum names from static cards
+      var existing = new Set();
+      document.querySelectorAll('.card-container .card').forEach(function(btn){
+        var name = (btn.textContent || '').trim();
+        if (name) existing.add(name.toLowerCase());
+      });
+      // Append new cards for slums not present
+      var grid = document.querySelector('.card-grid');
+      dynamicSlums.forEach(function(slum){
+        if (!existing.has(slum.toLowerCase())){
+          var container = document.createElement('div');
+          container.className = 'card-container';
+          container.innerHTML = '<button class="card" type="button">'+ slum +'</button>' +
+                                '<div class="dropdown-menu">' +
+                                '<a href="#" class="dropdown-item" data-type="active">Active Accounts</a>' +
+                                '<a href="#" class="dropdown-item" data-type="pending">Pending Accounts</a>' +
+                                '</div>';
+          grid.appendChild(container);
+          wireCard(container);
+        }
+      });
+
       // Close dropdown when clicking outside
       document.addEventListener('click', function () {
-        document.querySelectorAll('.dropdown-menu').forEach(function (menu) {
-          menu.classList.remove('show');
-        });
+        document.querySelectorAll('.dropdown-menu').forEach(function (menu) { menu.classList.remove('show'); });
       });
     });
   </script>

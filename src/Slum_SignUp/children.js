@@ -81,7 +81,22 @@
     const data = {};
     frm.querySelectorAll('input, select, textarea').forEach(el => {
       if (!el.name) return;
-      if (el.type === 'checkbox') data[el.name] = el.checked; else data[el.name] = el.value;
+      if (el.type === 'checkbox') {
+        data[el.name] = el.checked;
+      } else if (el.type === 'file') {
+        const file = el.files && el.files[0];
+        const stored = el.dataset.dataUrl || '';
+        if (file && el.dataset.dataUrl) {
+          data[el.name] = stored; // Data URL
+          data[el.name + '_filename'] = file.name;
+        } else if (stored) {
+          data[el.name] = stored; // previously saved
+        } else {
+          data[el.name] = '';
+        }
+      } else {
+        data[el.name] = el.value;
+      }
     });
     return data;
   }
@@ -160,7 +175,29 @@
   // Events
   countInput?.addEventListener('input', () => { renderSegments(countInput.value); save(); });
   form?.addEventListener('input', save);
-  form?.addEventListener('change', save);
+  // Read file inputs as Data URLs on change
+  form?.addEventListener('change', (ev) => {
+    const el = ev.target;
+    if (!(el instanceof HTMLElement)) { save(); return; }
+    if (el.tagName.toLowerCase() === 'input' && (el.getAttribute('type') || '').toLowerCase() === 'file') {
+      const input = el;
+      const files = input.files;
+      if (files && files[0]) {
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+          input.dataset.dataUrl = String(reader.result || '');
+          save();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        input.dataset.dataUrl = '';
+        save();
+      }
+    } else {
+      save();
+    }
+  });
 
   // Toggle password visibility
   function wirePwdToggles(){
@@ -190,6 +227,103 @@
     if (!form) return;
     if (!validateAllVisible(form)) return;
     save();
+    // Compile submission for admin approval
+    try {
+      const personal = safeJsonParse(localStorage.getItem('SLUMLINK_SIGNUP'), {});
+      const marital = safeJsonParse(localStorage.getItem('SLUMLINK_MARITAL'), {});
+      const children = safeJsonParse(localStorage.getItem('SLUMLINK_CHILDREN'), {});
+      function resolveSlumFromArea(area){
+        const a = String(area || '').toLowerCase().trim();
+        const clean = a.replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ');
+        const map = new Map([
+          ['korail','Korail'],
+          ['begun bari','Begun Bari'],
+          ['begunbari','Begun Bari'],
+          ['molla','Molla'],
+          ['duaripara','DuariPara'],
+          ['duari para','DuariPara'],
+          ['kallyanpur','Kallyanpur'],
+          ['pora basti','Pora Basti'],
+          ['porabasti','Pora Basti'],
+          ['pura','Pura'],
+          ['nubur','Nubur'],
+          ['mannan','Mannan'],
+          ['basbari','Basbari'],
+          ['chalantika','Chalantika'],
+          ['nama para','Nama Para'],
+          ['namapara','Nama Para'],
+        ]);
+        if (map.has(clean)) return map.get(clean);
+        for (const [key, val] of map.entries()) { if (clean.includes(key)) return val; }
+        return '';
+      }
+
+      // Transform spouses
+      const spouseCount = Number(marital.spouseCount || 0) || 0;
+      const spouses = [];
+      for (let i = 1; i <= spouseCount; i++) {
+        const s = {
+          name: marital[`spouse_${i}_name`] || '',
+          dob: marital[`spouse_${i}_dob`] || '',
+          gender: marital[`spouse_${i}_gender`] || '',
+          nid: marital[`spouse_${i}_nid`] || '',
+          education: marital[`spouse_${i}_education`] || '',
+          job: marital[`spouse_${i}_job`] || '',
+          income: marital[`spouse_${i}_income`] || '',
+          mobile: marital[`spouse_${i}_mobile`] || '',
+          marriageCertificate: marital[`spouse_${i}_marriage_certificate`] || '',
+          marriageCertificateName: marital[`spouse_${i}_marriage_certificate_filename`] || '',
+        };
+        spouses.push(s);
+      }
+
+      // Transform children
+      const childCount = Number(children.childrenCount || 0) || 0;
+      const kids = [];
+      for (let i = 1; i <= childCount; i++) {
+        const c = {
+          name: children[`child_${i}_name`] || '',
+          dob: children[`child_${i}_dob`] || '',
+          gender: children[`child_${i}_gender`] || '',
+          education: children[`child_${i}_education`] || '',
+          job: children[`child_${i}_job`] || '',
+          income: children[`child_${i}_income`] || '',
+          preferredJob: children[`child_${i}_preferred_job`] || '',
+          birthCertificate: children[`child_${i}_birth_certificate`] || '',
+          birthCertificateName: children[`child_${i}_birth_certificate_filename`] || '',
+        };
+        kids.push(c);
+      }
+
+      // Build submission (exclude account credentials from PDF payload)
+      // Prefer mapped Area; if unknown, use the raw Area name
+      const rawArea = String(personal.area || '').trim();
+      const slumName = resolveSlumFromArea(personal.area) || rawArea || resolveSlumFromArea(personal.district) || resolveSlumFromArea(personal.division) || 'Unknown';
+      const submission = {
+        id: String(Date.now()),
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        slum: slumName,
+        account: {
+          username: children.account_username || '',
+          password: children.account_password || '',
+        },
+        data: {
+          personal,
+          marital: { maritalStatus: marital.maritalStatus || '', spouseCount: spouseCount, spouses },
+          children: { childrenCount: childCount, children: kids },
+        }
+      };
+
+      const LIST_KEY = 'SLUMLINK_APPLICATIONS';
+      const listRaw = localStorage.getItem(LIST_KEY);
+      const list = listRaw ? safeJsonParse(listRaw, []) : [];
+      list.push(submission);
+      localStorage.setItem(LIST_KEY, JSON.stringify(list));
+    } catch (e) {
+      console.error('Failed to compile submission', e);
+    }
+
     // Proceed to signin with role preselected to Slum Dweller
     window.location.href = '/src/signin.html?role=dweller';
   });
