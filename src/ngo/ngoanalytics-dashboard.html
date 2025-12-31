@@ -244,15 +244,6 @@
       min-height: 130px;
     }
 
-    .metric-line{
-      width: 92px;
-      height: 4px;
-      border-radius: 999px;
-      background: rgba(47,34,32,0.75);
-      opacity: 0.85;
-      margin-bottom: 4px;
-    }
-
     .metric-num{
       font-size: 44px;
       font-weight: 900;
@@ -391,13 +382,11 @@
           </div>
 
           <div class="card metric" aria-label="People helped">
-            <div class="metric-line"></div>
             <div class="metric-num" id="peopleHelped">—</div>
             <div class="metric-label">PEOPLE HELPED</div>
           </div>
 
           <div class="card metric" aria-label="Campaigns">
-            <div class="metric-line"></div>
             <div class="metric-num" id="campaignCount">—</div>
             <div class="metric-label">CAMPAIGNS</div>
           </div>
@@ -551,6 +540,7 @@
             x: { grid: { display: false } },
             y: {
               beginAtZero: true,
+              grid: { display: false },
               ticks: { callback: (v) => formatNumber(v) }
             }
           }
