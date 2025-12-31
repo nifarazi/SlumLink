@@ -725,6 +725,13 @@
       window.location.href = "./analytics-dashboard.html";
     });
 
+    // Create New Campaign navigation
+    document.querySelector('button[data-toast="Navigating to Campaign Creation"]')?.addEventListener("click", (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = "./create-campaign.html";
+    });
+
     // Brand click (go to home)
     document.getElementById("brandBtn").addEventListener("click", (e)=> {
       e.preventDefault();
