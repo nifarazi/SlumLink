@@ -515,15 +515,30 @@
             label: "People helped",
             data: values,
             borderWidth: 0,
-            borderRadius: 12
+            borderRadius: 12,
+            backgroundColor: "rgba(223, 164, 119, 0.8)",
+            hoverBackgroundColor: "rgba(240, 190, 160, 1)",
+            borderSkipped: false
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false, // ✅ prevents canvas from stretching page
+          maintainAspectRatio: false,
+          interaction: {
+            intersect: false,
+            mode: "index"
+          },
           plugins: {
             legend: { display: false },
             tooltip: {
+              enabled: true,
+              backgroundColor: "rgba(97, 55, 41, 0.9)",
+              padding: 12,
+              titleFont: { size: 14, weight: "bold" },
+              bodyFont: { size: 13 },
+              borderColor: "rgba(223, 164, 119, 0.5)",
+              borderWidth: 1,
+              displayColors: false,
               callbacks: {
                 label: (c) => {
                   const v = c.parsed.y;
