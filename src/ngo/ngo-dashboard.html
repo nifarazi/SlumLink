@@ -627,6 +627,13 @@
       window.location.href = "ngoanalytics-dashboard.html";
     });
 
+    // Create New Campaign navigation
+    document.querySelector('button[data-toast="Navigating to Campaign Creation"]')?.addEventListener("click", (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = "ngocreate-campaign.html";
+    });
+
     document.querySelectorAll("[data-toast]").forEach(el=>{
       el.addEventListener("click", function(e){
         e.preventDefault();
