@@ -244,15 +244,6 @@
       min-height: 130px;
     }
 
-    .metric-line{
-      width: 92px;
-      height: 4px;
-      border-radius: 999px;
-      background: rgba(47,34,32,0.75);
-      opacity: 0.85;
-      margin-bottom: 4px;
-    }
-
     .metric-num{
       font-size: 44px;
       font-weight: 900;
@@ -391,15 +382,28 @@
           </div>
 
           <div class="card metric" aria-label="People helped">
-            <div class="metric-line"></div>
             <div class="metric-num" id="peopleHelped">—</div>
             <div class="metric-label">PEOPLE HELPED</div>
           </div>
 
           <div class="card metric" aria-label="Campaigns">
-            <div class="metric-line"></div>
             <div class="metric-num" id="campaignCount">—</div>
             <div class="metric-label">CAMPAIGNS</div>
+          </div>
+
+          <div class="card metric" aria-label="Complaints Solved">
+            <div class="metric-num" id="complaintsSolved">—</div>
+            <div class="metric-label">COMPLAINTS SOLVED</div>
+          </div>
+
+          <div class="card metric" aria-label="Complaints Pending">
+            <div class="metric-num" id="complaintsPending">—</div>
+            <div class="metric-label">COMPLAINTS PENDING</div>
+          </div>
+
+          <div class="card metric" aria-label="Complaints In Progress">
+            <div class="metric-num" id="complaintsInProgress">—</div>
+            <div class="metric-label">IN PROGRESS</div>
           </div>
         </div>
 
@@ -417,6 +421,21 @@
             Select a slum area to generate the chart.
           </p>
         </div>
+
+        <div class="chart-card disabled" id="trendCard" aria-label="Trend chart">
+          <div class="chart-head">
+            <h3>Complaints Trend</h3>
+            <span class="chip" id="trendChip">Select a slum</span>
+          </div>
+
+          <div class="chart-wrap">
+            <canvas id="trendChart"></canvas>
+          </div>
+
+          <p class="hint" id="trendHint">
+            Select a slum area to view monthly complaint trends.
+          </p>
+        </div>
       </div>
     </section>
   </main>
@@ -430,6 +449,11 @@
         name: "Korail",
         peopleHelped: 13240,
         campaigns: 42,
+        complaintsSolved: 156,
+        complaintsPending: 23,
+        complaintsInProgress: 18,
+        complaintsTrend: 12,
+        monthlyTrend: [45, 52, 48, 61, 58, 72, 68, 75, 82, 88, 95, 102], // Jan-Dec
         categories: {
           Food: 3200,
           Health: 2800,
@@ -442,6 +466,11 @@
         name: "Mirpur",
         peopleHelped: 9840,
         campaigns: 31,
+        complaintsSolved: 98,
+        complaintsPending: 15,
+        complaintsInProgress: 12,
+        complaintsTrend: -8,
+        monthlyTrend: [38, 42, 45, 41, 44, 48, 45, 42, 40, 38, 35, 32], // Jan-Dec
         categories: {
           Food: 2400,
           Health: 2100,
@@ -454,6 +483,11 @@
         name: "Rampura",
         peopleHelped: 7650,
         campaigns: 24,
+        complaintsSolved: 72,
+        complaintsPending: 9,
+        complaintsInProgress: 7,
+        complaintsTrend: 5,
+        monthlyTrend: [28, 30, 32, 35, 36, 38, 40, 42, 44, 45, 47, 48], // Jan-Dec
         categories: {
           Food: 1700,
           Health: 1600,
@@ -466,6 +500,11 @@
         name: "Kamrangirchar",
         peopleHelped: 11420,
         campaigns: 37,
+        complaintsSolved: 134,
+        complaintsPending: 19,
+        complaintsInProgress: 14,
+        complaintsTrend: 20,
+        monthlyTrend: [55, 62, 58, 70, 75, 85, 92, 98, 105, 112, 120, 128], // Jan-Dec
         categories: {
           Food: 2800,
           Health: 2400,
@@ -479,19 +518,42 @@
     const slumSelect = document.getElementById("slumSelect");
     const peopleEl = document.getElementById("peopleHelped");
     const campEl = document.getElementById("campaignCount");
+    const complaintsSolvedEl = document.getElementById("complaintsSolved");
+    const complaintsPendingEl = document.getElementById("complaintsPending");
+    const complaintsInProgressEl = document.getElementById("complaintsInProgress");
     const chartCard = document.getElementById("chartCard");
+    const trendCard = document.getElementById("trendCard");
     const slumChip = document.getElementById("slumChip");
+    const trendChip = document.getElementById("trendChip");
     const impactHint = document.getElementById("impactHint");
+    const trendHint = document.getElementById("trendHint");
 
     function formatNumber(n){
       return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
-    // ✅ ONE chart instance only (prevents "keeps increasing")
+    function formatTrend(value){
+      if(value > 0){
+        return `<span style="color: #e74c3c;">↑ ${value}%</span>`;
+      } else if(value < 0){
+        return `<span style="color: #27ae60;">↓ ${Math.abs(value)}%</span>`;
+      } else {
+        return `<span style="color: #95a5a6;">→ 0%</span>`;
+      }
+    }
+
+    // ✅ TWO chart instances
     let chartInstance = null;
+    let trendChartInstance = null;
 
     function renderChartFor(key){
       const d = DATA[key];
+      
+      // Update complaints metrics
+      complaintsSolvedEl.textContent = formatNumber(d.complaintsSolved);
+      complaintsPendingEl.textContent = formatNumber(d.complaintsPending);
+      complaintsInProgressEl.textContent = formatNumber(d.complaintsInProgress);
+      
       const labels = Object.keys(d.categories);
       const values = Object.values(d.categories);
       const total = values.reduce((a,b)=>a+b,0);
@@ -515,12 +577,13 @@
             label: "People helped",
             data: values,
             borderWidth: 0,
-            borderRadius: 12
+            borderRadius: 12,
+            backgroundColor: "rgba(223, 164, 119, 0.8)"
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false, // ✅ prevents canvas from stretching page
+          maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -542,8 +605,76 @@
         }
       });
 
+      // Render trend chart
+      renderTrendChartFor(key);
+
       slumChip.textContent = d.name;
-      impactHint.textContent = `Impact share is shown as % in tooltip for ${d.name}. (Hover on bars.)`;
+      trendChip.textContent = d.name;
+    }
+
+    function renderTrendChartFor(key){
+      const d = DATA[key];
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const trendData = d.monthlyTrend;
+
+      // Calculate if trend is up or down
+      const firstHalf = trendData.slice(0, 6).reduce((a, b) => a + b) / 6;
+      const secondHalf = trendData.slice(6, 12).reduce((a, b) => a + b) / 6;
+      const isIncreasing = secondHalf >= firstHalf;
+
+      // Destroy old trend chart
+      if(trendChartInstance){
+        trendChartInstance.destroy();
+        trendChartInstance = null;
+      }
+
+      const trendCtx = document.getElementById("trendChart").getContext("2d");
+
+      trendChartInstance = new Chart(trendCtx, {
+        type: "line",
+        data: {
+          labels: months,
+          datasets: [{
+            label: "Monthly Complaints",
+            data: trendData,
+            borderColor: isIncreasing ? "#e74c3c" : "#27ae60",
+            backgroundColor: isIncreasing ? "rgba(231, 76, 60, 0.08)" : "rgba(39, 174, 96, 0.08)",
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 5,
+            pointBackgroundColor: isIncreasing ? "#e74c3c" : "#27ae60",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+            pointHoverRadius: 7
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true, position: "bottom" },
+            tooltip: {
+              backgroundColor: "rgba(97, 55, 41, 0.9)",
+              padding: 12,
+              titleFont: { size: 14, weight: "bold" },
+              bodyFont: { size: 13 },
+              callbacks: {
+                label: (c) => {
+                  const v = c.parsed.y;
+                  return ` Complaints: ${v}`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: (v) => v }
+            }
+          }
+        }
+      });
     }
 
     slumSelect.addEventListener("change", ()=>{
@@ -552,10 +683,17 @@
       if(!key){
         peopleEl.textContent = "—";
         campEl.textContent = "—";
+        complaintsSolvedEl.textContent = "—";
+        complaintsPendingEl.textContent = "—";
+        complaintsInProgressEl.textContent = "—";
         chartCard.classList.add("disabled");
+        trendCard.classList.add("disabled");
         slumChip.textContent = "Select a slum";
+        trendChip.textContent = "Select a slum";
         impactHint.textContent = "Select a slum area to generate the chart.";
+        trendHint.textContent = "Select a slum area to view monthly complaint trends.";
         if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+        if(trendChartInstance){ trendChartInstance.destroy(); trendChartInstance = null; }
         return;
       }
 
@@ -563,6 +701,7 @@
       peopleEl.textContent = formatNumber(d.peopleHelped);
       campEl.textContent = formatNumber(d.campaigns);
       chartCard.classList.remove("disabled");
+      trendCard.classList.remove("disabled");
 
       renderChartFor(key);
     });
