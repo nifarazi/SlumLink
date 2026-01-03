@@ -35,19 +35,16 @@
 
       <div class="table-card">
         <div class="card-header">
-          <h2 id="pageTitle">Active Accounts with New Documents</h2>
+          <h2 id="pageTitle">Active Slum Resident Accounts</h2>
           
         </div>
         <div class="table-wrapper">
           <table class="pending-table">
             <thead>
               <tr>
-                <th>Profile</th>
+                <th>Unique ID</th>
                 <th>Name</th>
                 <th>Slum</th>
-                <th>Birth Certificate</th>
-                <th>Death Certificate</th>
-                <th>Marriage Certificate</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -140,18 +137,20 @@
   <script src="adminSlumAnalytics.js"></script>
   <script>
     var activeResidents = [
-      { name: 'Rahim Ahmed', slum: 'Molla', profile: 'profilepic/NID.jpg', birthCert: 'profilepic/birthcertificate.jpg', deathCert: null, marriageCert: null },
-      { name: 'Fatima Begum', slum: 'Korail', profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: 'profilepic/marraigeertificate.png' },
-      { name: 'Karim Hossain', slum: 'Begun Bari', profile: 'profilepic/NID.jpg', birthCert: 'profilepic/birthcertificate.jpg', deathCert: null, marriageCert: null },
-      { name: 'Salma Khatun', slum: 'Molla', profile: 'profilepic/NID.jpg', birthCert: null, deathCert: 'profilepic/birthcertificate.jpg', marriageCert: null },
-      { name: 'Habib Rahman', slum: 'Korail', profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: 'profilepic/marraigeertificate.png' },
-      { name: 'Nasima Akter', slum: 'DuariPara', profile: 'profilepic/NID.jpg', birthCert: 'profilepic/birthcertificate.jpg', deathCert: null, marriageCert: null },
-      { name: 'Jahangir Alam', slum: 'Kallyanpur', profile: 'profilepic/NID.jpg', birthCert: null, deathCert: 'profilepic/birthcertificate.jpg', marriageCert: null },
-      { name: 'Roksana Sultana', slum: 'Begun Bari', profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: 'profilepic/marraigeertificate.png' },
-      { name: 'Monir Hossain', slum: 'Pora Basti', profile: 'profilepic/NID.jpg', birthCert: 'profilepic/birthcertificate.jpg', deathCert: null, marriageCert: null },
-      { name: 'Shirin Akhter', slum: 'Molla', profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: 'profilepic/marraigeertificate.png' },
-      { name: 'Abdul Karim', slum: 'Korail', profile: 'profilepic/NID.jpg', birthCert: 'profilepic/birthcertificate.jpg', deathCert: null, marriageCert: null },
-      { name: 'Kulsum Begum', slum: 'Pura', profile: 'profilepic/NID.jpg', birthCert: null, deathCert: 'profilepic/birthcertificate.jpg', marriageCert: null }
+      { id: 'SR001', name: 'Rahim Ahmed', slum: 'Molla', hasNewDocs: true, profile: 'profilepic/NID.jpg', birthCert: 'profilepic/birthcertificate.jpg', deathCert: null, marriageCert: null },
+      { id: 'SR002', name: 'Fatima Begum', slum: 'Korail', hasNewDocs: true, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: 'profilepic/marraigeertificate.png' },
+      { id: 'SR003', name: 'Karim Hossain', slum: 'Begun Bari', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null },
+      { id: 'SR004', name: 'Salma Khatun', slum: 'Molla', hasNewDocs: true, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: 'profilepic/birthcertificate.jpg', marriageCert: null },
+      { id: 'SR005', name: 'Habib Rahman', slum: 'Korail', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null },
+      { id: 'SR006', name: 'Nasima Akter', slum: 'DuariPara', hasNewDocs: true, profile: 'profilepic/NID.jpg', birthCert: 'profilepic/birthcertificate.jpg', deathCert: null, marriageCert: null },
+      { id: 'SR007', name: 'Jahangir Alam', slum: 'Kallyanpur', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null },
+      { id: 'SR008', name: 'Roksana Sultana', slum: 'Begun Bari', hasNewDocs: true, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: 'profilepic/marraigeertificate.png' },
+      { id: 'SR009', name: 'Monir Hossain', slum: 'Pora Basti', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null },
+      { id: 'SR010', name: 'Shirin Akhter', slum: 'Molla', hasNewDocs: true, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: 'profilepic/marraigeertificate.png' },
+      { id: 'SR011', name: 'Abdul Karim', slum: 'Korail', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null },
+      { id: 'SR012', name: 'Kulsum Begum', slum: 'Pura', hasNewDocs: true, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: 'profilepic/birthcertificate.jpg', marriageCert: null },
+      { id: 'SR013', name: 'Sumon Mia', slum: 'Molla', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null },
+      { id: 'SR014', name: 'Amina Begum', slum: 'Korail', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null }
     ];
 
     var currentDeleteIndex = -1;
@@ -163,7 +162,7 @@
       var selectedSlum = params.get('slum');
       
       if (selectedSlum) {
-        document.getElementById('pageTitle').textContent = selectedSlum + ' - Active Accounts with New Documents';
+        document.getElementById('pageTitle').textContent = selectedSlum + ' - Active Slum Resident Accounts';
       }
 
       var tbody = document.getElementById('activeTableBody');
@@ -175,111 +174,68 @@
 
       filtered.forEach(function(resident, index) {
         var row = document.createElement('tr');
+        row.style.cursor = 'pointer';
         
-        // Profile Picture
-        var profileCell = document.createElement('td');
-        var profileImg = document.createElement('img');
-        profileImg.src = resident.profile;
-        profileImg.alt = resident.name;
-        profileImg.className = 'profile-pic';
-        profileImg.style.width = '25px';
-        profileImg.style.height = '25px';
-        profileImg.style.borderRadius = '50%';
-        profileImg.style.objectFit = 'cover';
-        profileImg.style.cursor = 'pointer';
-        profileImg.setAttribute('data-caption', 'Profile Picture - ' + resident.name);
-        profileImg.onclick = function() { openImageModal(resident.profile, 'Profile Picture - ' + resident.name); };
-        profileCell.appendChild(profileImg);
-        row.appendChild(profileCell);
+        // Unique ID
+        var idCell = document.createElement('td');
+        idCell.textContent = resident.id;
+        idCell.onclick = function() { 
+          window.location.href = 'SlumResidentsInfo.html?id=' + resident.id;
+        };
+        row.appendChild(idCell);
 
         // Name
         var nameCell = document.createElement('td');
         nameCell.textContent = resident.name;
+        nameCell.onclick = function() { 
+          window.location.href = 'SlumResidentsInfo.html?id=' + resident.id;
+        };
         row.appendChild(nameCell);
 
         // Slum
         var slumCell = document.createElement('td');
         slumCell.textContent = resident.slum;
+        slumCell.onclick = function() { 
+          window.location.href = 'SlumResidentsInfo.html?id=' + resident.id;
+        };
         row.appendChild(slumCell);
-
-        // Birth Certificate
-        var birthCell = document.createElement('td');
-        if (resident.birthCert) {
-          var birthImg = document.createElement('img');
-          birthImg.src = resident.birthCert;
-          birthImg.alt = 'Birth Certificate';
-          birthImg.className = 'doc-thumb';
-          birthImg.style.cursor = 'pointer';
-          birthImg.setAttribute('data-caption', 'Birth Certificate - ' + resident.name);
-          birthImg.onclick = function() { openImageModal(resident.birthCert, 'Birth Certificate - ' + resident.name); };
-          birthCell.appendChild(birthImg);
-        } else {
-          birthCell.textContent = 'N/A';
-        }
-        row.appendChild(birthCell);
-
-        // Death Certificate
-        var deathCell = document.createElement('td');
-        if (resident.deathCert) {
-          var deathImg = document.createElement('img');
-          deathImg.src = resident.deathCert;
-          deathImg.alt = 'Death Certificate';
-          deathImg.className = 'doc-thumb';
-          deathImg.style.cursor = 'pointer';
-          deathImg.setAttribute('data-caption', 'Death Certificate - ' + resident.name);
-          deathImg.onclick = function() { openImageModal(resident.deathCert, 'Death Certificate - ' + resident.name); };
-          deathCell.appendChild(deathImg);
-        } else {
-          deathCell.textContent = 'N/A';
-        }
-        row.appendChild(deathCell);
-
-        // Marriage Certificate
-        var marriageCell = document.createElement('td');
-        if (resident.marriageCert) {
-          var marriageImg = document.createElement('img');
-          marriageImg.src = resident.marriageCert;
-          marriageImg.alt = 'Marriage Certificate';
-          marriageImg.className = 'doc-thumb';
-          marriageImg.style.cursor = 'pointer';
-          marriageImg.setAttribute('data-caption', 'Marriage Certificate - ' + resident.name);
-          marriageImg.onclick = function() { openImageModal(resident.marriageCert, 'Marriage Certificate - ' + resident.name); };
-          marriageCell.appendChild(marriageImg);
-        } else {
-          marriageCell.textContent = 'N/A';
-        }
-        row.appendChild(marriageCell);
 
         // Actions
         var actionsCell = document.createElement('td');
         actionsCell.className = 'pending-actions';
         
-        var approveBtn = document.createElement('button');
-        approveBtn.textContent = 'Approve';
-        approveBtn.className = 'btn-approve';
-        approveBtn.onclick = function() { 
-          currentApproveIndex = index;
-          openApproveModal(resident.name);
-        };
-        
-        var rejectBtn = document.createElement('button');
-        rejectBtn.textContent = 'Reject';
-        rejectBtn.className = 'btn-reject';
-        rejectBtn.onclick = function() { 
-          currentRejectIndex = index;
-          openRejectModal(resident.name);
-        };
+        if (resident.hasNewDocs) {
+          var approveBtn = document.createElement('button');
+          approveBtn.textContent = 'Approve';
+          approveBtn.className = 'btn-approve';
+          approveBtn.onclick = function(e) { 
+            e.stopPropagation();
+            currentApproveIndex = index;
+            openApproveModal(resident.name);
+          };
+          
+          var rejectBtn = document.createElement('button');
+          rejectBtn.textContent = 'Reject';
+          rejectBtn.className = 'btn-reject';
+          rejectBtn.onclick = function(e) { 
+            e.stopPropagation();
+            currentRejectIndex = index;
+            openRejectModal(resident.name);
+          };
+          
+          actionsCell.appendChild(approveBtn);
+          actionsCell.appendChild(rejectBtn);
+        }
 
         var deleteBtn = document.createElement('button');
         deleteBtn.textContent = 'Delete';
         deleteBtn.className = 'btn-delete';
-        deleteBtn.onclick = function() {
+        deleteBtn.onclick = function(e) {
+          e.stopPropagation();
           currentDeleteIndex = index;
           openDeleteModal(resident.name);
         };
         
-        actionsCell.appendChild(approveBtn);
-        actionsCell.appendChild(rejectBtn);
         actionsCell.appendChild(deleteBtn);
         row.appendChild(actionsCell);
         
@@ -397,7 +353,8 @@
     document.getElementById('confirmApprove').addEventListener('click', function() {
       if (currentApproveIndex >= 0) {
         var approvedResident = activeResidents[currentApproveIndex];
-        // Set all documents to null
+        // Mark documents as approved
+        approvedResident.hasNewDocs = false;
         approvedResident.birthCert = null;
         approvedResident.deathCert = null;
         approvedResident.marriageCert = null;
@@ -418,7 +375,8 @@
     document.getElementById('confirmReject').addEventListener('click', function() {
       if (currentRejectIndex >= 0) {
         var rejectedResident = activeResidents[currentRejectIndex];
-        // Set all documents to null
+        // Mark documents as rejected
+        rejectedResident.hasNewDocs = false;
         rejectedResident.birthCert = null;
         rejectedResident.deathCert = null;
         rejectedResident.marriageCert = null;
