@@ -731,6 +731,12 @@
       e.stopPropagation();
       window.location.href = "./create-campaign.html";
     });
+// ✅ Complaint Checking navigation
+document.querySelector('button[data-toast="Opening Complaint Checking"]')?.addEventListener("click", (e)=>{
+  e.preventDefault();
+  e.stopPropagation();
+  window.location.href = "./complaintcategory.html";
+});
 
     // Brand click (go to home)
     document.getElementById("brandBtn").addEventListener("click", (e)=> {
