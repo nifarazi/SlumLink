@@ -165,12 +165,41 @@
         document.getElementById('pageTitle').textContent = selectedSlum + ' - Active Slum Resident Accounts';
       }
 
+      // Load approved applications from localStorage
+      var LIST_KEY = 'SLUMLINK_APPLICATIONS';
+      var approvedApps = [];
+      try {
+        var stored = localStorage.getItem(LIST_KEY);
+        if (stored) {
+          var allApps = JSON.parse(stored);
+          approvedApps = allApps.filter(function(app) { return app.status === 'approved'; });
+        }
+      } catch(e) { /* ignore parse errors */ }
+
+      // Convert approved applications to resident format
+      var approvedResidents = approvedApps.map(function(app) {
+        var p = app.data && app.data.personal || {};
+        return {
+          id: app.id || 'APP_' + Date.now(),
+          name: p.fullName || 'Unknown',
+          slum: app.slum || 'Unknown',
+          hasNewDocs: false,
+          profile: '',
+          birthCert: null,
+          deathCert: null,
+          marriageCert: null
+        };
+      });
+
+      // Combine hardcoded and approved residents
+      var allResidents = activeResidents.concat(approvedResidents);
+      
       var tbody = document.getElementById('activeTableBody');
       tbody.innerHTML = '';
 
       var filtered = selectedSlum 
-        ? activeResidents.filter(function(r) { return r.slum === selectedSlum; })
-        : activeResidents;
+        ? allResidents.filter(function(r) { return r.slum === selectedSlum; })
+        : allResidents;
 
       filtered.forEach(function(resident, index) {
         var row = document.createElement('tr');

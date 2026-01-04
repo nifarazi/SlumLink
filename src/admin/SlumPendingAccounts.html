@@ -554,7 +554,7 @@
           applications[currentApproveIdx] = Object.assign({}, app, { status: 'approved' });
           localStorage.setItem(LIST_KEY, JSON.stringify(applications));
           closeApproveModal();
-          showSuccessModal('Account approved for ' + ((app.data && app.data.personal && app.data.personal.fullName) || 'resident'));
+          showSuccessModal('Account approved for ' + ((app.data && app.data.personal && app.data.personal.fullName) || 'resident') + '. Added to active accounts.');
           applications = safeJsonParse(localStorage.getItem(LIST_KEY), []);
           renderRows();
         }

@@ -1125,12 +1125,60 @@
       var params = new URLSearchParams(window.location.search);
       var residentId = params.get('id');
 
-      if (!residentId || !residentsData[residentId]) {
+      // First check hardcoded data
+      var resident = residentsData[residentId];
+      
+      // If not found in hardcoded data, check localStorage for approved applications
+      if (!resident) {
+        try {
+          var stored = localStorage.getItem('SLUMLINK_APPLICATIONS');
+          if (stored) {
+            var allApps = JSON.parse(stored);
+            var approvedApp = allApps.find(function(app) {
+              return app.status === 'approved' && (app.id === residentId || 
+                (app.data && app.data.personal && app.data.personal.fullName === residentId));
+            });
+            
+            if (approvedApp) {
+              var p = approvedApp.data && approvedApp.data.personal || {};
+              var m = approvedApp.data && approvedApp.data.marital || {};
+              var c = approvedApp.data && approvedApp.data.children || {};
+              
+              resident = {
+                id: approvedApp.id || residentId,
+                name: p.fullName || '',
+                slum: approvedApp.slum || '',
+                profile: '',
+                dob: p.dob || '',
+                gender: p.gender || '',
+                nid: p.nidNumber || '',
+                education: p.education || '',
+                occupation: p.occupation || '',
+                income: p.income || '',
+                mobile: p.mobile || '',
+                area: p.area || '',
+                district: p.district || '',
+                division: p.division || '',
+                familyMembers: p.members || 0,
+                maritalStatus: m.maritalStatus || '',
+                numSpouse: (m.spouses && m.spouses.length) || 0,
+                spouses: m.spouses || [],
+                numChildren: (c.children && c.children.length) || 0,
+                children: c.children || [],
+                hasNewDocs: false,
+                birthCert: null,
+                deathCert: null,
+                marriageCert: null
+              };
+            }
+          }
+        } catch(e) { /* ignore parse errors */ }
+      }
+
+      if (!resident) {
         document.getElementById('residentName').textContent = 'Resident Not Found';
         return;
       }
-
-      var resident = residentsData[residentId];
 
       // Header
       document.getElementById('residentName').textContent = resident.name;
