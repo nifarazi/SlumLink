@@ -620,10 +620,11 @@
             <span>Create New Campaign</span>
           </button>
 
-          <button class="qa-btn clickable" type="button" data-toast="Loading All Campaigns">
-            <span class="qa-ic"><i class="fas fa-list"></i></span>
-            <span>View All Campaigns</span>
-          </button>
+          <button class="qa-btn clickable" type="button" data-toast="View All Campaigns">
+  <span class="qa-ic"><i class="fas fa-list"></i></span>
+  <span>View All Campaigns</span>
+</button>
+
 
           <button class="qa-btn clickable" type="button" data-toast="Opening Analytics Dashboard">
             <span class="qa-ic"><i class="fas fa-chart-line"></i></span>
@@ -736,6 +737,12 @@ document.querySelector('button[data-toast="Opening Complaint Checking"]')?.addEv
   e.preventDefault();
   e.stopPropagation();
   window.location.href = "./complaintcategory.html";
+});
+// View All Campaigns navigation
+document.querySelector('button[data-toast="View All Campaigns"]')?.addEventListener("click", (e)=>{
+  e.preventDefault();
+  e.stopPropagation();
+  window.location.href = "./viewcampaign.html";
 });
 
     // Brand click (go to home)
