@@ -200,22 +200,32 @@
     </section>
   </main>
 
-  <script>
-    // Header actions
-    const brandBtn = document.getElementById("brandBtn");
-    const backBtn = document.getElementById("backBtn");
+ <script>
+  // Header actions
+  const brandBtn = document.getElementById("brandBtn");
+  const backBtn = document.getElementById("backBtn");
 
-    function goHome(){ window.location.href = "/"; }
-    brandBtn.addEventListener("click", goHome);
-    brandBtn.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); goHome(); } });
+  function goHome(){ window.location.href = "/"; }
+  brandBtn.addEventListener("click", goHome);
+  brandBtn.addEventListener("keydown", (e)=>{
+    if(e.key==="Enter"||e.key===" "){ e.preventDefault(); goHome(); }
+  });
 
-    // Back to Local Authority dashboard
-    backBtn.addEventListener("click", ()=>{ window.location.href = "./local-dashboard.html"; });
+  // Back to Local Authority dashboard
+  backBtn.addEventListener("click", ()=>{ window.location.href = "./local-dashboard.html"; });
 
-    function openCategory(name){
+  function openCategory(name){
+    if(name === "Education & Child Welfare"){
+      // Number of waiting complaints
+      const waitingCount = 1; // update this if you add more waiting complaints
+      alert(`${waitingCount} new complaints added to this category`);
+      window.location.href = "./eduandchild.html";
+    } else {
       alert(`Opening complaints for "${name}"`);
-      // TODO: Replace alert with actual page navigation for that category
+      // Replace this with actual navigation for other categories later
     }
-  </script>
+  }
+</script>
+
 </body>
 </html>
