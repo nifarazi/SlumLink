@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slum Dwellers - Complaint Status</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Reuse dashboard styles for layout and cards -->
+  <link rel="stylesheet" href="./dashboard.css" />
+  <style>
+    /* Make the status page use a single column layout */
+    .lower-columns { grid-template-columns: 1fr; }
+    /* Stack all complaint cards vertically without row limits */
+    .complaint-list { display: flex; flex-direction: column; gap: 12px; }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="brand" aria-label="SLUMLINK Brand">
+        <span class="logo-mark" aria-hidden="true"></span>
+        <span class="logo-text">SLUMLINK</span>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn" data-target="#dashboard">Dashboard</button>
+        <button class="nav-btn" data-target="#profile">Profile</button>
+        <button class="nav-btn" data-target="#submit-complaint">Submit Complaint</button>
+        <button class="nav-btn" data-target="#complaint-status" aria-current="page">Complaint Status</button>
+        <button class="nav-btn" data-target="#aid-services">Aid and Services</button>
+        <button class="nav-btn" data-target="#qr-code">QR Code</button>
+        <button class="nav-btn" data-target="#logout">Logout</button>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <section class="content-body">
+        
+
+        <!-- Title and subtitle -->
+        <div class="welcome-text">
+          <div class="welcome-title">Complaint Status</div>
+          <div class="welcome-subtitle">Track progress of your submitted complaints.</div>
+        </div>
+
+        <!-- Single-column: Submitted Complaints (no outer box) -->
+        <div class="lower-columns">
+          <div class="left-pane">
+            <div class="complaint-list" id="statusComplaintList"><!-- Populated via JS --></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- jsPDF for PDF generation (remove SRI to avoid blocked loads locally) -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" crossorigin="anonymous"></script>
+  <!-- Shared QR modal/generator -->
+  <script src="./qr.js"></script>
+  <!-- Shared Logout modal -->
+  <script src="./logout.js"></script>
+
+  <!-- Complaint Detail Modal -->
+  <div class="complaint-modal" id="complaintModal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-title" id="modalTitle">Complaint Title</div>
+          <div class="modal-category" id="modalCategory">Category</div>
+        </div>
+        <div class="modal-status-wrap">
+          <div class="status-badge" id="modalStatus">Status</div>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-description-card">
+          <div class="modal-description" id="modalDescription"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="downloadComplaintBtn" class="btn primary" type="button">Download Complaint</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./complaint-status.js"></script>
+</body>
+</html>

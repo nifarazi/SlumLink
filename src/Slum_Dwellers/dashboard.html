@@ -132,7 +132,12 @@
   </div>
 
   <!-- jsPDF for PDF generation -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" integrity="sha256-3zqKcYfF1nsPGYVa3xtHGutU5Cw0E6oM1f+GdrKOkYE=" crossorigin="anonymous"></script>
+  <!-- jsPDF for PDF generation (remove SRI to avoid blocked loads locally) -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" crossorigin="anonymous"></script>
+  <!-- Shared QR modal/generator -->
+  <script src="./qr.js"></script>
+  <!-- Shared Logout modal -->
+  <script src="./logout.js"></script>
 
   <!-- Complaint Detail Modal -->
   <div class="complaint-modal" id="complaintModal" aria-hidden="true">
@@ -141,7 +146,6 @@
         <div class="modal-header-left">
           <div class="modal-title" id="modalTitle">Complaint Title</div>
           <div class="modal-category" id="modalCategory">Category</div>
-          <div class="modal-area" id="modalArea">Area</div>
         </div>
         <div class="modal-status-wrap">
           <div class="status-badge" id="modalStatus">Status</div>
@@ -153,8 +157,27 @@
         </div>
       </div>
       <div class="modal-actions">
-        <a id="downloadAttachmentBtn" class="btn outlined" href="#" target="_blank" rel="noopener">Download Attachment</a>
         <button id="downloadComplaintBtn" class="btn primary" type="button">Download Complaint</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code Modal -->
+  <div class="complaint-modal" id="qrModal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-title" id="qrModalTitle">Your QR Code</div>
+          <div class="modal-category" id="qrModalSubtitle">Scan to share your Slum ID</div>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-description-card" style="display:flex; align-items:center; justify-content:center;">
+          <div id="qrContainer" aria-label="Generated QR Code"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="downloadQrBtn" class="btn primary" type="button">Download QR</button>
       </div>
     </div>
   </div>

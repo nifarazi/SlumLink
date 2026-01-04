@@ -1,0 +1,51 @@
+/* Create Complaint form styles */
+.complaint-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 10px;
+}
+.form-field {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+.form-field label {
+  font-weight: 600;
+  color: #2f2724;
+}
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid rgba(164, 98, 77, 0.35);
+  border-radius: 8px;
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: 14px;
+  outline: none;
+  background: #F3F3F3; /* Requested form box background */
+}
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: #A4624D;
+  box-shadow: 0 0 0 3px rgba(164, 98, 77, 0.15);
+}
+.form-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* two equal-width buttons */
+  gap: 10px;
+  margin-top: 6px;
+  width: 100%;
+}
+.form-actions .btn { width: 100%; }
+
+@media (max-width: 600px) {
+  .form-actions { grid-template-columns: 1fr; }
+}
+
+.hint {
+  color: #666;
+  font-size: 12px;
+}

@@ -1,0 +1,139 @@
+/* Children cards */
+.children-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+.child-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  width: 100%;
+}
+.child-name {
+  font-weight: 700;
+  font-size: 18px;
+  color: #A4624D;
+  margin-bottom: 10px;
+}
+
+@media (min-width: 900px) {
+  .children-list { grid-template-columns: 1fr; }
+}
+
+/* Personal edit actions and inputs */
+.panel-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin: 8px 0 6px 0;
+}
+.info-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid rgba(164, 98, 77, 0.35);
+  border-radius: 8px;
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: 14px;
+  outline: none;
+}
+.info-input:focus {
+  border-color: #A4624D;
+  box-shadow: 0 0 0 3px rgba(164, 98, 77, 0.15);
+}
+/* Profile-specific styles */
+.profile-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0; /* Connected tabs with no gaps */
+  margin-top: 16px;
+}
+.tab-btn {
+  appearance: none;
+  border: none;
+  background: #A4624D; /* Inactive tabs: A4624D */
+  color: #FFFFFF;
+  border-radius: 0; /* Connected look */
+  padding: 12px 16px;
+  font-weight: 700;
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.12s ease;
+  text-align: center;
+}
+.tab-btn:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+.tab-btn:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+.tab-btn:not(:last-child) { border-right: 1px solid rgba(255, 255, 255, 0.24); }
+.tab-btn:hover { background: #cd856f; transform: translateY(-1px); }
+.tab-btn.active { background: #DFA477; color: #2f2724; /* Active tab: DFA477 */ }
+
+/* Tab panels */
+.tab-content { margin-top: 16px; }
+
+/* Reuse panel-card but add spacing tweaks for info */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.info-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 8px;
+  background: #FAFAFA;
+}
+.info-key { font-weight: 600; color: #2f2724; }
+.info-val { color: #333; }
+
+@media (max-width: 700px) {
+  .profile-tabs { grid-template-columns: 1fr; }
+  .info-row { grid-template-columns: 1fr; gap: 4px; }
+}
+
+/* Spouse cards */
+.spouse-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+.spouse-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  width: 100%; /* Ensure card spans full available width */
+}
+.spouse-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 4px 0 10px 0;
+  gap: 8px;
+}
+.spouse-header .card-actions { margin: 0; }
+.spouse-name {
+  font-weight: 700;
+  font-size: 18px;
+  color: #A4624D;
+  margin: 0; /* handled by header spacing */
+}
+
+/* Keep single-column layout across screen sizes so card fits width */
+@media (min-width: 900px) {
+  .spouse-list { grid-template-columns: 1fr; }
+}
+
+/* Headers aligning titles with actions */
+.panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.panel-header .panel-actions { margin: 0; }
+.child-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.child-header .card-actions { margin: 0; }
+.child-header .child-name { margin: 0; }

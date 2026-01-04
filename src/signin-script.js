@@ -15,9 +15,9 @@ const roleConfig = {
     showSignup: false
   },
   dweller: {
-    label: "Family code",
-    placeholder: "e.g., SLFKRAM001",
-    hint: "Use family code given during registration.",
+    label: "Username",
+    placeholder: "e.g., hasan123",
+    hint: "Enter your Slum Dweller username.",
     showSignup: true,
     signupLinkText: "Sign up",
     signupHref: "/src/Slum_SignUp/signup.html"
@@ -169,7 +169,15 @@ signinForm?.addEventListener("submit", (e) => {
     // Redirect to Local Authority Dashboard
     window.location.href = "/src/localauthority/local-dashboard.html";
   } else if (role === "dweller") {
-    // Placeholder for Dweller Dashboard
-    alert("Slum Dweller dashboard coming soon!");
+    // Validate Slum Dweller credentials
+    const validUser = "hasan123";
+    const validPass = "123456";
+    if (identifier !== validUser || password !== validPass) {
+      alert("Invalid username or password for Slum Dweller.");
+      return;
+    }
+    // Redirect to Slum Dweller Dashboard on success
+    alert("Successfully signed in");
+    window.location.href = "/src/Slum_Dwellers/dashboard.html";
   }
 });

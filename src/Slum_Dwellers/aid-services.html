@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slum Dwellers - Aids and Services</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./dashboard.css" />
+  <!-- Shared QR modal/generator -->
+  <script src="./qr.js"></script>
+  <!-- Shared Logout modal -->
+  <script src="./logout.js"></script>
+  <style>
+    .aid-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+    .aid-card {
+      background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px;
+      padding: 16px; display: flex; flex-direction: column; gap: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .aid-name { font-weight: 800; font-size: 18px; color: #A4624D; }
+    .aid-org { font-size: 14px; color: #444; }
+    .aid-date { font-size: 13px; color: #555; }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="brand" aria-label="SLUMLINK Brand">
+        <span class="logo-mark" aria-hidden="true"></span>
+        <span class="logo-text">SLUMLINK</span>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn" data-target="#dashboard">Dashboard</button>
+        <button class="nav-btn" data-target="#profile">Profile</button>
+        <button class="nav-btn" data-target="#submit-complaint">Submit Complaint</button>
+        <button class="nav-btn" data-target="#complaint-status">Complaint Status</button>
+        <button class="nav-btn" data-target="#aid-services" aria-current="page">Aid and Services</button>
+        <button class="nav-btn" data-target="#qr-code">QR Code</button>
+        <button class="nav-btn" data-target="#logout">Logout</button>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <section class="content-body">
+        
+
+        <div class="welcome-text">
+          <div class="welcome-title">Aids and Services</div>
+          <div class="welcome-subtitle">View Past Received Services and Aids from Community Programs and Events</div>
+        </div>
+
+        <!-- Aids and Services cards: 4 white cards, 2 per row -->
+        <div class="aid-grid" aria-label="Aids and Services List">
+          <div class="aid-card">
+            <div class="aid-name">Medical Camp</div>
+            <div class="aid-org">Hope Foundation</div>
+            <div class="aid-date">2025-08-19</div>
+          </div>
+          <div class="aid-card">
+            <div class="aid-name">Food Distribution</div>
+            <div class="aid-org">Community Care NGO</div>
+            <div class="aid-date">2025-09-02</div>
+          </div>
+          <div class="aid-card">
+            <div class="aid-name">Sanitation Drive</div>
+            <div class="aid-org">Clean City Initiative</div>
+            <div class="aid-date">2025-10-11</div>
+          </div>
+          <div class="aid-card">
+            <div class="aid-name">Job Training Workshop</div>
+            <div class="aid-org">Skills for Life</div>
+            <div class="aid-date">2025-11-25</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./aid-services.js"></script>
+</body>
+</html>

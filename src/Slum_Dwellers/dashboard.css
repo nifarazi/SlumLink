@@ -6,6 +6,11 @@ html, body {
   font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
+/* Ensure all interactive/form elements inherit Poppins */
+:where(button, input, select, textarea) {
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
 .dashboard-layout {
   display: grid;
   grid-template-columns: 280px 1fr;

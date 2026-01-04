@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slum Dwellers - Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Reuse dashboard styles for layout and sidebar -->
+  <link rel="stylesheet" href="./dashboard.css" />
+  <!-- Profile-specific styles -->
+  <link rel="stylesheet" href="./profile.css" />
+  <!-- Shared QR modal/generator -->
+  <script src="./qr.js"></script>
+  <!-- Shared Logout modal -->
+  <script src="./logout.js"></script>
+</head>
+<body>
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="brand" aria-label="SLUMLINK Brand">
+        <span class="logo-mark" aria-hidden="true"></span>
+        <span class="logo-text">SLUMLINK</span>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn" data-target="#dashboard" onclick="window.location.href='./dashboard.html'">Dashboard</button>
+        <button class="nav-btn active" data-target="#profile" aria-current="page">Profile</button>
+        <button class="nav-btn" data-target="#submit-complaint" onclick="window.location.href='./create-complaint.html'">Submit Complaint</button>
+        <button class="nav-btn" data-target="#complaint-status">Complaint Status</button>
+        <button class="nav-btn" data-target="#aid-services">Aid and Services</button>
+        <button class="nav-btn" data-target="#qr-code">QR Code</button>
+        <button class="nav-btn" data-target="#logout">Logout</button>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <section class="content-body">
+        
+
+        <!-- Tabs navigation -->
+        <div class="profile-tabs" role="tablist" aria-label="Profile Sections">
+          <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-personal" id="tab-btn-personal" data-tab="personal">Personal Information</button>
+          <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-marital" id="tab-btn-marital" data-tab="marital">Marital Information</button>
+          <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-children" id="tab-btn-children" data-tab="children">Children Information</button>
+        </div>
+
+        <!-- Tab panels -->
+        <section class="tab-content" id="tab-personal" role="tabpanel" aria-labelledby="tab-btn-personal">
+          <div class="panel-card">
+            <div class="panel-header">
+              <div class="panel-title">Personal Information</div>
+              <div class="panel-actions">
+                <button id="editProfileBtn" class="btn primary" type="button">Edit Profile</button>
+                <button id="changePasswordBtn" class="btn outlined" type="button">Change Password</button>
+              </div>
+            </div>
+            <div class="info-grid">
+              <div class="info-row"><span class="info-key">Full Name</span><span class="info-val">Hasan Mia</span></div>
+              <div class="info-row"><span class="info-key">Phone Number</span><span class="info-val">+8801701513788</span></div>
+              <div class="info-row"><span class="info-key">Gender</span><span class="info-val">Male</span></div>
+              <div class="info-row"><span class="info-key">Date of Birth</span><span class="info-val">12 Jan 1988</span></div>
+              <div class="info-row"><span class="info-key">Occupation</span><span class="info-val">Day Laborer</span></div>
+              <div class="info-row"><span class="info-key">Education</span><span class="info-val">Secondary School (SSC)</span></div>
+              <div class="info-row"><span class="info-key">Income Range</span><span class="info-val">5001-9999</span></div>
+              <div class="info-row"><span class="info-key">Division</span><span class="info-val">Dhaka</span></div>
+              <div class="info-row"><span class="info-key">Family Members</span><span class="info-val">4</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-content" id="tab-marital" role="tabpanel" aria-labelledby="tab-btn-marital" hidden>
+          <div class="panel-card">
+            <div class="panel-title">Marital Information</div>
+            <div class="spouse-list">
+              <!-- Spouse Card 1 -->
+              <div class="spouse-card">
+                <div class="spouse-header">
+                  <div class="spouse-name">Ayesha Begum</div>
+                  <div class="card-actions">
+                    <button class="btn primary" type="button">Edit Profile</button>
+                  </div>
+                </div>
+                <div class="info-grid">
+                  <div class="info-row"><span class="info-key">Name</span><span class="info-val">Ayesha Begum</span></div>
+                  <div class="info-row"><span class="info-key">Date of Birth</span><span class="info-val">05 Mar 1990</span></div>
+                  <div class="info-row"><span class="info-key">Gender</span><span class="info-val">Female</span></div>
+                  <div class="info-row"><span class="info-key">Phone Number</span><span class="info-val">+8801701513799</span></div>
+                  <div class="info-row"><span class="info-key">Education</span><span class="info-val">Primary School</span></div>
+                  <div class="info-row"><span class="info-key">Occupation</span><span class="info-val">Home Maker</span></div>
+                  <div class="info-row"><span class="info-key">Income Range</span><span class="info-val">—</span></div>
+                </div>
+              </div>
+
+              
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-content" id="tab-children" role="tabpanel" aria-labelledby="tab-btn-children" hidden>
+          <div class="panel-card">
+            <div class="panel-title">Children Information</div>
+            <div class="children-list">
+              <!-- Child Card 1 -->
+              <div class="child-card">
+                <div class="child-header">
+                  <div class="child-name">Rafi Ali</div>
+                  <div class="card-actions">
+                    <button class="btn primary" type="button">Edit Profile</button>
+                  </div>
+                </div>
+                <div class="info-grid">
+                  <div class="info-row"><span class="info-key">Name</span><span class="info-val">Rafi Ali</span></div>
+                  <div class="info-row"><span class="info-key">Date of Birth</span><span class="info-val">15 Feb 2016</span></div>
+                  <div class="info-row"><span class="info-key">Education</span><span class="info-val">Primary School</span></div>
+                  <div class="info-row"><span class="info-key">Occupation</span><span class="info-val">Student</span></div>
+                  <div class="info-row"><span class="info-key">Income Range</span><span class="info-val">—</span></div>
+                  <div class="info-row"><span class="info-key">Preferred Job</span><span class="info-val">Engineer</span></div>
+                </div>
+              </div>
+
+              <!-- Child Card 2 -->
+              <div class="child-card">
+                <div class="child-header">
+                  <div class="child-name">Sara Khatun</div>
+                  <div class="card-actions">
+                    <button class="btn primary" type="button">Edit Profile</button>
+                  </div>
+                </div>
+                <div class="info-grid">
+                  <div class="info-row"><span class="info-key">Name</span><span class="info-val">Sara Khatun</span></div>
+                  <div class="info-row"><span class="info-key">Date of Birth</span><span class="info-val">22 Sep 2020</span></div>
+                  <div class="info-row"><span class="info-key">Education</span><span class="info-val">Nursery</span></div>
+                  <div class="info-row"><span class="info-key">Occupation</span><span class="info-val">—</span></div>
+                  <div class="info-row"><span class="info-key">Income Range</span><span class="info-val">—</span></div>
+                  <div class="info-row"><span class="info-key">Preferred Job</span><span class="info-val">Doctor</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="./profile.js"></script>
+</body>
+</html>
