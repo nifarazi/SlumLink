@@ -169,13 +169,67 @@ signinForm?.addEventListener("submit", (e) => {
     // Redirect to Local Authority Dashboard
     window.location.href = "/src/localauthority/local-dashboard.html";
   } else if (role === "dweller") {
-    // Validate Slum Dweller credentials
+    // Validate Slum Dweller credentials against localStorage and hardcoded accounts
     const validUser = "hasan123";
     const validPass = "123456";
-    if (identifier !== validUser || password !== validPass) {
-      alert("Invalid username or password for Slum Dweller.");
+    
+    // Check hardcoded account first
+    let authenticated = (identifier === validUser && password === validPass);
+    let loggedInApp = null;
+    
+    // If not authenticated, check approved accounts from localStorage
+    if (!authenticated) {
+      try {
+        const LIST_KEY = 'SLUMLINK_APPLICATIONS';
+        const stored = localStorage.getItem(LIST_KEY);
+        if (stored) {
+          const applications = JSON.parse(stored);
+          const approvedApps = applications.filter(app => app.status === 'approved');
+          
+          // Check if credentials match any approved account using signup username/password
+          loggedInApp = approvedApps.find(app => {
+            const account = app.account;
+            if (!account) return false;
+            
+            // Match username and password from signup
+            return (
+              account.username === identifier &&
+              account.password === password
+            );
+          });
+          
+          authenticated = !!loggedInApp;
+          
+          // Store the logged-in user info for the dashboard
+          if (authenticated && loggedInApp) {
+            localStorage.setItem('SLUMLINK_CURRENT_USER', JSON.stringify({
+              id: loggedInApp.id,
+              name: loggedInApp.data.personal.fullName,
+              mobile: loggedInApp.data.personal.mobile,
+              nid: loggedInApp.data.personal.nidNumber,
+              slum: loggedInApp.slum
+            }));
+          }
+        }
+      } catch (e) {
+        console.error('Error checking approved accounts:', e);
+      }
+    } else {
+      // Store hardcoded user info
+      localStorage.setItem('SLUMLINK_CURRENT_USER', JSON.stringify({
+        id: 'SR000',
+        name: 'Hasan Ahmed',
+        mobile: '01712345678',
+        nid: 'hardcoded',
+        slum: 'Korail'
+      }));
+    }
+    
+    if (!authenticated) {
+      alert("Invalid username or password for Slum Dweller.\n\nPlease use the username and password you created during signup.");
       return;
     }
+    
     // Redirect to Slum Dweller Dashboard on success
     alert("Successfully signed in");
     window.location.href = "/src/Slum_Dwellers/dashboard.html";
