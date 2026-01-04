@@ -18,7 +18,8 @@
       --terra:#A4624D;
       --ink:#613729;
       --transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
-      --header-h:97px;
+      /* match shared theme header height so header looks like about.html */
+      --header-h:56px;
     }
 
     *{ box-sizing:border-box; margin:0; padding:0; }
@@ -32,44 +33,7 @@
 
     a{text-decoration:none; color: inherit;}
 
-    /* ===== Header ===== */
-    .topbar{
-      position: fixed;
-      top:0; left:0; right:0;
-      height: var(--header-h);
-      background: var(--paper);
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      padding: 0 70px;
-      z-index: 50;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      cursor:pointer;
-    }
-
-    .brand-mark{
-      width:50px; height:50px;
-      border-radius:20px;
-      background: linear-gradient(143.48deg, rgba(164,98,77,0.75) 38.34%, rgba(223,164,119,0.75) 78.43%);
-    }
-
-    .brand-text{
-      font-size:36px;
-      font-weight:400;
-      color: rgba(164,98,77,0.86);
-    }
-
-    .about-btn{
-      font-weight:500;
-      font-size:30px;
-      cursor:pointer;
-      color:#A4624D;
-    }
+    /* Header is provided by shared theme (`slumhometheme.css`) to match about.html */
 
     /* ===== Main Container ===== */
     .container{
@@ -92,7 +56,7 @@
       font-size:25px;
       margin-bottom:10px;
       display:block;
-      color:#190D01;
+      color:#161615;
     }
 
     input, textarea{
@@ -104,12 +68,21 @@
       background:#F8E5CF;
       font-size:20px;
       font-weight:300;
-      color:#000;
+      color:#0b0b0b;
     }
 
     textarea{
       min-height:120px;
       resize:none;
+    }
+
+    /* remove default focus outline/shadow when typing/clicking into fields */
+    input:focus,
+    textarea:focus{
+      outline: none;
+      box-shadow: none;
+      -webkit-box-shadow: none;
+      border-color: #CBB093; /* keep original border color */
     }
 
     .submit-btn{
@@ -123,7 +96,7 @@
       cursor:pointer;
       transition: var(--transition);
       display:block;
-      margin:10px auto 0;
+      margin: -22px auto 0; /* raise the button higher */
       max-width:220px;
       text-align:center;
     }
@@ -172,6 +145,8 @@
 
       <button type="submit" class="submit-btn">Submit</button>
     </form>
+
+   
   </main>
 
   <script>
