@@ -199,10 +199,8 @@ body {
   background: #FFEAD0;
   padding: 40px 60px;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 40px;
-  text-align: center;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .contact-btn {
@@ -212,13 +210,4 @@ body {
   border-radius: 18px;
   text-decoration: none;
   font-weight: 700;
-}
-
-/* Balance footer: keep contact info left, push contact button to the right */
-.footer-left, .footer-right{ order: initial; margin: 0; }
-.footer-right { text-align: left; }
-
-@media (max-width: 760px){
-  .footer{ flex-direction: column; gap: 18px; }
-  .footer-left, .footer-right{ order: initial; margin-left: 0; }
 }

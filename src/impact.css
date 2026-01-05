@@ -10,7 +10,54 @@ body {
   color: #3b1a0f;
 }
 
-/* Header styling removed to use shared theme (about/slumhometheme) */
+/* Header */
+.header {
+  background: #fff3e4;
+  height: 80px;
+  padding: 0 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.logo-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(#c0846a, #e5b089);
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+nav a {
+  text-decoration: none;
+  color: #a4624d;
+  font-size: 18px;
+}
+
+nav a.active {
+  font-weight: 600;
+}
+
+.signin {
+  background: #f1c49b;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 16px;
+}
+
 /* Hero Section */
 .hero {
   display: flex;
@@ -123,10 +170,5 @@ body {
   object-fit: cover;
   height: 320px;                /* fills gap without affecting core-values */
   box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-}
-/* === Impact page footer: remove logo background box ONLY === */
-.footer .footer-brand .logo-mark {
-  background: none !important;
-  box-shadow: none !important;
 }
 
