@@ -150,11 +150,14 @@
         <span class="campaign-status completed" onclick="openCampaign(event, 'Garbage is to be collected regularly')">Completed</span>
       </div>
       <div class="campaign-card">
-        <span>Temporary shelter support for families in need</span>
-        <span class="campaign-status pending">Pending</span>
+        <span>Winter Blanket drive</span>
+       <span class="campaign-status pending"
+        onclick="openPendingCampaign(event, 'Winter Blanket drive')">
+    Pending
+  </span>
       </div>
       <div class="campaign-card">
-        <span>Winter Blanket Drive</span>
+        <span>Temporary shelter support for families in need</span>
         <span class="campaign-status waiting">Waiting</span>
       </div>
       <div class="campaign-card">
@@ -207,6 +210,12 @@
       // Navigate with query param
       window.location.href = `campaigndetails.html?campaign=${encodeURIComponent(campaignName)}`;
     }
+    // ✅ NEW: pending campaigns
+  function openPendingCampaign(event, campaignName){
+    event.stopPropagation();
+    window.location.href =
+      `pendingcampaign.html?campaign=${encodeURIComponent(campaignName)}`;
+  }
   </script>
 
 </body>
