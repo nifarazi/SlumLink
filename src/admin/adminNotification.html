@@ -11,7 +11,12 @@
     <div class="logo">SLUMLINK</div>
     <input type="text" placeholder="Search" class="search" />
     <div class="top-right">
-      <span class="admin">Admin ▾</span>
+      <div class="admin">
+        <span>Admin ▾</span>
+        <div class="admin-dropdown">
+          <button class="admin-logout">Logout</button>
+        </div>
+      </div>
       <a class="bell" href="adminNotification.html" title="Notifications">🔔</a>
     </div>
   </header>
@@ -34,9 +39,18 @@
       </div>
 
       <div class="table-card">
-        <div class="card-header">
-          <h2>Notifications</h2>
-          <p>Recent alerts and updates from the system.</p>
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2>Notifications</h2>
+            <p>Recent alerts and updates from the system.</p>
+          </div>
+          <div class="sort-dropdown" style="position: relative;">
+            <button id="sortBtn" style="background-color: #8b6f5a; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: 600; font-family: Poppins; font-size: 14px;">Sort by ▼</button>
+            <div id="sortMenu" style="display: none; position: absolute; top: 100%; right: 0; background: white; border: 1px solid #e0d5c7; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 200px; margin-top: 5px;">
+              <button class="sort-option" data-sort="latest" style="display: block; width: 100%; text-align: left; padding: 12px 15px; border: none; background: none; cursor: pointer; color: #6b5b4b; font-family: Poppins; font-size: 14px; border-bottom: 1px solid #e0d5c7;" onmouseover="this.style.backgroundColor='#f5f0e8'" onmouseout="this.style.backgroundColor='transparent'">Latest to Oldest</button>
+              <button class="sort-option" data-sort="oldest" style="display: block; width: 100%; text-align: left; padding: 12px 15px; border: none; background: none; cursor: pointer; color: #6b5b4b; font-family: Poppins; font-size: 14px;" onmouseover="this.style.backgroundColor='#f5f0e8'" onmouseout="this.style.backgroundColor='transparent'">Oldest to Latest</button>
+            </div>
+          </div>
         </div>
         <div style="padding: 20px;">
           <div id="notificationsList" style="display: flex; flex-direction: column; gap: 15px;">
@@ -60,6 +74,8 @@
 
   <script src="adminSlumAnalytics.js"></script>
   <script>
+    var currentSort = 'latest';
+    
     var notifications = [
       {
         type: 'NGO Signup',
@@ -119,11 +135,46 @@
       }
     ];
 
+    function timeToMinutes(timeStr) {
+      var multipliers = {
+        'hour': 60,
+        'day': 24 * 60,
+        'week': 7 * 24 * 60,
+        'month': 30 * 24 * 60
+      };
+      var parts = timeStr.split(' ');
+      var num = parseInt(parts[0]);
+      var unit = parts[1].toLowerCase();
+      
+      if (unit.includes('hour')) return num * multipliers.hour;
+      if (unit.includes('day')) return num * multipliers.day;
+      if (unit.includes('week')) return num * multipliers.week;
+      if (unit.includes('month')) return num * multipliers.month;
+      return 0;
+    }
+    
+    function sortNotifications() {
+      var sorted = notifications.slice();
+      sorted.sort(function(a, b) {
+        var timeA = timeToMinutes(a.time);
+        var timeB = timeToMinutes(b.time);
+        
+        if (currentSort === 'latest') {
+          return timeA - timeB;
+        } else {
+          return timeB - timeA;
+        }
+      });
+      return sorted;
+    }
+    
     function renderNotifications() {
       var container = document.getElementById('notificationsList');
       container.innerHTML = '';
+      
+      var sortedNotifications = sortNotifications();
 
-      if (notifications.length === 0) {
+      if (sortedNotifications.length === 0) {
         var empty = document.createElement('div');
         empty.style.textAlign = 'center';
         empty.style.color = '#8b6f5a';
@@ -133,7 +184,7 @@
         return;
       }
 
-      notifications.forEach(function(notif, index) {
+      sortedNotifications.forEach(function(notif, index) {
         var notifBox = document.createElement('div');
         notifBox.style.cssText = 'border: 1px solid #e0d5c7; border-radius: 8px; padding: 15px; background-color: #fafaf8; cursor: pointer; transition: all 0.3s ease; display: flex; justify-content: space-between; align-items: center;';
         notifBox.onmouseover = function() {
@@ -174,5 +225,24 @@
     }
 
     renderNotifications();
+    
+    document.getElementById('sortBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      var menu = document.getElementById('sortMenu');
+      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    document.querySelectorAll('.sort-option').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        currentSort = this.getAttribute('data-sort');
+        document.getElementById('sortMenu').style.display = 'none';
+        renderNotifications();
+      });
+    });
+    
+    document.addEventListener('click', function() {
+      document.getElementById('sortMenu').style.display = 'none';
+    });
   </script>
 </html>
