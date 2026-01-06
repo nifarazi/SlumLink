@@ -85,6 +85,22 @@
 
   rightBtn?.addEventListener('click', () => {
     if (!form) { window.location.href = './marital.html'; return; }
+    // Validate mobile number: must be exactly 11 digits
+    const mobileEl = form.querySelector('[name="mobile"]');
+    if (mobileEl) {
+      const mobileVal = String(mobileEl.value || '').trim();
+      const isValid = /^\d{11}$/.test(mobileVal);
+      if (!isValid) {
+        mobileEl.setCustomValidity('Invalid Mobile Number');
+        mobileEl.reportValidity();
+        mobileEl.focus();
+        return;
+      } else {
+        mobileEl.setCustomValidity('');
+      }
+      // Clear the custom validity when user edits
+      mobileEl.addEventListener('input', () => mobileEl.setCustomValidity(''), { once: true });
+    }
     if (!validateAllVisible(form)) return;
     save();
     window.location.href = './marital.html';

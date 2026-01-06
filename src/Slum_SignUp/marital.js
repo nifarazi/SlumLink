@@ -76,14 +76,14 @@
 
   function renderSegments(n){
     clearSegments();
-    const count = Math.max(1, Math.min(Number(n) || 0, 4));
+    const count = Math.max(1, Math.min(Number(n) || 0, 10));
     for(let i=1;i<=count;i++) segments.appendChild(makeSpouseSegment(i));
   }
 
   function sanitizeSpouseCount(){
     if (!spouseCountInput) return 1;
     const raw = Number(spouseCountInput.value);
-    const sanitized = Number.isFinite(raw) ? Math.min(4, Math.max(1, raw)) : 1;
+    const sanitized = Number.isFinite(raw) ? Math.min(10, Math.max(1, raw)) : 1;
     if (String(sanitized) !== String(spouseCountInput.value)) spouseCountInput.value = String(sanitized);
     return sanitized;
   }
@@ -139,11 +139,23 @@
     fields.forEach(el => {
       if (el.disabled || el.offsetParent === null) return; // skip hidden
       const val = (el.type === 'checkbox') ? (el.checked ? 'on' : '') : String(el.value || '').trim();
+      // Requiredness
       if (!val) {
         if (!firstInvalid) firstInvalid = el;
         el.setCustomValidity('Please fill out this field');
       } else {
         el.setCustomValidity('');
+      }
+      // Mobile validation for spouse entries: exactly 11 digits
+      const name = String(el.name || '');
+      if (name && /^(spouse_\d+_mobile)$/i.test(name)) {
+        const ok = /^\d{11}$/.test(val);
+        if (!ok) {
+          if (!firstInvalid) firstInvalid = el;
+          el.setCustomValidity('Invalid Mobile Number');
+        } else {
+          el.setCustomValidity('');
+        }
       }
     });
     if (firstInvalid) { firstInvalid.reportValidity(); firstInvalid.focus(); return false; }
@@ -212,8 +224,8 @@
     // Ensure spouse count obeys minimum when married
     if (maritalStatus?.value === 'married') {
       const n = sanitizeSpouseCount();
-      if (n < 1 || n > 4) {
-        spouseCountInput.setCustomValidity('Spouse count must be between 1 and 4');
+      if (n < 1 || n > 10) {
+        spouseCountInput.setCustomValidity('Spouse count must be between 1 and 10');
         spouseCountInput.reportValidity();
         spouseCountInput.focus();
         return;

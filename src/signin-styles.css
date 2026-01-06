@@ -463,3 +463,13 @@ body {
   from { opacity: 0; transform: translateX(24px); }
   to   { opacity: 1; transform: translateX(0); }
 }
+
+/* Dismiss animation for toasts */
+.toast-hide {
+  animation: toast-out-right 300ms ease forwards;
+}
+
+@keyframes toast-out-right {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(24px); }
+}

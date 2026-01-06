@@ -113,10 +113,28 @@ if (roleSelect) {
   // Show one-time alert if redirected after signup with submitted flag
   const submitted = params.get("submitted");
   if (submitted === "1") {
-    // Show alert
-    setTimeout(() => {
-      alert("Account Creation Application has been submitted successfully.");
-    }, 0);
+    // Show success toast (for application submitted)
+    try {
+      const toast = document.createElement('div');
+      toast.className = 'signin-toast';
+      toast.innerHTML = [
+        '<span class="icon" aria-hidden="true">',
+          '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+            '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
+          '</svg>',
+        '</span>',
+        '<div class="toast-content">',
+          '<strong>Success</strong>',
+          '<div class="subtitle">Your application has been submitted successfully</div>',
+        '</div>'
+      ].join('');
+      document.body.appendChild(toast);
+      // Auto-dismiss after 2.5s
+      setTimeout(() => {
+        toast.classList.add('toast-hide');
+        setTimeout(() => { try { toast.remove(); } catch {} }, 350);
+      }, 2500);
+    } catch (err) {}
     // Clean the URL to avoid repeat alerts on refresh
     params.delete("submitted");
     const qs = params.toString();
