@@ -708,28 +708,75 @@
       const ageGroup = getValue("ageGroup");
       const desc = (document.getElementById("description").value || "").trim();
 
-      if(!title) return "Please enter a title.";
-      if(!category) return "Please select a category.";
-      if(!slum) return "Please select a target slum area.";
-      if(!date) return "Please select a date.";
-      if(!time) return "Please select a time.";
-      if(!gender) return "Please select target gender.";
-      if(!ageGroup) return "Please select an age group.";
-      if(!desc) return "Please write a short description.";
+      // Clear custom validity for all fields first
+      document.getElementById("title").setCustomValidity("");
+      document.getElementById("category").setCustomValidity("");
+      document.getElementById("slum").setCustomValidity("");
+      document.getElementById("date").setCustomValidity("");
+      document.getElementById("time").setCustomValidity("");
+      document.getElementById("gender").setCustomValidity("");
+      document.getElementById("ageGroup").setCustomValidity("");
+      document.getElementById("description").setCustomValidity("");
+      document.getElementById("education").setCustomValidity("");
+      document.getElementById("skills").setCustomValidity("");
+
+      if(!title) {
+        document.getElementById("title").setCustomValidity("Please fill out this field.");
+        return false;
+      }
+      if(!category) {
+        document.getElementById("category").setCustomValidity("Please fill out this field.");
+        return false;
+      }
+      if(!slum) {
+        document.getElementById("slum").setCustomValidity("Please fill out this field.");
+        return false;
+      }
+      if(!date) {
+        document.getElementById("date").setCustomValidity("Please fill out this field.");
+        return false;
+      }
+      if(!time) {
+        document.getElementById("time").setCustomValidity("Please fill out this field.");
+        return false;
+      }
+      if(!gender) {
+        document.getElementById("gender").setCustomValidity("Please fill out this field.");
+        return false;
+      }
+      if(!ageGroup) {
+        document.getElementById("ageGroup").setCustomValidity("Please fill out this field.");
+        return false;
+      }
+      if(!desc) {
+        document.getElementById("description").setCustomValidity("Please fill out this field.");
+        return false;
+      }
 
       if(category === "workshop" || category === "employment"){
         const edu = getValue("education");
         const skill = getValue("skills");
-        if(!edu) return "Please select required education.";
-        if(!skill) return "Please select skills required.";
+        if(!edu) {
+          document.getElementById("education").setCustomValidity("Please fill out this field.");
+          return false;
+        }
+        if(!skill) {
+          document.getElementById("skills").setCustomValidity("Please fill out this field.");
+          return false;
+        }
       }
-      return "";
+      return true;
     }
 
     createBtn.addEventListener("click", ()=>{
-      const err = isValid();
-      if(err){
-        toast(err);
+      const isFormValid = isValid();
+      
+      // Report validity to show native browser messages
+      if (!form.reportValidity()) {
+        return;
+      }
+
+      if(!isFormValid){
         return;
       }
 
