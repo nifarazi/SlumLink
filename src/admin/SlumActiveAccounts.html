@@ -2,16 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>SLUMLINK · Active Accounts with New Documents</title>
+  <title>SLUMLINK · Active Slum Resident Accounts</title>
   <link rel="stylesheet" href="adminSlumAnalytics.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    .pending-table th:last-child,
+    .pending-table td:last-child {
+      text-align: right;
+      padding-right: 270px;
+    }
+    .pending-actions {
+      display: flex !important;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .pending-actions button {
+      min-width: 85px;
+    }
+
+    .btn-approve {
+      background-color: rgba(45, 122, 61, 0.15) !important;
+      color: #2d7a3d !important;
+      border: none !important;
+    }
+
+    .btn-approve:hover {
+      background-color: rgba(45, 122, 61, 0.25) !important;
+    }
+
+    .btn-reject {
+      background-color: rgba(139, 111, 90, 0.3) !important;
+      color: #8b6f5a !important;
+      border: none !important;
+    }
+
+    .btn-reject:hover {
+      background-color: rgba(139, 111, 90, 0.4) !important;
+    }
+
+    .card-header h2 {
+      color: #8b6f5a;
+    }
+  </style>
 </head>
 <body>
   <header class="topbar">
     <div class="logo">SLUMLINK</div>
     <input type="text" placeholder="Search" class="search" />
     <div class="top-right">
-      <span class="admin">Admin ▾</span>
+      <div class="admin">
+        <span>Admin ▾</span>
+        <div class="admin-dropdown">
+          <button class="admin-logout">Logout</button>
+        </div>
+      </div>
       <a class="bell" href="adminNotification.html" title="Notifications">🔔</a>
     </div>
   </header>
@@ -232,11 +278,19 @@
         // Actions
         var actionsCell = document.createElement('td');
         actionsCell.className = 'pending-actions';
+        actionsCell.style.padding = '8px';
+        
+        var actionsContainer = document.createElement('div');
+        actionsContainer.style.display = 'flex';
+        actionsContainer.style.gap = '8px';
+        actionsContainer.style.justifyContent = 'flex-end';
+        actionsContainer.style.width = '100%';
         
         if (resident.hasNewDocs) {
           var approveBtn = document.createElement('button');
           approveBtn.textContent = 'Approve';
           approveBtn.className = 'btn-approve';
+          approveBtn.style.minWidth = '85px';
           approveBtn.onclick = function(e) { 
             e.stopPropagation();
             currentApproveIndex = index;
@@ -246,26 +300,29 @@
           var rejectBtn = document.createElement('button');
           rejectBtn.textContent = 'Reject';
           rejectBtn.className = 'btn-reject';
+          rejectBtn.style.minWidth = '85px';
           rejectBtn.onclick = function(e) { 
             e.stopPropagation();
             currentRejectIndex = index;
             openRejectModal(resident.name);
           };
           
-          actionsCell.appendChild(approveBtn);
-          actionsCell.appendChild(rejectBtn);
+          actionsContainer.appendChild(approveBtn);
+          actionsContainer.appendChild(rejectBtn);
         }
 
         var deleteBtn = document.createElement('button');
         deleteBtn.textContent = 'Delete';
         deleteBtn.className = 'btn-delete';
+        deleteBtn.style.minWidth = '85px';
         deleteBtn.onclick = function(e) {
           e.stopPropagation();
           currentDeleteIndex = index;
           openDeleteModal(resident.name);
         };
         
-        actionsCell.appendChild(deleteBtn);
+        actionsContainer.appendChild(deleteBtn);
+        actionsCell.appendChild(actionsContainer);
         row.appendChild(actionsCell);
         
         tbody.appendChild(row);
