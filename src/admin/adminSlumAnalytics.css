@@ -7,7 +7,6 @@
 
 body {
   /* Match the background gradient from htmlcssslumlink/trybase.html
-     – a bottom-right ramp using the same beige → green stops.
      Use min-height and fixed attachment so gradient extends even when content scrolls. */
   background: linear-gradient(
     to bottom right,
@@ -804,4 +803,58 @@ body {
   font-size: 14px;
   color: #8b6f5a;
   text-align: center;
+}
+
+/* Admin dropdown menu */
+.admin {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.admin > span {
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: background-color 200ms ease;
+}
+
+.admin > span:hover {
+  background-color: #f5f0e8;
+}
+
+.admin-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 150px;
+  margin-top: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  display: none;
+  overflow: hidden;
+}
+
+.admin-dropdown.show {
+  display: block;
+}
+
+.admin-logout {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: white;
+  color: #AD7562;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 150ms ease;
+}
+
+.admin-logout:hover {
+  background-color: #fbf3e8;
 }
