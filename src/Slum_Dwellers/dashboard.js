@@ -43,6 +43,35 @@
   });
 })();
 
+// Populate top profile bar from localStorage (current signed-in user)
+(function(){
+  function safeJsonParse(raw, fallback){ try { return JSON.parse(raw); } catch { return fallback; } }
+  const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
+  const current = currentRaw ? safeJsonParse(currentRaw, null) : null;
+  if (!current) return;
+
+  const nameEl = document.querySelector('.profile-text .name');
+  const phoneEl = document.querySelector('.profile-text .phone');
+  const slumIdEl = document.querySelector('.slum-id');
+  const welcomeEl = document.querySelector('.welcome-title');
+
+  const displayName = current.name || '';
+  const displayPhone = current.mobile ? ('Phone: ' + current.mobile) : '';
+  // Prefer an explicit stored Slum ID, else use the user's id
+  const storedSlumId = localStorage.getItem('slumId');
+  const displaySlumId = storedSlumId || current.id || '';
+
+  if (nameEl) nameEl.textContent = displayName || '—';
+  if (phoneEl) phoneEl.textContent = displayPhone || 'Phone: —';
+  if (slumIdEl) slumIdEl.textContent = 'Slum ID: ' + (displaySlumId || '—');
+  if (welcomeEl) welcomeEl.textContent = 'Welcome Back, ' + (displayName || '');
+
+  // Persist Slum ID for use in QR and elsewhere
+  if (displaySlumId) {
+    localStorage.setItem('slumId', displaySlumId);
+  }
+})();
+
 // Persist Slum ID for use across pages (QR generation)
 (function () {
   try {
@@ -195,79 +224,64 @@
     };
   };
 
-  // Base dummy complaints (initial dashboard state before any submission)
-  const staticComplaints = [
-    {
-      title: 'Water Supply Issue',
-      category: 'Water Management',
-      area: 'Hasan Nagar, Sector 3',
-      status: 'Pending',
-      description:
-        'Water supply has been irregular for the past week with low pressure during peak hours. Residents are facing difficulties accessing clean water for daily needs.',
-      attachment: ''
-    },
-    {
-      title: 'Street Light Not Working',
-      category: 'Electricity',
-      area: 'Hasan Nagar, Sector 1',
-      status: 'In Progress',
-      description:
-        'Multiple street lights have stopped working for 5 days, causing safety concerns at night. Local authority has acknowledged and initiated repairs.',
-      attachment: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
-    }
-  ];
-
-  // Build the Recent Complaint list:
-  // - If there are submissions, show newest on top and previous top second.
-  // - If only one submission exists, second is the original static top.
-  // - If none exist, show the original two static complaints.
+  // Build the Recent Complaint list for the current user only (no static fallback)
   let complaints = [];
   try {
-    const rawArr = localStorage.getItem('submittedComplaints');
-    const arr = rawArr ? JSON.parse(rawArr) || [] : [];
-    if (arr.length >= 2) {
-      complaints = [arr[0], arr[1]];
-    } else if (arr.length === 1) {
-      complaints = [arr[0], staticComplaints[0]];
+    const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
+    const current = currentRaw ? JSON.parse(currentRaw) : null;
+    const userId = current && current.id ? String(current.id) : '';
+    if (userId) {
+      const byUserRaw = localStorage.getItem('submittedComplaintsByUser');
+      const map = byUserRaw ? JSON.parse(byUserRaw) : {};
+      const list = Array.isArray(map[userId]) ? map[userId] : [];
+      // Newest first already; ensure at most two for the dashboard
+      complaints = list.slice(0, 2);
     } else {
-      complaints = staticComplaints.slice(0, 2);
+      complaints = [];
     }
   } catch (err) {
-    console.warn('Failed to read submittedComplaints, falling back to static:', err);
-    complaints = staticComplaints.slice(0, 2);
+    console.warn('Failed to read per-user complaints:', err);
+    complaints = [];
   }
 
   const listEl = document.querySelector('.complaint-list');
   if (listEl) {
     listEl.innerHTML = '';
-    complaints.forEach((c) => {
-      const card = document.createElement('div');
-      card.className = 'complaint-card';
+    if (!complaints.length) {
+      const empty = document.createElement('div');
+      empty.textContent = 'No Complaint Submitted Yet';
+      empty.style.color = '#444';
+      listEl.appendChild(empty);
+    } else {
+      complaints.forEach((c) => {
+        const card = document.createElement('div');
+        card.className = 'complaint-card';
 
-      const title = document.createElement('div');
-      title.className = 'complaint-title';
-      title.textContent = c.title;
+        const title = document.createElement('div');
+        title.className = 'complaint-title';
+        title.textContent = c.title;
 
-      const cat = document.createElement('div');
-      cat.className = 'complaint-category';
-      cat.textContent = c.category;
+        const cat = document.createElement('div');
+        cat.className = 'complaint-category';
+        cat.textContent = c.category;
 
-      const status = document.createElement('div');
-      const sClass = 'status-badge ' + statusClassFor(c.status);
-      status.className = sClass;
-      status.textContent = c.status;
+        const status = document.createElement('div');
+        const sClass = 'status-badge ' + statusClassFor(c.status);
+        status.className = sClass;
+        status.textContent = c.status;
 
-      card.appendChild(title);
-      card.appendChild(cat);
-      card.appendChild(status);
+        card.appendChild(title);
+        card.appendChild(cat);
+        card.appendChild(status);
 
-      card.addEventListener('click', () => {
-        populateModal(c);
-        openModal();
+        card.addEventListener('click', () => {
+          populateModal(c);
+          openModal();
+        });
+
+        listEl.appendChild(card);
       });
-
-      listEl.appendChild(card);
-    });
+    }
   }
 
   // Close when clicking outside the modal content

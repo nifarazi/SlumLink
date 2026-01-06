@@ -136,7 +136,7 @@
 
     const persistAndNavigate = (submission) => {
       try {
-        // Append to submittedComplaints array
+        // Append to submittedComplaints array (legacy/global)
         const rawArr = localStorage.getItem('submittedComplaints');
         let arr = [];
         try {
@@ -164,7 +164,31 @@
           localStorage.setItem('submittedComplaints', JSON.stringify(arr));
         }
 
-        // Maintain lastSubmittedComplaint for dashboard ordering behavior
+        // Store complaint under the signed-in user as well
+        try {
+          const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
+          const current = currentRaw ? JSON.parse(currentRaw) : null;
+          const userId = current && current.id ? String(current.id) : '';
+          if (userId) {
+            const byUserRaw = localStorage.getItem('submittedComplaintsByUser');
+            const map = byUserRaw ? JSON.parse(byUserRaw) : {};
+            const list = Array.isArray(map[userId]) ? map[userId] : [];
+            list.unshift(entry);
+            map[userId] = list;
+            try {
+              localStorage.setItem('submittedComplaintsByUser', JSON.stringify(map));
+            } catch (e2) {
+              // Retry without attachment for this user's list if quota exceeded
+              if (list[0]) list[0].attachment = '';
+              map[userId] = list;
+              localStorage.setItem('submittedComplaintsByUser', JSON.stringify(map));
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to store per-user complaints:', e);
+        }
+
+        // Maintain lastSubmittedComplaint for legacy behavior (not used for per-user views)
         const slimLast = {
           title: submission.title,
           category: submission.category,

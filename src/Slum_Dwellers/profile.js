@@ -82,6 +82,100 @@
   activate('personal');
 })();
 
+// Populate profile data from localStorage for the signed-in user
+(function(){
+  function safeJsonParse(raw, fallback){ try { return JSON.parse(raw); } catch { return fallback; } }
+  const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
+  const current = currentRaw ? safeJsonParse(currentRaw, null) : null;
+  if (!current) return;
+
+  const appsRaw = localStorage.getItem('SLUMLINK_APPLICATIONS');
+  const apps = appsRaw ? safeJsonParse(appsRaw, []) : [];
+  const app = apps.find(a => String(a.id || '') === String(current.id || '')) || null;
+
+  const personalPanel = document.getElementById('tab-personal');
+  const maritalPanel = document.getElementById('tab-marital');
+  const childrenPanel = document.getElementById('tab-children');
+  const personalGrid = personalPanel?.querySelector('.info-grid');
+  const spouseList = maritalPanel?.querySelector('.spouse-list');
+  const childrenList = childrenPanel?.querySelector('.children-list');
+
+  const personal = app?.data?.personal || {};
+  const marital = app?.data?.marital || {};
+  const kids = app?.data?.children || {};
+
+  // Render Personal Information
+  if (personalGrid){
+    const rows = [
+      { key: 'Full Name', val: personal.fullName || current.name || '' },
+      { key: 'Phone Number', val: personal.mobile || current.mobile || '' },
+      { key: 'Gender', val: personal.gender || '' },
+      { key: 'Date of Birth', val: personal.dob || '' },
+      { key: 'Occupation', val: personal.occupation || '' },
+      { key: 'Education', val: personal.education || '' },
+      { key: 'Income Range', val: personal.income || '' },
+      { key: 'Area', val: personal.area || '' },
+      { key: 'District', val: personal.district || '' },
+      { key: 'Division', val: personal.division || '' },
+      { key: 'Family Members', val: personal.members || '' },
+    ];
+    personalGrid.innerHTML = rows.map(r => `
+      <div class="info-row"><span class="info-key">${r.key}</span><span class="info-val">${r.val || '—'}</span></div>
+    `).join('');
+  }
+
+  // Render Marital Information (spouses)
+  if (spouseList){
+    const spouses = Array.isArray(marital.spouses) ? marital.spouses : [];
+    if (!spouses.length){
+      spouseList.innerHTML = '<div class="empty">No spouse information available.</div>';
+    } else {
+      spouseList.innerHTML = spouses.map((s, idx) => `
+        <div class="spouse-card">
+          <div class="spouse-header">
+            <div class="spouse-name">${s.name || 'Spouse ' + (idx+1)}</div>
+            <div class="card-actions"><button class="btn primary" type="button">Edit Profile</button></div>
+          </div>
+          <div class="info-grid">
+            <div class="info-row"><span class="info-key">Name</span><span class="info-val">${s.name || '—'}</span></div>
+            <div class="info-row"><span class="info-key">Date of Birth</span><span class="info-val">${s.dob || '—'}</span></div>
+            <div class="info-row"><span class="info-key">Gender</span><span class="info-val">${s.gender || '—'}</span></div>
+            <div class="info-row"><span class="info-key">Phone Number</span><span class="info-val">${s.mobile || '—'}</span></div>
+            <div class="info-row"><span class="info-key">Education</span><span class="info-val">${s.education || '—'}</span></div>
+            <div class="info-row"><span class="info-key">Occupation</span><span class="info-val">${s.job || '—'}</span></div>
+            <div class="info-row"><span class="info-key">Income Range</span><span class="info-val">${s.income || '—'}</span></div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  // Render Children Information
+  if (childrenList){
+    const children = Array.isArray(kids.children) ? kids.children : [];
+    if (!children.length){
+      childrenList.innerHTML = '<div class="empty">No children information available.</div>';
+    } else {
+      childrenList.innerHTML = children.map((c, idx) => `
+        <div class="child-card">
+          <div class="child-header">
+            <div class="child-name">${c.name || 'Child ' + (idx+1)}</div>
+            <div class="card-actions"><button class="btn primary" type="button">Edit Profile</button></div>
+          </div>
+          <div class="info-grid">
+            <div class="info-row"><span class="info-key">Name</span><span class="info-val">${c.name || '—'}</span></div>
+            <div class="info-row"><span class="info-key">Date of Birth</span><span class="info-val">${c.dob || '—'}</span></div>
+            <div class="info-row"><span class="info-key">Education</span><span class="info-val">${c.education || '—'}</span></div>
+            <div class="info-row"><span class="info-key">Occupation</span><span class="info-val">${c.job || '—'}</span></div>
+            <div class="info-row"><span class="info-key">Income Range</span><span class="info-val">${c.income || '—'}</span></div>
+            <div class="info-row"><span class="info-key">Preferred Job</span><span class="info-val">${c.preferredJob || '—'}</span></div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+})();
+
 // Edit Profile logic for Personal Information
 (function () {
   const personalPanel = document.getElementById('tab-personal');

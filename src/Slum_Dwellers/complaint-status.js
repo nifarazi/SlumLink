@@ -166,31 +166,22 @@
     };
   };
 
-  // Load submitted complaints from localStorage; fallback to lastSubmittedComplaint
+  // Load only the signed-in user's complaints from localStorage
   let complaints = [];
   try {
-    const rawArr = localStorage.getItem('submittedComplaints');
-    if (rawArr) complaints = JSON.parse(rawArr) || [];
-  } catch (err) {
-    console.warn('Failed to parse submittedComplaints:', err);
-  }
-  if (!complaints.length) {
-    try {
-      const rawLast = localStorage.getItem('lastSubmittedComplaint');
-      if (rawLast) {
-        const submitted = JSON.parse(rawLast);
-        complaints = [{
-          title: submitted.title || 'Complaint',
-          category: submitted.category || 'General',
-          status: submitted.status || 'Pending',
-          description: submitted.description || '—',
-          attachment: submitted.attachmentDataUrl || '',
-          attachmentName: submitted.attachmentName || ''
-        }];
-      }
-    } catch (err) {
-      console.warn('Failed to parse lastSubmittedComplaint:', err);
+    const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
+    const current = currentRaw ? JSON.parse(currentRaw) : null;
+    const userId = current && current.id ? String(current.id) : '';
+    if (userId) {
+      const byUserRaw = localStorage.getItem('submittedComplaintsByUser');
+      const map = byUserRaw ? JSON.parse(byUserRaw) : {};
+      complaints = Array.isArray(map[userId]) ? map[userId] : [];
+    } else {
+      complaints = [];
     }
+  } catch (err) {
+    console.warn('Failed to read per-user complaints:', err);
+    complaints = [];
   }
 
   // Ensure newest complaints appear at the top

@@ -298,8 +298,25 @@
       // Prefer mapped Area; if unknown, use the raw Area name
       const rawArea = String(personal.area || '').trim();
       const slumName = resolveSlumFromArea(personal.area) || rawArea || resolveSlumFromArea(personal.district) || resolveSlumFromArea(personal.division) || 'Unknown';
+
+      // Prepare list and generate unique Slum ID in format SR + 6 digits
+      const LIST_KEY = 'SLUMLINK_APPLICATIONS';
+      const listRaw = localStorage.getItem(LIST_KEY);
+      const list = listRaw ? safeJsonParse(listRaw, []) : [];
+      function generateSlumId(){
+        // zero-padded 6-digit
+        const n = Math.floor(Math.random() * 1000000); // 0..999999
+        const pad = String(n).padStart(6, '0');
+        return 'SR' + pad;
+      }
+      let slumId = generateSlumId();
+      const existingIds = new Set(list.map(a => String(a.id || '')));
+      let guard = 0;
+      while (existingIds.has(slumId) && guard < 10){ slumId = generateSlumId(); guard++; }
+
       const submission = {
-        id: String(Date.now()),
+        id: slumId,
+        slumId: slumId,
         status: 'pending',
         createdAt: new Date().toISOString(),
         slum: slumName,
@@ -314,11 +331,16 @@
         }
       };
 
-      const LIST_KEY = 'SLUMLINK_APPLICATIONS';
-      const listRaw = localStorage.getItem(LIST_KEY);
-      const list = listRaw ? safeJsonParse(listRaw, []) : [];
+      // Persist application and Slum ID
       list.push(submission);
       localStorage.setItem(LIST_KEY, JSON.stringify(list));
+      try { localStorage.setItem('slumId', slumId); } catch {}
+
+      // Clear signup form data so new account can sign in with fresh forms
+      // This does NOT affect the stored applications in SLUMLINK_APPLICATIONS
+      ['SLUMLINK_SIGNUP', 'SLUMLINK_MARITAL', 'SLUMLINK_CHILDREN'].forEach(k => localStorage.removeItem(k));
+      // Clear session flag so next visit starts fresh
+      sessionStorage.removeItem(SESSION_FLAG);
     } catch (e) {
       console.error('Failed to compile submission', e);
     }
