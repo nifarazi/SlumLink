@@ -5,6 +5,7 @@
   <title>SLUMLINK · Resident Information</title>
   <link rel="stylesheet" href="adminSlumAnalytics.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     .info-section {
       background: white;
@@ -100,7 +101,12 @@
     <div class="logo">SLUMLINK</div>
     <input type="text" placeholder="Search" class="search" />
     <div class="top-right">
-      <span class="admin">Admin ▾</span>
+      <div class="admin">
+        <span>Admin ▾</span>
+        <div class="admin-dropdown">
+          <button class="admin-logout">Logout</button>
+        </div>
+      </div>
       <a class="bell" href="adminNotification.html" title="Notifications">🔔</a>
     </div>
   </header>
@@ -240,6 +246,7 @@
       </div>
 
       <div class="action-buttons">
+        <button class="btn btn-primary" id="generateReportBtn">📄 Generate Report</button>
         <button class="btn btn-secondary" onclick="history.back()">← Go Back</button>
       </div>
     </main>
@@ -1444,6 +1451,307 @@
 
     // Load data on page load
     loadResidentInfo();
+
+    // PDF Generation
+    document.getElementById('generateReportBtn').addEventListener('click', function() {
+      var params = new URLSearchParams(window.location.search);
+      var residentId = params.get('id');
+      var resident = residentsData[residentId];
+
+      if (!resident) {
+        alert('Resident data not found');
+        return;
+      }
+
+      var jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+      if (!jsPDFCtor) { alert('PDF library not loaded'); return; }
+      
+      var doc = new jsPDFCtor({ unit: 'mm', format: 'a4' });
+      var pageHeight = doc.internal.pageSize.getHeight();
+      var pageWidth = doc.internal.pageSize.getWidth();
+      var margin = 15;
+      var yPosition = margin;
+      var lineHeight = 7;
+
+      // Title
+      doc.setFontSize(18);
+      doc.setTextColor(139, 111, 90); // Brown color
+      doc.text('SLUMLINK - Resident Information Report', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 12;
+
+      // Resident Header
+      doc.setFontSize(12);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Resident: ' + resident.name + ' (ID: ' + resident.id + ')', margin, yPosition);
+      yPosition += lineHeight;
+      doc.text('Slum: ' + resident.slum, margin, yPosition);
+      yPosition += 12;
+
+      // Personal Information Section
+      doc.setFontSize(11);
+      doc.setTextColor(139, 111, 90);
+      doc.text('Personal Information', margin, yPosition);
+      yPosition += lineHeight + 2;
+
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      var personalData = [
+        ['Full Name:', resident.name],
+        ['Date of Birth:', resident.dob],
+        ['Gender:', resident.gender],
+        ['NID Number:', resident.nid],
+        ['Education:', resident.education],
+        ['Occupation:', resident.occupation],
+        ['Income Range:', resident.income],
+        ['Mobile Number:', resident.mobile]
+      ];
+
+      personalData.forEach(function(item) {
+        if (yPosition > pageHeight - 20) {
+          doc.addPage();
+          yPosition = margin;
+        }
+        doc.text(item[0], margin, yPosition);
+        doc.text(item[1], margin + 50, yPosition);
+        yPosition += lineHeight;
+      });
+
+      yPosition += 5;
+
+      // Location Information Section
+      doc.setFontSize(11);
+      doc.setTextColor(139, 111, 90);
+      doc.text('Location Information', margin, yPosition);
+      yPosition += lineHeight + 2;
+
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      var locationData = [
+        ['Area:', resident.area],
+        ['District:', resident.district],
+        ['Division:', resident.division],
+        ['Family Members:', resident.familyMembers.toString()]
+      ];
+
+      locationData.forEach(function(item) {
+        if (yPosition > pageHeight - 20) {
+          doc.addPage();
+          yPosition = margin;
+        }
+        doc.text(item[0], margin, yPosition);
+        doc.text(item[1], margin + 50, yPosition);
+        yPosition += lineHeight;
+      });
+
+      yPosition += 5;
+
+      // Marital Information Section
+      doc.setFontSize(11);
+      doc.setTextColor(139, 111, 90);
+      doc.text('Marital Information', margin, yPosition);
+      yPosition += lineHeight + 2;
+
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      doc.text('Marital Status:', margin, yPosition);
+      doc.text(resident.maritalStatus, margin + 50, yPosition);
+      yPosition += lineHeight;
+      doc.text('Number of Spouses:', margin, yPosition);
+      doc.text(resident.numSpouse.toString(), margin + 50, yPosition);
+      yPosition += 10;
+
+      // Spouse Details
+      if (resident.spouses && resident.spouses.length > 0) {
+        resident.spouses.forEach(function(spouse, index) {
+          if (yPosition > pageHeight - 30) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.setFontSize(10);
+          doc.setTextColor(139, 111, 90);
+          doc.text('Spouse ' + (index + 1) + ':', margin, yPosition);
+          yPosition += lineHeight;
+
+          doc.setFontSize(9);
+          doc.setTextColor(80, 80, 80);
+          var spouseInfo = [
+            ['Name:', spouse.name],
+            ['Date of Birth:', spouse.dob],
+            ['Gender:', spouse.gender],
+            ['NID:', spouse.nid],
+            ['Education:', spouse.education],
+            ['Occupation:', spouse.occupation],
+            ['Mobile:', spouse.mobile]
+          ];
+
+          spouseInfo.forEach(function(item) {
+            if (yPosition > pageHeight - 20) {
+              doc.addPage();
+              yPosition = margin;
+            }
+            doc.text(item[0], margin + 5, yPosition);
+            doc.text(item[1], margin + 35, yPosition);
+            yPosition += lineHeight;
+          });
+          yPosition += 3;
+        });
+      }
+
+      yPosition += 5;
+
+      // Children Information Section
+      doc.setFontSize(11);
+      doc.setTextColor(139, 111, 90);
+      doc.text('Children Information', margin, yPosition);
+      yPosition += lineHeight + 2;
+
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      doc.text('Number of Children: ' + resident.numChildren.toString(), margin, yPosition);
+      yPosition += 10;
+
+      if (resident.children && resident.children.length > 0) {
+        resident.children.forEach(function(child, index) {
+          if (yPosition > pageHeight - 30) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.setFontSize(10);
+          doc.setTextColor(139, 111, 90);
+          doc.text('Child ' + (index + 1) + ':', margin, yPosition);
+          yPosition += lineHeight;
+
+          doc.setFontSize(9);
+          doc.setTextColor(80, 80, 80);
+          var childInfo = [
+            ['Name:', child.name],
+            ['Date of Birth:', child.dob],
+            ['Gender:', child.gender],
+            ['Education:', child.education],
+            ['Occupation:', child.occupation],
+            ['Preferred Job:', child.preferredJob]
+          ];
+
+          childInfo.forEach(function(item) {
+            if (yPosition > pageHeight - 20) {
+              doc.addPage();
+              yPosition = margin;
+            }
+            doc.text(item[0], margin + 5, yPosition);
+            doc.text(item[1], margin + 35, yPosition);
+            yPosition += lineHeight;
+          });
+          yPosition += 3;
+        });
+      }
+
+      // Footer
+      var now = new Date();
+      var dateStr = now.toLocaleDateString('en-BD');
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text('Generated on ' + dateStr, pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+      // Documents Section - Add images
+      if (resident.birthCert || resident.deathCert || resident.marriageCert || 
+          (resident.spouses && resident.spouses.some(function(s) { return s.marriageCert; })) ||
+          (resident.children && resident.children.some(function(c) { return c.birthCert; }))) {
+        doc.addPage();
+        yPosition = margin;
+        
+        doc.setFontSize(14);
+        doc.setTextColor(139, 111, 90);
+        doc.text('Documents', margin, yPosition);
+        yPosition += 12;
+        
+        // Helper function to load and add image
+        function addDocumentImage(imagePath, label) {
+          if (!imagePath) return false;
+          
+          try {
+            // Create image element to get dimensions
+            var img = new Image();
+            img.src = imagePath;
+            
+            // For local files, we'll use try-catch and set a reasonable size
+            doc.setFontSize(10);
+            doc.setTextColor(80, 80, 80);
+            doc.text(label + ':', margin, yPosition);
+            yPosition += 8;
+            
+            // Add image with reasonable dimensions
+            try {
+              doc.addImage(imagePath, 'JPEG', margin + 5, yPosition, 60, 60);
+              yPosition += 65;
+            } catch(e) {
+              doc.text('[Document image not available]', margin + 5, yPosition);
+              yPosition += 8;
+            }
+            
+            yPosition += 5;
+            return true;
+          } catch(e) {
+            return false;
+          }
+        }
+        
+        // Add resident's birth certificate if exists
+        if (resident.birthCert) {
+          if (yPosition > pageHeight - 80) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          addDocumentImage(resident.birthCert, 'Resident Birth Certificate');
+        }
+        
+        // Add resident's death certificate if exists
+        if (resident.deathCert) {
+          if (yPosition > pageHeight - 80) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          addDocumentImage(resident.deathCert, 'Resident Death Certificate');
+        }
+        
+        // Add resident's marriage certificate if exists
+        if (resident.marriageCert) {
+          if (yPosition > pageHeight - 80) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          addDocumentImage(resident.marriageCert, 'Resident Marriage Certificate');
+        }
+        
+        // Add spouse documents
+        if (resident.spouses && resident.spouses.length > 0) {
+          resident.spouses.forEach(function(spouse, index) {
+            if (spouse.marriageCert) {
+              if (yPosition > pageHeight - 80) {
+                doc.addPage();
+                yPosition = margin;
+              }
+              addDocumentImage(spouse.marriageCert, 'Spouse ' + (index + 1) + ' Marriage Certificate');
+            }
+          });
+        }
+        
+        // Add children documents
+        if (resident.children && resident.children.length > 0) {
+          resident.children.forEach(function(child, index) {
+            if (child.birthCert) {
+              if (yPosition > pageHeight - 80) {
+                doc.addPage();
+                yPosition = margin;
+              }
+              addDocumentImage(child.birthCert, 'Child ' + (index + 1) + ' Birth Certificate (' + child.name + ')');
+            }
+          });
+        }
+      }
+
+      // Download PDF
+      doc.save(resident.name + '_Resident_Report.pdf');
+    });
   </script>
 </body>
 </html>
