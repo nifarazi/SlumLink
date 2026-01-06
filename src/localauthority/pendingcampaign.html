@@ -168,12 +168,12 @@
 
       <div>
         <label>Title</label>
-        <input value="Winter Blanket Drive">
+        <input id="formTitle" value="Winter Blanket Drive">
       </div>
 
       <div>
         <label>Category</label>
-        <select>
+        <select id="formCategory">
           <option selected>Donation</option>
           <option>Health</option>
           <option>Education</option>
@@ -182,7 +182,7 @@
 
       <div>
         <label>Target Slum Area</label>
-        <select>
+        <select id="formSlum">
           <option selected>Diyabari</option>
           <option>Korail</option>
           <option>Mirpur</option>
@@ -191,17 +191,17 @@
 
       <div>
         <label>Date</label>
-        <input type="date" value="2025-04-03">
+        <input id="formDate" type="date" value="2025-04-03">
       </div>
 
       <div>
         <label>Time</label>
-        <input value="5 p.m">
+        <input id="formTime" value="5 p.m">
       </div>
 
       <div>
         <label>Target Gender</label>
-        <select>
+        <select id="formGender">
           <option selected>None</option>
           <option>Male</option>
           <option>Female</option>
@@ -211,7 +211,7 @@
 
       <div>
         <label>Age Group</label>
-        <select>
+        <select id="formAgeGroup">
           <option selected>16–25</option>
           <option>26–40</option>
           <option>All</option>
@@ -220,7 +220,7 @@
 
       <div>
         <label>Required Education</label>
-        <select>
+        <select id="formEducation">
           <option selected>N/A</option>
           <option>Primary</option>
           <option>Secondary</option>
@@ -229,7 +229,7 @@
 
       <div>
         <label>Skills Required</label>
-        <select>
+        <select id="formSkills">
           <option selected>Tailoring</option>
           <option>Plumbing</option>
           <option>None</option>
@@ -238,7 +238,7 @@
 
       <div class="full">
         <label>Description</label>
-        <textarea>
+        <textarea id="formDescription">
 Winter Clothes to be distributed among dwellers after collection from local schools, colleges, with the help of Volunteers from Social Welfare club
         </textarea>
       </div>
@@ -258,6 +258,42 @@ Winter Clothes to be distributed among dwellers after collection from local scho
     function confirmSubmit(){
       return confirm("Are you sure you want to make changes?");
     }
+
+    // Load campaign data from localStorage
+    function loadCampaignData(){
+      const params = new URLSearchParams(window.location.search);
+      const campaignTitle = params.get('campaign');
+      
+      if(!campaignTitle) return;
+      
+      // Get campaigns from localStorage
+      let campaigns = JSON.parse(localStorage.getItem("localAuthorityCampaigns")) || [];
+      
+      // Find the matching campaign
+      const campaign = campaigns.find(c => c.title === campaignTitle);
+      
+      if(!campaign){
+        console.log("Campaign not found in localStorage");
+        return;
+      }
+      
+      console.log("Loading campaign:", campaign);
+      
+      // Populate form fields using IDs
+      document.getElementById('formTitle').value = campaign.title;
+      document.getElementById('formCategory').value = campaign.category;
+      document.getElementById('formSlum').value = campaign.slum;
+      document.getElementById('formDate').value = campaign.date;
+      document.getElementById('formTime').value = campaign.time;
+      document.getElementById('formGender').value = campaign.gender;
+      document.getElementById('formAgeGroup').value = campaign.ageGroup;
+      document.getElementById('formEducation').value = campaign.education || 'N/A';
+      document.getElementById('formSkills').value = campaign.skills || 'None';
+      document.getElementById('formDescription').value = campaign.description;
+    }
+    
+    // Load campaign data when page loads
+    document.addEventListener('DOMContentLoaded', loadCampaignData);
   </script>
 
 </body>
