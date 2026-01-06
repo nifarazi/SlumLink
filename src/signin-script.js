@@ -43,9 +43,14 @@ const togglePasswordBtn = document.querySelector(".toggle-password");
 function setSignup(prefix, linkText, href) {
   if (!signupRow) return;
 
-  let link = signupRow.querySelector("a.link-strong");
+  let link = signupRow.querySelector("span.link-strong");
   if (!link) {
-    signupRow.innerHTML = `${prefix} <a class="link-strong" href="${href}">${linkText}</a>`;
+    signupRow.innerHTML = `${prefix} <span class="link-strong" style="cursor:pointer;text-decoration:underline">${linkText}</span>`;
+    link = signupRow.querySelector("span.link-strong");
+    if (link) {
+      link.dataset.href = href;
+      link.addEventListener("click", () => window.location.href = link.dataset.href);
+    }
     return;
   }
 
@@ -56,7 +61,13 @@ function setSignup(prefix, linkText, href) {
   else signupRow.insertBefore(document.createTextNode(prefix + " "), link);
 
   link.textContent = linkText;
-  link.setAttribute("href", href);
+  link.dataset.href = href;
+  // Remove old click listener and add new one
+  link.replaceWith(link.cloneNode(true));
+  link = signupRow.querySelector("span.link-strong");
+  if (link) {
+    link.addEventListener("click", () => window.location.href = link.dataset.href);
+  }
 }
 
 function resetEyeClosed() {
@@ -161,6 +172,25 @@ togglePasswordBtn?.addEventListener("click", () => {
   }
 });
 
+// Function to show error notification
+function showErrorNotification(message) {
+  // Remove any existing error notification
+  const existing = document.querySelector(".error-notification");
+  if (existing) existing.remove();
+
+  // Create error notification
+  const notification = document.createElement("div");
+  notification.className = "error-notification";
+  notification.textContent = message;
+  document.body.appendChild(notification);
+
+  // Auto-dismiss after 4 seconds
+  setTimeout(() => {
+    notification.style.animation = "slideIn 0.3s ease-out reverse";
+    setTimeout(() => notification.remove(), 300);
+  }, 4000);
+}
+
 // Handle sign-in submit: redirect to appropriate dashboard
 const signinForm = document.querySelector(".signin-form");
 signinForm?.addEventListener("submit", (e) => {
@@ -170,9 +200,19 @@ signinForm?.addEventListener("submit", (e) => {
   const identifier = identifierInput?.value?.trim();
   const password = passwordInput?.value?.trim();
 
+  // Clear previous error states
+  identifierInput?.classList.remove("has-error");
+  passwordInput?.classList.remove("has-error");
+
   // Basic validation
   if (!identifier || !password) {
-    alert("Please enter both " + (role === "dweller" ? "family code" : role === "authority" ? "official email" : role === "admin" ? "admin ID" : "email") + " and password");
+    if (!identifier) {
+      identifierInput?.classList.add("has-error");
+    }
+    if (!password) {
+      passwordInput?.classList.add("has-error");
+    }
+    showErrorNotification("Please fill all fields");
     return;
   }
 

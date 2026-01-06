@@ -151,54 +151,82 @@
     </div>
 
     <div id="campaignList">
-      <div class="campaign-card">
-        <span>Garbage is to be collected regularly</span>
-        <span class="campaign-status completed" onclick="openCampaign(event, 'Garbage is to be collected regularly')">Completed</span>
-      </div>
-      <div class="campaign-card">
-        <span>Winter Blanket drive</span>
-       <span class="campaign-status pending"
-        onclick="openPendingCampaign(event, 'Winter Blanket drive')">
-    Pending
-  </span>
-      </div>
-      <div class="campaign-card">
-        <span>Temporary shelter support for families in need</span>
-        <span class="campaign-status waiting">Waiting</span>
-      </div>
-      <div class="campaign-card">
-        <span>Construction of proper footpath for walking safely</span>
-        <span class="campaign-status completed" onclick="openCampaign(event, 'Construction of proper footpath for walking safely')">Completed</span>
-      </div>
-      <div class="campaign-card">
-        <span>Tree plantation drive in slum areas</span>
-        <span class="campaign-status completed" onclick="openCampaign(event, 'Tree plantation drive in slum areas')">Completed</span>
-      </div>
-      <div class="campaign-card">
-        <span>Clean water installation project</span>
-        <span class="campaign-status completed" onclick="openCampaign(event, 'Clean water installation project')">Completed</span>
-      </div>
-      <div class="campaign-card">
-        <span>Road safety sign installation</span>
-        <span class="campaign-status completed" onclick="openCampaign(event, 'Road safety sign installation')">Completed</span>
-      </div>
-      <div class="campaign-card">
-        <span>Awareness campaign on child education</span>
-        <span class="campaign-status pending">Pending</span>
-      </div>
-      <div class="campaign-card">
-        <span>Medical camp for elderly residents</span>
-        <span class="campaign-status waiting">Waiting</span>
-      </div>
-      <div class="campaign-card">
-        <span>Vaccination awareness drive</span>
-        <span class="campaign-status pending">Pending</span>
-      </div>
+      <!-- Campaigns will be loaded here by JavaScript -->
     </div>
   </main>
 
   <script>
     function goDashboard(){ window.location.href = "./local-dashboard.html"; }
+
+    // Load campaigns from localStorage and static data
+    function loadCampaigns(){
+      const campaignList = document.getElementById('campaignList');
+      const staticCampaigns = [
+        { id: 'static-1', title: 'Garbage is to be collected regularly', status: 'completed' },
+        { id: 'static-2', title: 'Winter Blanket drive', status: 'pending' },
+        { id: 'static-3', title: 'Temporary shelter support for families in need', status: 'waiting' },
+        { id: 'static-4', title: 'Construction of proper footpath for walking safely', status: 'completed' },
+        { id: 'static-5', title: 'Tree plantation drive in slum areas', status: 'completed' },
+        { id: 'static-6', title: 'Clean water installation project', status: 'completed' },
+        { id: 'static-7', title: 'Road safety sign installation', status: 'completed' },
+        { id: 'static-8', title: 'Awareness campaign on child education', status: 'pending' },
+        { id: 'static-9', title: 'Medical camp for elderly residents', status: 'waiting' },
+        { id: 'static-10', title: 'Vaccination awareness drive', status: 'pending' }
+      ];
+      
+      // Get campaigns from localStorage
+      let storedCampaigns = [];
+      try {
+        storedCampaigns = JSON.parse(localStorage.getItem("localAuthorityCampaigns")) || [];
+      } catch(e) {
+        console.error("Error loading campaigns from localStorage:", e);
+      }
+      
+      console.log("Stored campaigns:", storedCampaigns);
+      
+      // Combine static and stored campaigns
+      const allCampaigns = [...staticCampaigns, ...storedCampaigns];
+      
+      // Clear existing campaigns
+      campaignList.innerHTML = '';
+      
+      // Display all campaigns
+      allCampaigns.forEach(campaign => {
+        const campaignCard = document.createElement('div');
+        campaignCard.className = 'campaign-card';
+        
+        const statusClass = campaign.status === 'completed' ? 'completed' : 
+                           campaign.status === 'pending' ? 'pending' : 'waiting';
+        
+        const statusSpan = document.createElement('span');
+        statusSpan.className = `campaign-status ${statusClass}`;
+        statusSpan.textContent = campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1);
+        statusSpan.dataset.campaignTitle = campaign.title;
+        statusSpan.dataset.campaignStatus = campaign.status;
+        statusSpan.style.cursor = 'pointer';
+        statusSpan.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const title = e.target.dataset.campaignTitle;
+          const status = e.target.dataset.campaignStatus;
+          handleCampaignClick(title, status);
+        });
+        
+        const titleSpan = document.createElement('span');
+        titleSpan.textContent = campaign.title;
+        
+        campaignCard.appendChild(titleSpan);
+        campaignCard.appendChild(statusSpan);
+        campaignList.appendChild(campaignCard);
+      });
+    }
+
+    function handleCampaignClick(campaignName, status){
+      if(status === 'pending'){
+        window.location.href = `pendingcampaign.html?campaign=${encodeURIComponent(campaignName)}`;
+      } else if(status === 'completed'){
+        window.location.href = `campaigndetails.html?campaign=${encodeURIComponent(campaignName)}`;
+      }
+    }
 
     function filterCampaigns(){
       const filter = document.getElementById('campaignFilter').value;
@@ -210,18 +238,8 @@
       });
     }
 
-    // Navigate to campaign details for completed campaigns
-    function openCampaign(event, campaignName){
-      event.stopPropagation(); // Prevent bubbling
-      // Navigate with query param
-      window.location.href = `campaigndetails.html?campaign=${encodeURIComponent(campaignName)}`;
-    }
-    // ✅ NEW: pending campaigns
-  function openPendingCampaign(event, campaignName){
-    event.stopPropagation();
-    window.location.href =
-      `pendingcampaign.html?campaign=${encodeURIComponent(campaignName)}`;
-  }
+    // Initialize campaigns on page load
+    document.addEventListener('DOMContentLoaded', loadCampaigns);
   </script>
 
 </body>
