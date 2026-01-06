@@ -6,8 +6,6 @@
 }
 
 body {
-  /* Match the background gradient from htmlcssslumlink/trybase.html
-     Use min-height and fixed attachment so gradient extends even when content scrolls. */
   background: linear-gradient(
     to bottom right,
     #CBB093 0%,
@@ -20,7 +18,6 @@ body {
   min-height: 100vh;
 }
 
-/* Top Bar */
 .topbar {
   height: 60px;
   background: #FFF4E6;
