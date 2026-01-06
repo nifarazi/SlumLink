@@ -5,13 +5,37 @@
   <title>SLUMLINK · Verify NGOs</title>
   <link rel="stylesheet" href="adminSlumAnalytics.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    .pending-table th:last-child,
+    .pending-table td:last-child {
+      text-align: right;
+      padding-right: 150px;
+    }
+    .btn-approve {
+      background-color: rgba(45, 122, 61, 0.15) !important;
+      color: #2d7a3d !important;
+      border: none !important;
+    }
+
+    .btn-approve:hover {
+      background-color: rgba(45, 122, 61, 0.25) !important;
+    }
+
+    .btn-reject {
+      border: none !important;
+    }  </style>
 </head>
 <body>
   <header class="topbar">
     <div class="logo">SLUMLINK</div>
     <input type="text" placeholder="Search" class="search" />
     <div class="top-right">
-      <span class="admin">Admin ▾</span>
+      <div class="admin">
+        <span>Admin ▾</span>
+        <div class="admin-dropdown">
+          <button class="admin-logout">Logout</button>
+        </div>
+      </div>
       <a class="bell" href="adminNotification.html" title="Notifications">🔔</a>
     </div>
   </header>
@@ -43,9 +67,7 @@
             <thead>
               <tr>
                 <th>Foundation Name</th>
-                <th>Description</th>
                 <th>Location</th>
-                <th>Registration Document</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -122,32 +144,42 @@
     var pendingNGOs = [
       { 
         name: 'Hope Foundation Bangladesh', 
-        description: 'Providing education and healthcare services to underprivileged communities', 
+        email: 'info@hopefoundation.bd',
+        phone: '+88-01700-123456',
         location: 'Dhaka, Bangladesh', 
+        year: 2015,
         registrationDoc: 'profilepic/registrationCertificateNGO.jpg'
       },
       { 
         name: 'Green Earth Initiative', 
-        description: 'Environmental awareness and sustainability programs for urban slums', 
+        email: 'contact@greenearthbd.org',
+        phone: '+88-01800-234567',
         location: 'Chittagong, Bangladesh', 
+        year: 2018,
         registrationDoc: 'profilepic/registrationCertificateNGO.jpg'
       },
       { 
         name: 'Women Empowerment Trust', 
-        description: 'Skills training and livelihood support for women in slum areas', 
+        email: 'support@womenempowerbd.org',
+        phone: '+88-01900-345678',
         location: 'Dhaka, Bangladesh', 
+        year: 2012,
         registrationDoc: 'profilepic/registrationCertificateNGO.jpg'
       },
       { 
         name: 'Child Development Society', 
-        description: 'Educational support and nutrition programs for children', 
+        email: 'hello@childdevbd.org',
+        phone: '+88-01600-456789',
         location: 'Sylhet, Bangladesh', 
+        year: 2016,
         registrationDoc: 'profilepic/registrationCertificateNGO.jpg'
       },
       { 
         name: 'Community Health Network', 
-        description: 'Healthcare services and medical camps in slum communities', 
+        email: 'health@communitynetwork.bd',
+        phone: '+88-01700-567890',
         location: 'Dhaka, Bangladesh', 
+        year: 2014,
         registrationDoc: 'profilepic/registrationCertificateNGO.jpg'
       }
     ];
@@ -162,42 +194,42 @@
       pendingNGOs.forEach(function(ngo, index) {
         var row = document.createElement('tr');
         
-        // Foundation Name
+        // Foundation Name (clickable)
         var nameCell = document.createElement('td');
-        nameCell.textContent = ngo.name;
+        var nameLink = document.createElement('a');
+        nameLink.textContent = ngo.name;
+        nameLink.style.cursor = 'pointer';
+        nameLink.style.color = '#0066cc';
+        nameLink.style.textDecoration = 'underline';
+        nameLink.onclick = function() { 
+          sessionStorage.setItem('selectedNGO', JSON.stringify({...ngo, index: index}));
+          window.location.href = 'NGOinfo.html';
+        };
+        nameCell.appendChild(nameLink);
         row.appendChild(nameCell);
-
-        // Description
-        var descCell = document.createElement('td');
-        descCell.textContent = ngo.description;
-        descCell.style.maxWidth = '300px';
-        row.appendChild(descCell);
 
         // Location
         var locationCell = document.createElement('td');
         locationCell.textContent = ngo.location;
         row.appendChild(locationCell);
 
-        // Registration Document
-        var docCell = document.createElement('td');
-        var docImg = document.createElement('img');
-        docImg.src = ngo.registrationDoc;
-        docImg.alt = 'Registration Certificate';
-        docImg.className = 'doc-thumb';
-        docImg.style.cursor = 'pointer';
-        docImg.setAttribute('data-caption', 'Registration Certificate - ' + ngo.name);
-        docImg.onclick = function() { openImageModal(ngo.registrationDoc, 'Registration Certificate - ' + ngo.name); };
-        docCell.appendChild(docImg);
-        row.appendChild(docCell);
-
         // Actions
         var actionsCell = document.createElement('td');
         actionsCell.className = 'pending-actions';
+        actionsCell.style.padding = '8px';
+        
+        var actionsContainer = document.createElement('div');
+        actionsContainer.style.display = 'flex';
+        actionsContainer.style.gap = '8px';
+        actionsContainer.style.justifyContent = 'flex-end';
+        actionsContainer.style.width = '100%';
         
         var approveBtn = document.createElement('button');
         approveBtn.textContent = 'Approve';
         approveBtn.className = 'btn-approve';
-        approveBtn.onclick = function() { 
+        approveBtn.style.minWidth = '85px';
+        approveBtn.onclick = function(e) { 
+          e.stopPropagation();
           currentApproveIndex = index;
           openApproveModal(ngo.name);
         };
@@ -205,13 +237,16 @@
         var rejectBtn = document.createElement('button');
         rejectBtn.textContent = 'Reject';
         rejectBtn.className = 'btn-reject';
-        rejectBtn.onclick = function() { 
+        rejectBtn.style.minWidth = '85px';
+        rejectBtn.onclick = function(e) { 
+          e.stopPropagation();
           currentRejectIndex = index;
           openRejectModal(ngo.name);
         };
         
-        actionsCell.appendChild(approveBtn);
-        actionsCell.appendChild(rejectBtn);
+        actionsContainer.appendChild(approveBtn);
+        actionsContainer.appendChild(rejectBtn);
+        actionsCell.appendChild(actionsContainer);
         row.appendChild(actionsCell);
         
         tbody.appendChild(row);
@@ -219,7 +254,7 @@
 
       if (pendingNGOs.length === 0) {
         var empty = document.createElement('tr');
-        empty.innerHTML = '<td colspan="5" style="text-align:center;color:#8b6f5a;">No pending NGO verifications.</td>';
+        empty.innerHTML = '<td colspan="3" style="text-align:center;color:#8b6f5a;">No pending NGO verifications.</td>';
         tbody.appendChild(empty);
       }
     }
