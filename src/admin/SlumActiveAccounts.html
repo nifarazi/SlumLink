@@ -196,12 +196,19 @@
       { id: 'SR011', name: 'Abdul Karim', slum: 'Korail', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null },
       { id: 'SR012', name: 'Kulsum Begum', slum: 'Pura', hasNewDocs: true, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: 'profilepic/birthcertificate.jpg', marriageCert: null },
       { id: 'SR013', name: 'Sumon Mia', slum: 'Molla', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null },
-      { id: 'SR014', name: 'Amina Begum', slum: 'Korail', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null }
+      { id: 'SR014', name: 'Amina Begum', slum: 'Korail', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null },
+      { id: 'SR015', name: 'Nasiruddin Ahmed', slum: 'Molla', hasNewDocs: true, profile: 'profilepic/NID.jpg', birthCert: 'profilepic/birthcertificate.jpg', deathCert: null, marriageCert: null },
+      { id: 'SR016', name: 'Nusrat Jahan', slum: 'Molla', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null },
+      { id: 'SR017', name: 'Wasim Khan', slum: 'Korail', hasNewDocs: true, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: 'profilepic/marraigeertificate.png' },
+      { id: 'SR018', name: 'Sakina Akhter', slum: 'Korail', hasNewDocs: false, profile: 'profilepic/NID.jpg', birthCert: null, deathCert: null, marriageCert: null }
     ];
 
     var currentDeleteIndex = -1;
     var currentApproveIndex = -1;
     var currentRejectIndex = -1;
+    var currentDeleteResident = null;
+    var currentApproveResident = null;
+    var currentRejectResident = null;
 
     function renderRows() {
       var params = new URLSearchParams(window.location.search);
@@ -239,6 +246,16 @@
 
       // Combine hardcoded and approved residents
       var allResidents = activeResidents.concat(approvedResidents);
+      
+      // Check localStorage for document approval/rejection status
+      var DOC_STATUS_KEY = 'SLUMLINK_DOC_STATUS';
+      var docStatuses = {};
+      try {
+        var stored = localStorage.getItem(DOC_STATUS_KEY);
+        if (stored) {
+          docStatuses = JSON.parse(stored);
+        }
+      } catch(e) { /* ignore errors */ }
       
       var tbody = document.getElementById('activeTableBody');
       tbody.innerHTML = '';
@@ -286,14 +303,22 @@
         actionsContainer.style.justifyContent = 'flex-end';
         actionsContainer.style.width = '100%';
         
-        if (resident.hasNewDocs) {
+        // Check if documents have been approved or rejected in localStorage
+        var hasNewDocs = resident.hasNewDocs;
+        if (docStatuses[resident.id]) {
+          if (docStatuses[resident.id].approved || docStatuses[resident.id].rejected) {
+            hasNewDocs = false;
+          }
+        }
+        
+        if (hasNewDocs) {
           var approveBtn = document.createElement('button');
           approveBtn.textContent = 'Approve';
           approveBtn.className = 'btn-approve';
           approveBtn.style.minWidth = '85px';
           approveBtn.onclick = function(e) { 
             e.stopPropagation();
-            currentApproveIndex = index;
+            currentApproveResident = resident;
             openApproveModal(resident.name);
           };
           
@@ -303,7 +328,7 @@
           rejectBtn.style.minWidth = '85px';
           rejectBtn.onclick = function(e) { 
             e.stopPropagation();
-            currentRejectIndex = index;
+            currentRejectResident = resident;
             openRejectModal(resident.name);
           };
           
@@ -317,7 +342,7 @@
         deleteBtn.style.minWidth = '85px';
         deleteBtn.onclick = function(e) {
           e.stopPropagation();
-          currentDeleteIndex = index;
+          currentDeleteResident = resident;
           openDeleteModal(resident.name);
         };
         
@@ -357,7 +382,7 @@
       var modal = document.getElementById('approveModal');
       modal.setAttribute('aria-hidden', 'true');
       modal.classList.remove('show');
-      currentApproveIndex = -1;
+      currentApproveResident = null;
     }
 
     function openRejectModal(name) {
@@ -372,7 +397,7 @@
       var modal = document.getElementById('rejectModal');
       modal.setAttribute('aria-hidden', 'true');
       modal.classList.remove('show');
-      currentRejectIndex = -1;
+      currentRejectResident = null;
     }
 
     function openDeleteModal(name) {
@@ -387,7 +412,7 @@
       var modal = document.getElementById('deleteModal');
       modal.setAttribute('aria-hidden', 'true');
       modal.classList.remove('show');
-      currentDeleteIndex = -1;
+      currentDeleteResident = null;
     }
 
     function showSuccessModal(message) {
@@ -437,13 +462,35 @@
     document.getElementById('cancelApprove').addEventListener('click', closeApproveModal);
     
     document.getElementById('confirmApprove').addEventListener('click', function() {
-      if (currentApproveIndex >= 0) {
-        var approvedResident = activeResidents[currentApproveIndex];
-        // Mark documents as approved
-        approvedResident.hasNewDocs = false;
-        approvedResident.birthCert = null;
-        approvedResident.deathCert = null;
-        approvedResident.marriageCert = null;
+      if (currentApproveResident) {
+        var approvedResident = currentApproveResident;
+        
+        // Update in activeResidents array if it exists there
+        for (var i = 0; i < activeResidents.length; i++) {
+          if (activeResidents[i].id === approvedResident.id) {
+            activeResidents[i].hasNewDocs = false;
+            activeResidents[i].birthCert = null;
+            activeResidents[i].deathCert = null;
+            activeResidents[i].marriageCert = null;
+            break;
+          }
+        }
+        
+        // Save approval status to localStorage
+        try {
+          var DOC_STATUS_KEY = 'SLUMLINK_DOC_STATUS';
+          var stored = localStorage.getItem(DOC_STATUS_KEY);
+          var docStatuses = stored ? JSON.parse(stored) : {};
+          docStatuses[approvedResident.id] = {
+            hasNewDocs: false,
+            birthCert: null,
+            deathCert: null,
+            marriageCert: null,
+            approved: true
+          };
+          localStorage.setItem(DOC_STATUS_KEY, JSON.stringify(docStatuses));
+        } catch(e) { /* ignore errors */ }
+        
         closeApproveModal();
         showSuccessModal('Documents approved for ' + approvedResident.name);
         renderRows();
@@ -459,13 +506,35 @@
     document.getElementById('cancelReject').addEventListener('click', closeRejectModal);
     
     document.getElementById('confirmReject').addEventListener('click', function() {
-      if (currentRejectIndex >= 0) {
-        var rejectedResident = activeResidents[currentRejectIndex];
-        // Mark documents as rejected
-        rejectedResident.hasNewDocs = false;
-        rejectedResident.birthCert = null;
-        rejectedResident.deathCert = null;
-        rejectedResident.marriageCert = null;
+      if (currentRejectResident) {
+        var rejectedResident = currentRejectResident;
+        
+        // Update in activeResidents array if it exists there
+        for (var i = 0; i < activeResidents.length; i++) {
+          if (activeResidents[i].id === rejectedResident.id) {
+            activeResidents[i].hasNewDocs = false;
+            activeResidents[i].birthCert = null;
+            activeResidents[i].deathCert = null;
+            activeResidents[i].marriageCert = null;
+            break;
+          }
+        }
+        
+        // Save rejection status to localStorage
+        try {
+          var DOC_STATUS_KEY = 'SLUMLINK_DOC_STATUS';
+          var stored = localStorage.getItem(DOC_STATUS_KEY);
+          var docStatuses = stored ? JSON.parse(stored) : {};
+          docStatuses[rejectedResident.id] = {
+            hasNewDocs: false,
+            birthCert: null,
+            deathCert: null,
+            marriageCert: null,
+            rejected: true
+          };
+          localStorage.setItem(DOC_STATUS_KEY, JSON.stringify(docStatuses));
+        } catch(e) { /* ignore errors */ }
+        
         closeRejectModal();
         showSuccessModal('Documents rejected for ' + rejectedResident.name);
         renderRows();
@@ -481,11 +550,39 @@
     document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
     
     document.getElementById('confirmDelete').addEventListener('click', function() {
-      if (currentDeleteIndex >= 0) {
-        var deletedResident = activeResidents[currentDeleteIndex];
-        activeResidents.splice(currentDeleteIndex, 1);
+      if (currentDeleteResident) {
+        var deletedName = currentDeleteResident.name;
+        var LIST_KEY = 'SLUMLINK_APPLICATIONS';
+        
+        // Try to find and remove from hardcoded activeResidents array
+        var foundInActive = false;
+        for (var i = 0; i < activeResidents.length; i++) {
+          if (activeResidents[i].id === currentDeleteResident.id) {
+            activeResidents.splice(i, 1);
+            foundInActive = true;
+            break;
+          }
+        }
+        
+        // If not found in activeResidents, remove from localStorage
+        if (!foundInActive) {
+          try {
+            var stored = localStorage.getItem(LIST_KEY);
+            if (stored) {
+              var allApps = JSON.parse(stored);
+              var filteredApps = allApps.filter(function(app) {
+                var appId = app.id || 'APP_' + Date.now();
+                return appId !== currentDeleteResident.id;
+              });
+              localStorage.setItem(LIST_KEY, JSON.stringify(filteredApps));
+            }
+          } catch(e) {
+            console.error('Error updating localStorage:', e);
+          }
+        }
+        
         closeDeleteModal();
-        showSuccessModal('Account deleted: ' + deletedResident.name);
+        showSuccessModal('Account deleted: ' + deletedName);
         renderRows();
       }
     });
