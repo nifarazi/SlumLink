@@ -1,77 +1,198 @@
-const pw = document.getElementById("password");
-const cpw = document.getElementById("confirmPassword");
-const pwStatus = document.getElementById("pwStatus");
-const matchStatus = document.getElementById("matchStatus");
+const form = document.getElementById("orgForm");
 
-const toggle = (input, btn) => {
-  const isPw = input.type === "password";
-  input.type = isPw ? "text" : "password";
-  btn.textContent = isPw ? "Hide" : "Show";
-};
+const modal = document.getElementById("successModal");
+const goHomeBtn = document.getElementById("goHomeBtn");
+const modalOverlay = document.getElementById("modalOverlay");
 
-document.getElementById("togglePw").addEventListener("click", (e) => toggle(pw, e.target));
-document.getElementById("toggleCpw").addEventListener("click", (e) => toggle(cpw, e.target));
+const password = document.getElementById("password");
+const confirmPassword = document.getElementById("confirmPassword");
 
-function scorePassword(v){
-  let s = 0;
-  if (v.length >= 8) s++;
-  if (/[A-Z]/.test(v)) s++;
-  if (/[a-z]/.test(v)) s++;
-  if (/\d/.test(v)) s++;
-  if (/[^A-Za-z0-9]/.test(v)) s++;
-  return s;
+let submitAttempted = false;
+
+const fieldIds = [
+  "orgName",
+  "email",
+  "phone",
+  "license",
+  "orgAge",
+  "password",
+  "confirmPassword",
+];
+
+function getInput(id) {
+  return document.getElementById(id);
+}
+function getErrorBox(id) {
+  return document.getElementById(`err-${id}`);
 }
 
-function updatePwUI(){
-  const v = pw.value;
-  const s = scorePassword(v);
+function setFieldError(input, message) {
+  const wrap = input.closest(".field");
+  const box = getErrorBox(input.id);
+  if (!box) return;
 
-  if (!v){
-    pwStatus.textContent = "8+ characters recommended.";
-    pwStatus.className = "status";
+  if (!submitAttempted) {
+    box.textContent = "";
+    wrap?.classList.remove("is-error");
+    input.removeAttribute("aria-invalid");
     return;
   }
 
-  if (s <= 2){
-    pwStatus.textContent = "Weak password.";
-    pwStatus.className = "status bad";
-  } else if (s === 3){
-    pwStatus.textContent = "Good password.";
-    pwStatus.className = "status";
+  if (message) {
+    box.textContent = message;
+    wrap?.classList.add("is-error");
+    input.setAttribute("aria-invalid", "true");
   } else {
-    pwStatus.textContent = "Strong password.";
-    pwStatus.className = "status good";
+    box.textContent = "";
+    wrap?.classList.remove("is-error");
+    input.removeAttribute("aria-invalid");
   }
 }
 
-function updateMatchUI(){
-  if (!pw.value && !cpw.value){
-    matchStatus.textContent = "Not checked yet.";
-    matchStatus.className = "status";
-    return;
-  }
-  if (pw.value === cpw.value && pw.value.length >= 8){
-    matchStatus.textContent = "Passwords match.";
-    matchStatus.className = "status good";
-  } else {
-    matchStatus.textContent = "Passwords do not match.";
-    matchStatus.className = "status bad";
-  }
+function normalizePhone(v) {
+  return String(v || "").trim().replace(/[\s-]/g, "");
+}
+function isValidBDPhone(v) {
+  const s = normalizePhone(v);
+  return /^(?:\+?88)?01[3-9][0-9]{8}$/.test(s);
 }
 
-pw.addEventListener("input", () => { updatePwUI(); updateMatchUI(); });
-cpw.addEventListener("input", updateMatchUI);
+function messageFor(input) {
+  const v = (input.value || "").trim();
 
-document.getElementById("orgForm").addEventListener("submit", (e) => {
-  updatePwUI();
-  updateMatchUI();
-
-  const form = e.target;
-  const isValid = form.checkValidity();
-  const pwOk = pw.value.length >= 8 && (pw.value === cpw.value);
-
-  if (!isValid || !pwOk){
-    e.preventDefault();
-    form.reportValidity();
+  if (input.type === "file") {
+    if (!input.files || input.files.length === 0) return "Please upload your organization license.";
+    return "";
   }
+
+  if (input.id === "phone") {
+    if (!v) return "This field is required.";
+    if (!isValidBDPhone(v)) return "Enter a valid BD number (01XXXXXXXXX / 8801XXXXXXXXX / +8801XXXXXXXXX).";
+    return "";
+  }
+
+  if (input.id === "password") {
+    if (!v) return "This field is required.";
+    if (v.length < 8) return "Password must be at least 8 characters.";
+    return "";
+  }
+
+  if (input.id === "confirmPassword") {
+    if (!v) return "This field is required.";
+    if (v.length < 8) return "Password must be at least 8 characters.";
+    if (password.value !== confirmPassword.value) return "Passwords do not match.";
+    return "";
+  }
+
+  if (!v) return "This field is required.";
+
+  if (input.type === "email") {
+    if (input.validity.typeMismatch) return "Enter a valid email address.";
+  }
+
+  if (input.type === "number") {
+    const num = Number(input.value);
+    if (Number.isNaN(num)) return "This field is required.";
+    if (input.min !== "" && num < Number(input.min)) return `Value must be ${input.min} or more.`;
+    if (input.max !== "" && num > Number(input.max)) return `Value must be ${input.max} or less.`;
+  }
+
+  return "";
+}
+
+function validateField(input) {
+  const msg = messageFor(input);
+  setFieldError(input, msg);
+  return !msg;
+}
+
+function validateAll() {
+  let ok = true;
+  let firstBad = null;
+
+  for (const id of fieldIds) {
+    const input = getInput(id);
+    if (!input) continue;
+
+    const valid = validateField(input);
+    if (!valid) {
+      ok = false;
+      if (!firstBad) firstBad = input;
+    }
+  }
+
+  if (!ok && firstBad) {
+    firstBad.focus({ preventScroll: true });
+    firstBad.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  return ok;
+}
+
+/* Modal */
+function openModal() {
+  modal.hidden = false;
+  document.body.style.overflow = "hidden";
+  goHomeBtn.focus();
+}
+function closeModal() {
+  modal.hidden = true;
+  document.body.style.overflow = "";
+}
+function goHome() {
+  window.location.href = "../../index.html";
+}
+
+goHomeBtn.addEventListener("click", () => { closeModal(); goHome(); });
+modalOverlay.addEventListener("click", () => { closeModal(); goHome(); });
+document.addEventListener("keydown", (e) => {
+  if (!modal.hidden && e.key === "Escape") { closeModal(); goHome(); }
+});
+
+/* Only validate after clicking Register once */
+form.addEventListener("input", (e) => {
+  if (!submitAttempted) return;
+  const t = e.target;
+  if (!(t instanceof HTMLInputElement)) return;
+
+  validateField(t);
+  if (t.id === "password" || t.id === "confirmPassword") validateField(confirmPassword);
+});
+form.addEventListener("change", (e) => {
+  if (!submitAttempted) return;
+  const t = e.target;
+  if (!(t instanceof HTMLInputElement)) return;
+  validateField(t);
+});
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  submitAttempted = true;
+  const ok = validateAll();
+  if (!ok) return;
+
+  openModal();
+});
+
+/* ✅ Eye toggle: default slashed (hidden), click -> visible + normal eye */
+document.querySelectorAll(".pw-toggle").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const targetId = btn.getAttribute("data-target");
+    const input = document.getElementById(targetId);
+    if (!input) return;
+
+    const toShow = input.type === "password"; // currently hidden
+    input.type = toShow ? "text" : "password";
+
+    const icon = btn.querySelector("i");
+    if (icon) {
+      // When showing text -> normal eye
+      icon.className = toShow ? "fa-regular fa-eye" : "fa-regular fa-eye-slash";
+    }
+
+    btn.setAttribute("aria-pressed", toShow ? "true" : "false");
+    btn.setAttribute("aria-label", toShow ? "Hide password" : "Show password");
+    btn.setAttribute("title", toShow ? "Hide password" : "Show password");
+  });
 });
