@@ -11,7 +11,12 @@
     <div class="logo">SLUMLINK</div>
     <input type="text" placeholder="Search" class="search" />
     <div class="top-right">
-      <span class="admin">Admin ▾</span>
+      <div class="admin">
+        <span>Admin ▾</span>
+        <div class="admin-dropdown">
+          <button class="admin-logout">Logout</button>
+        </div>
+      </div>
   <a class="bell" href="adminNotification.html" title="Notifications">🔔</a>
     </div>
   </header>
@@ -35,7 +40,16 @@
             <h2>All Field Agents</h2>
             <p>Active Members</p>
           </div>
-          <input type="text" placeholder="Search" class="table-search">
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" placeholder="Search" class="table-search">
+            <div style="position: relative;">
+              <button id="sortBtn" style="background-color: #8b6f5a; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: 600; font-family: Poppins; font-size: 14px;">Sort by Location ▼</button>
+              <div id="sortMenu" style="display: none; position: absolute; top: 100%; right: 0; background: white; border: 1px solid #e0d5c7; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 100; min-width: 180px; margin-top: 5px;">
+                <button class="sort-option" data-sort="asc" style="display: block; width: 100%; text-align: left; padding: 12px 15px; border: none; background: none; cursor: pointer; color: #6b5b4b; font-family: Poppins; font-size: 14px; border-bottom: 1px solid #e0d5c7;" onmouseover="this.style.backgroundColor='#f5f0e8'" onmouseout="this.style.backgroundColor='transparent'">A - Z</button>
+                <button class="sort-option" data-sort="desc" style="display: block; width: 100%; text-align: left; padding: 12px 15px; border: none; background: none; cursor: pointer; color: #6b5b4b; font-family: Poppins; font-size: 14px;" onmouseover="this.style.backgroundColor='#f5f0e8'" onmouseout="this.style.backgroundColor='transparent'">Z - A</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <table>
@@ -165,5 +179,47 @@
   </div>
 
   <script src="adminSlumAnalytics.js"></script>
+  <script>
+    var currentSort = 'asc';
+    
+    document.getElementById('sortBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      var menu = document.getElementById('sortMenu');
+      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    document.querySelectorAll('.sort-option').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        currentSort = this.getAttribute('data-sort');
+        document.getElementById('sortMenu').style.display = 'none';
+        sortTableByLocation();
+      });
+    });
+    
+    document.addEventListener('click', function() {
+      document.getElementById('sortMenu').style.display = 'none';
+    });
+    
+    function sortTableByLocation() {
+      var table = document.querySelector('table tbody');
+      var rows = Array.from(table.querySelectorAll('tr'));
+      
+      rows.sort(function(rowA, rowB) {
+        var locationA = rowA.cells[1].textContent.trim().toUpperCase();
+        var locationB = rowB.cells[1].textContent.trim().toUpperCase();
+        
+        if (currentSort === 'asc') {
+          return locationA.localeCompare(locationB);
+        } else {
+          return locationB.localeCompare(locationA);
+        }
+      });
+      
+      rows.forEach(function(row) {
+        table.appendChild(row);
+      });
+    }
+  </script>
 </body>
 </html>
