@@ -6,6 +6,48 @@
   <link rel="stylesheet" href="adminSlumAnalytics.css" />
   <!-- Poppins font for this project -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    #dwellerModal .modal {
+      max-width: 800px;
+      width: 90%;
+    }
+    
+    .dweller-history {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .dweller-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .dweller-table th,
+    .dweller-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .dweller-table th {
+      background-color: #8b6f5a;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .dweller-table tr:hover {
+      background-color: #f5f5f5;
+    }
+    
+    .page-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #8b6f5a;
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 <body>
   <!-- Top Bar -->
@@ -13,7 +55,12 @@
     <div class="logo">SLUMLINK</div>
     <input type="text" placeholder="Search" class="search" />
     <div class="top-right">
-          <span class="admin">Admin ▾</span>
+          <div class="admin">
+            <span>Admin ▾</span>
+            <div class="admin-dropdown">
+              <button class="admin-logout">Logout</button>
+            </div>
+          </div>
           <a class="bell" href="adminNotification.html" title="Notifications">🔔</a>
     </div>
   </header>
@@ -22,8 +69,8 @@
     <!-- Sidebar -->
     <aside class="sidebar">
         <ul>
-          <li class="active"><a href="adminSlumAnalytics.html">📊 Slum Analytics</a></li>
-          <li><a href="adminNgoAnalytics.html">📈 NGO Analytics</a></li>
+          <li><a href="adminSlumAnalytics.html">📊 Slum Analytics</a></li>
+          <li class="active"><a href="adminNgoAnalytics.html">📈 NGO Analytics</a></li>
           <li><a href="adminSlumResidents.html">🏠 Slum Residents</a></li>
           <li><a href="adminFieldAgents.html">🧑‍💼 Field Agents</a></li>
           <li><a href="adminVerifyNgo.html">✔ Verify NGOs</a></li>
@@ -32,6 +79,7 @@
 
     <!-- Main Content -->
     <main class="content">
+      <h1 class="page-title" id="ngoTitle"></h1>
       <div class="main-grid">
         <div class="left-column">
           <section class="aid-section">
@@ -122,6 +170,7 @@
               <th>Name</th>
               <th>Unique ID</th>
               <th>Slum</th>
+              <th>Event</th>
             </tr>
           </thead>
           <tbody id="dwellerTableBody">
@@ -147,25 +196,33 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="adminSlumAnalytics.js"></script>
   <script>
     // Sample dweller data
     const dwellerData = [
-      { name: 'Ahmed Hassan', id: 'DW001', slum: 'Molla' },
-      { name: 'Fatima Khan', id: 'DW002', slum: 'Korail' },
-      { name: 'Raj Kumar', id: 'DW003', slum: 'Begun Bari' },
-      { name: 'Amina Begum', id: 'DW004', slum: 'DuariPara' },
-      { name: 'Hassan Ali', id: 'DW005', slum: 'Kallyanpur' },
-      { name: 'Nasrin Akter', id: 'DW006', slum: 'Pora Basti' },
-      { name: 'Karim Ahmed', id: 'DW007', slum: 'Pura' },
-      { name: 'Rehana Begum', id: 'DW008', slum: 'Nubur' },
-      { name: 'Mohammad Habib', id: 'DW009', slum: 'Mannan' },
-      { name: 'Salma Akter', id: 'DW010', slum: 'Basbari' },
-      { name: 'Ibrahim Khan', id: 'DW011', slum: 'Chalantika' },
-      { name: 'Leyla Hassan', id: 'DW012', slum: 'Nama Para' }
+      { name: 'Ahmed Hassan', id: 'DW001', slum: 'Molla', event: 'Food Distribution Drive' },
+      { name: 'Fatima Khan', id: 'DW002', slum: 'Korail', event: 'Water Supply Program' },
+      { name: 'Raj Kumar', id: 'DW003', slum: 'Begun Bari', event: 'Health Clinic Support' },
+      { name: 'Amina Begum', id: 'DW004', slum: 'DuariPara', event: 'Skill Training Initiative' },
+      { name: 'Hassan Ali', id: 'DW005', slum: 'Kallyanpur', event: 'Food Distribution Drive' },
+      { name: 'Nasrin Akter', id: 'DW006', slum: 'Pora Basti', event: 'Educational Support Program' },
+      { name: 'Karim Ahmed', id: 'DW007', slum: 'Pura', event: 'Community Center Program' },
+      { name: 'Rehana Begum', id: 'DW008', slum: 'Nubur', event: 'Sanitation Improvement' },
+      { name: 'Mohammad Habib', id: 'DW009', slum: 'Mannan', event: 'Women Empowerment Program' },
+      { name: 'Salma Akter', id: 'DW010', slum: 'Basbari', event: 'Child Education Initiative' },
+      { name: 'Ibrahim Khan', id: 'DW011', slum: 'Chalantika', event: 'Healthcare Outreach' },
+      { name: 'Leyla Hassan', id: 'DW012', slum: 'Nama Para', event: 'Livelihood Training' }
     ];
 
     document.addEventListener('DOMContentLoaded', function () {
+      // Display NGO name from URL parameter
+      var ngoName = new URLSearchParams(window.location.search).get('ngo');
+      var ngoTitle = document.getElementById('ngoTitle');
+      if (ngoTitle && ngoName) {
+        ngoTitle.textContent = ngoName + ' Analytics';
+      }
+      
       // Handle Total Dwellers Helped click
       const dwellersCard = document.getElementById('dwellersCard');
       const dwellerModal = document.getElementById('dwellerModal');
@@ -182,6 +239,7 @@
               <td>${dweller.name}</td>
               <td>${dweller.id}</td>
               <td>${dweller.slum}</td>
+              <td>${dweller.event}</td>
             `;
             dwellerTableBody.appendChild(row);
           });
@@ -213,7 +271,7 @@
       cards.forEach(function (card) {
         card.addEventListener('click', function () {
           var name = (card.textContent || '').trim();
-          var target = 'adminShowSlumAnalytics.html';
+          var target = 'adminShowNgoAnalytics.html';
           if (name) {
             target += '?slum=' + encodeURIComponent(name);
           }
@@ -228,31 +286,154 @@
         });
       });
 
-      // Export Report button - generates and downloads a report
+      // Export Report button - generates and downloads a PDF report
       var exportBtn = document.getElementById('exportBtn');
       if (exportBtn) {
         exportBtn.addEventListener('click', function () {
-          var slumName = new URLSearchParams(window.location.search).get('slum') || 'Slum Report';
-          var report = 'SLUMLINK - ' + slumName + ' Report\n';
-          report += '=====================================\n\n';
-          report += 'Generated on: ' + new Date().toLocaleString() + '\n\n';
-          report += 'Aid Distribution:\n';
-          report += '- Food: 42%\n';
-          report += '- Shelter: 25%\n';
-          report += '- Clothing: 33%\n\n';
-          report += 'Statistics:\n';
-          report += '- Households: 3,214\n';
-          report += '- Population: 12,840\n';
-          report += '- Active Projects: 14\n\n';
-          report += 'Urgent Issues: Water access (3 issues)\n';
+          var jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+          if (!jsPDFCtor) { alert('PDF library not loaded'); return; }
           
-          var blob = new Blob([report], { type: 'text/plain' });
-          var url = window.URL.createObjectURL(blob);
-          var a = document.createElement('a');
-          a.href = url;
-          a.download = slumName.replace(/\s+/g, '_') + '_report.txt';
-          a.click();
-          window.URL.revokeObjectURL(url);
+          var ngoName = new URLSearchParams(window.location.search).get('ngo') || 'NGO Report';
+          var doc = new jsPDFCtor({ unit: 'mm', format: 'a4' });
+          
+          var pageWidth = doc.internal.pageSize.getWidth();
+          var margin = 15;
+          var contentWidth = pageWidth - 2 * margin;
+          var y = margin;
+          
+          // Title
+          doc.setFontSize(18);
+          doc.setFont('helvetica', 'bold');
+          doc.text('SLUMLINK NGO Analytics Report', pageWidth / 2, y, { align: 'center' });
+          y += 15;
+          
+          // NGO Name
+          doc.setFontSize(14);
+          doc.setFont('helvetica', 'bold');
+          doc.text(ngoName, margin, y);
+          y += 10;
+          
+          // Generated Date
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          doc.text('Generated on: ' + new Date().toLocaleString(), margin, y);
+          y += 10;
+          
+          // Divider line
+          doc.setDrawColor(139, 111, 90);
+          doc.line(margin, y, pageWidth - margin, y);
+          y += 8;
+          
+          // Statistics Section
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Key Statistics', margin, y);
+          y += 8;
+          
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          doc.text('Total Dwellers Helped: 3,214', margin + 5, y);
+          y += 6;
+          doc.text('Aids Distributed: 12,840', margin + 5, y);
+          y += 6;
+          doc.text('Total Projects: 14', margin + 5, y);
+          y += 10;
+          
+          // Aid Distribution Section
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Aid Distribution (Last 30 days)', margin, y);
+          y += 8;
+          
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          doc.text('Food: 42%', margin + 5, y);
+          y += 6;
+          doc.text('Shelter: 25%', margin + 5, y);
+          y += 6;
+          doc.text('Clothing: 33%', margin + 5, y);
+          y += 10;
+          
+          // Development Work Activity Section
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Development Work Activity', margin, y);
+          y += 8;
+          
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          doc.text('Most recent update: 2 days ago', margin + 5, y);
+          y += 8;
+          
+          // Projects Completed
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Completed Projects', margin + 5, y);
+          y += 6;
+          
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          var completedProjects = [
+            'Water Supply to Korail Slum',
+            'Educational Support Program - Molla',
+            'Health Clinic Setup - Begun Bari',
+            'Skill Training Center - DuariPara',
+            'Food Distribution Drive - Kallyanpur'
+          ];
+          completedProjects.forEach(function(project) {
+            doc.text('• ' + project, margin + 10, y);
+            y += 5;
+          });
+          y += 2;
+          
+          // Projects In Progress
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Projects In Progress', margin + 5, y);
+          y += 6;
+          
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          var inProgressProjects = [
+            'Community Center Development - Pura (65% complete)',
+            'Sanitation Improvement - Nubur (70% complete)',
+            'Women Empowerment Program - Mannan (45% complete)',
+            'Child Education Initiative - Basbari (80% complete)',
+            'Healthcare Outreach - Chalantika (55% complete)',
+            'Livelihood Training - Nama Para (50% complete)',
+            'Infrastructure Development - Pora Basti (40% complete)',
+            'Youth Skills Program - Korail (60% complete)',
+            'Nutrition Program - Molla (75% complete)'
+          ];
+          inProgressProjects.forEach(function(project) {
+            if (y > 270) {
+              doc.addPage();
+              y = margin;
+            }
+            doc.text('• ' + project, margin + 10, y);
+            y += 5;
+          });
+          y += 8;
+          
+          // Most Helped Sector
+          if (y > 250) {
+            doc.addPage();
+            y = margin;
+          }
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Impact Summary', margin, y);
+          y += 8;
+          
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          doc.text('Most Helped Sector: Food (42%)', margin + 5, y);
+          y += 6;
+          doc.text('Monthly Growth: +6.2%', margin + 5, y);
+          
+          // Save PDF
+          var filename = ngoName.replace(/[^a-z0-9]+/gi, '_').toLowerCase() + '_report.pdf';
+          doc.save(filename);
         });
       }
 
@@ -260,7 +441,7 @@
       var goBackBtn = document.getElementById('goBackBtn');
       if (goBackBtn) {
         goBackBtn.addEventListener('click', function () {
-          window.location.href = 'adminSlumAnalytics.html';
+          window.location.href = 'adminNgoAnalytics.html';
         });
       }
     });
