@@ -45,6 +45,15 @@ document.addEventListener("DOMContentLoaded", () => {
   setupMobileMenu();
   window.addEventListener("resize", setupMobileMenu);
 
+  // ================= HERO CTA SCROLL (✅ no href, no hover link preview) =================
+  document.querySelectorAll(".js-scroll").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.target;
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
   // ================= SCROLL REVEAL (NO FLICKER) =================
   const allTargets = Array.from(document.querySelectorAll(".section, .card, .stat"));
 
