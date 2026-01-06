@@ -61,30 +61,30 @@ function messageFor(input) {
   const v = (input.value || "").trim();
 
   if (input.type === "file") {
-    if (!input.files || input.files.length === 0) return "Please upload your organization license.";
+    if (!input.files || input.files.length === 0) return "";
     return "";
   }
 
   if (input.id === "phone") {
-    if (!v) return "This field is required.";
-    if (!isValidBDPhone(v)) return "Enter a valid BD number (01XXXXXXXXX / 8801XXXXXXXXX / +8801XXXXXXXXX).";
+    if (!v) return "";
+    if (!isValidBDPhone(v)) return "Enter a valid BD number (01XXXXXXXXX / 8801XXXXXXXXX / +8801XXXXXXXXX)";
     return "";
   }
 
   if (input.id === "password") {
-    if (!v) return "This field is required.";
+    if (!v) return "";
     if (v.length < 8) return "Password must be at least 8 characters.";
     return "";
   }
 
   if (input.id === "confirmPassword") {
-    if (!v) return "This field is required.";
+    if (!v) return "";
     if (v.length < 8) return "Password must be at least 8 characters.";
     if (password.value !== confirmPassword.value) return "Passwords do not match.";
     return "";
   }
 
-  if (!v) return "This field is required.";
+  if (!v) return "";
 
   if (input.type === "email") {
     if (input.validity.typeMismatch) return "Enter a valid email address.";
@@ -92,7 +92,7 @@ function messageFor(input) {
 
   if (input.type === "number") {
     const num = Number(input.value);
-    if (Number.isNaN(num)) return "This field is required.";
+    if (Number.isNaN(num)) return "";
     if (input.min !== "" && num < Number(input.min)) return `Value must be ${input.min} or more.`;
     if (input.max !== "" && num > Number(input.max)) return `Value must be ${input.max} or less.`;
   }
@@ -156,13 +156,32 @@ form.addEventListener("input", (e) => {
   if (!(t instanceof HTMLInputElement)) return;
 
   validateField(t);
-  if (t.id === "password" || t.id === "confirmPassword") validateField(confirmPassword);
+  
+  // Clear custom validity as user corrects the field
+  const msg = messageFor(t);
+  if (!msg) {
+    t.setCustomValidity("");
+  }
+  
+  if (t.id === "password" || t.id === "confirmPassword") {
+    validateField(confirmPassword);
+    const pwMsg = messageFor(confirmPassword);
+    if (!pwMsg) {
+      confirmPassword.setCustomValidity("");
+    }
+  }
 });
 form.addEventListener("change", (e) => {
   if (!submitAttempted) return;
   const t = e.target;
   if (!(t instanceof HTMLInputElement)) return;
   validateField(t);
+  
+  // Clear custom validity as user corrects the field
+  const msg = messageFor(t);
+  if (!msg) {
+    t.setCustomValidity("");
+  }
 });
 
 form.addEventListener("submit", (e) => {
@@ -170,6 +189,25 @@ form.addEventListener("submit", (e) => {
 
   submitAttempted = true;
   const ok = validateAll();
+  
+  // Set custom validation messages for HTML5 validation
+  for (const id of fieldIds) {
+    const input = getInput(id);
+    if (!input) continue;
+    
+    const msg = messageFor(input);
+    if (msg) {
+      input.setCustomValidity(msg);
+    } else {
+      input.setCustomValidity("");
+    }
+  }
+  
+  // Report validity to show native browser messages
+  if (!form.reportValidity()) {
+    return;
+  }
+  
   if (!ok) return;
 
   openModal();

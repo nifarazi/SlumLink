@@ -27,7 +27,7 @@
 
 <body>
   <!-- Back -> SLUMLINK/index.html (root) -->
-  <a href="../../index.html" class="back-btn" aria-label="Back to Home">
+  <a onclick="window.history.back()" class="back-btn" aria-label="Back to Home" style="cursor:pointer">
     <i class="fas fa-arrow-left"></i>
   </a>
 
@@ -174,7 +174,7 @@
           <button class="btn" type="submit">Register Account</button>
 
           <div class="alt">
-            Already registered? <a href="/src/signin.html">Sign In</a>
+            Already registered? <span onclick="window.location='/src/signin.html'" style="cursor:pointer;text-decoration:underline">Sign In</span>
           </div>
         </form>
       </section>
