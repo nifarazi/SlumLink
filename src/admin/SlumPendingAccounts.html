@@ -5,13 +5,70 @@
   <title>SLUMLINK · Slum Residents</title>
   <link rel="stylesheet" href="adminSlumAnalytics.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    .pending-table th:last-child,
+    .pending-table td:last-child {
+      text-align: left;
+      padding-right: 0;
+    }
+
+    .pending-table th:last-child {
+      text-align: right;
+      padding-right: 120px;
+    }
+
+    .pending-actions {
+      display: flex;
+      justify-content: flex-start;
+      gap: 8px;
+    }
+
+    .btn-approve {
+      background-color: rgba(45, 122, 61, 0.15) !important;
+      color: #2d7a3d !important;
+      border: none !important;
+    }
+
+    .btn-approve:hover {
+      background-color: rgba(45, 122, 61, 0.25) !important;
+    }
+
+    .btn-reject {
+      background-color: rgba(139, 111, 90, 0.3) !important;
+      color: #8b6f5a !important;
+      border: none !important;
+    }
+
+    .btn-reject:hover {
+      background-color: rgba(139, 111, 90, 0.4) !important;
+    }
+
+    .card-header h2 {
+      color: #8b6f5a;
+    }
+
+    .btn-download {
+      background-color: #DFA477 !important;
+      color: white !important;
+      border: none !important;
+    }
+
+    .btn-download:hover {
+      background-color: #cc9363 !important;
+    }
+  </style>
 </head>
 <body>
   <header class="topbar">
     <div class="logo">SLUMLINK</div>
     <input type="text" placeholder="Search" class="search" />
     <div class="top-right">
-      <span class="admin">Admin ▾</span>
+      <div class="admin">
+        <span>Admin ▾</span>
+        <div class="admin-dropdown">
+          <button class="admin-logout">Logout</button>
+        </div>
+      </div>
       <a class="bell" href="adminNotification.html" title="Notifications">🔔</a>
     </div>
   </header>
@@ -234,16 +291,19 @@
 
           var pdfBtn = document.createElement('button');
           pdfBtn.textContent = 'Download PDF';
+          pdfBtn.className = 'btn-download';
           pdfBtn.setAttribute('data-action', 'pdf');
           pdfBtn.setAttribute('data-idx', String(idx));
 
           var approveBtn = document.createElement('button');
           approveBtn.textContent = 'Approve';
+          approveBtn.className = 'btn-approve';
           approveBtn.setAttribute('data-action', 'approve');
           approveBtn.setAttribute('data-idx', String(idx));
 
           var rejectBtn = document.createElement('button');
           rejectBtn.textContent = 'Reject';
+          rejectBtn.className = 'btn-reject';
           rejectBtn.setAttribute('data-action', 'reject');
           rejectBtn.setAttribute('data-idx', String(idx));
 
