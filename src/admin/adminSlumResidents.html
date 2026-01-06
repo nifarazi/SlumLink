@@ -11,7 +11,12 @@
     <div class="logo">SLUMLINK</div>
     <input type="text" placeholder="Search" class="search" />
     <div class="top-right">
-      <span class="admin">Admin ▾</span>
+      <div class="admin">
+        <span>Admin ▾</span>
+        <div class="admin-dropdown">
+          <button class="admin-logout">Logout</button>
+        </div>
+      </div>
       <a class="bell" href="adminNotification.html" title="Notifications">🔔</a>
     </div>
   </header>
@@ -216,7 +221,6 @@
         }
       });
 
-      // Close dropdown when clicking outside
       document.addEventListener('click', function () {
         document.querySelectorAll('.dropdown-menu').forEach(function (menu) { menu.classList.remove('show'); });
       });
