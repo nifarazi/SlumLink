@@ -160,14 +160,71 @@ signinForm?.addEventListener("submit", (e) => {
 
   // Route based on role
   if (role === "ngo") {
-    // Redirect to NGO Dashboard
-    window.location.href = "/src/ngo/ngo-dashboard.html";
+    // Show success toast then redirect to NGO Dashboard
+    try {
+      const toast = document.createElement('div');
+      toast.className = 'signin-toast';
+      toast.innerHTML = [
+        '<span class="icon" aria-hidden="true">',
+          '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+            '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
+          '</svg>',
+        '</span>',
+        '<div class="toast-content">',
+          '<strong>Success</strong>',
+          '<div class="subtitle">You are signed in successfully</div>',
+        '</div>'
+      ].join('');
+      document.body.appendChild(toast);
+    } catch (err) {}
+
+    setTimeout(() => {
+      window.location.href = "/src/ngo/ngo-dashboard.html";
+    }, 1500);
   } else if (role === "admin") {
-    // Redirect to Admin Dashboard
-    window.location.href = "/src/admin/adminSlumAnalytics.html";
+    // Show success toast then redirect to Admin Dashboard
+    try {
+      const toast = document.createElement('div');
+      toast.className = 'signin-toast';
+      toast.innerHTML = [
+        '<span class="icon" aria-hidden="true">',
+          '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+            '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
+          '</svg>',
+        '</span>',
+        '<div class="toast-content">',
+          '<strong>Success</strong>',
+          '<div class="subtitle">You are signed in successfully</div>',
+        '</div>'
+      ].join('');
+      document.body.appendChild(toast);
+    } catch (err) {}
+
+    setTimeout(() => {
+      window.location.href = "/src/admin/adminSlumAnalytics.html";
+    }, 1500);
   } else if (role === "authority") {
-    // Redirect to Local Authority Dashboard
-    window.location.href = "/src/localauthority/local-dashboard.html";
+    // Show success toast then redirect to Local Authority Dashboard
+    try {
+      const toast = document.createElement('div');
+      toast.className = 'signin-toast';
+      toast.innerHTML = [
+        '<span class="icon" aria-hidden="true">',
+          '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+            '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
+          '</svg>',
+        '</span>',
+        '<div class="toast-content">',
+          '<strong>Success</strong>',
+          '<div class="subtitle">You are signed in successfully</div>',
+        '</div>'
+      ].join('');
+      document.body.appendChild(toast);
+    } catch (err) {}
+
+    setTimeout(() => {
+      window.location.href = "/src/localauthority/local-dashboard.html";
+    }, 1500);
   } else if (role === "dweller") {
     // Validate Slum Dweller credentials against localStorage and hardcoded accounts
     const validUser = "hasan123";
@@ -230,8 +287,28 @@ signinForm?.addEventListener("submit", (e) => {
       return;
     }
     
-    // Redirect to Slum Dweller Dashboard on success
-    alert("Successfully signed in");
-    window.location.href = "/src/Slum_Dwellers/dashboard.html";
+    // Show small popup and redirect to Slum Dweller Dashboard on success
+    try {
+      const toast = document.createElement('div');
+      toast.className = 'signin-toast';
+      toast.innerHTML = [
+        '<span class="icon" aria-hidden="true">',
+          '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+            '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
+          '</svg>',
+        '</span>',
+        '<div class="toast-content">',
+          '<strong>Success</strong>',
+          '<div class="subtitle">You are signed in successfully</div>',
+        '</div>'
+      ].join('');
+      document.body.appendChild(toast);
+    } catch (err) {
+      // Fallback: no-op if DOM not available
+    }
+
+    setTimeout(() => {
+      window.location.href = "/src/Slum_Dwellers/dashboard.html";
+    }, 1500);
   }
 });

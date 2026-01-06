@@ -41,6 +41,51 @@
   const openModal = () => { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
   const closeModal = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
 
+  // Helpers for field-level error rendering
+  const REQUIRED_MSG = 'This field is required to be filled';
+  const fieldContainers = {
+    title: document.getElementById('complaintTitle'),
+    category: document.getElementById('complaintCategory'),
+    description: document.getElementById('complaintDescription'),
+    evidence: document.getElementById('complaintEvidence')
+  };
+
+  function ensureErrorNode(inputEl) {
+    if (!inputEl) return null;
+    const wrapper = inputEl.closest('.form-field');
+    if (!wrapper) return null;
+    let err = wrapper.querySelector('.error-text');
+    if (!err) {
+      err = document.createElement('div');
+      err.className = 'error-text';
+      wrapper.appendChild(err);
+    }
+    return err;
+  }
+
+  function showError(inputEl, message) {
+    const err = ensureErrorNode(inputEl);
+    if (err) err.textContent = message || REQUIRED_MSG;
+  }
+
+  function clearError(inputEl) {
+    const wrapper = inputEl?.closest?.('.form-field');
+    if (!wrapper) return;
+    const err = wrapper.querySelector('.error-text');
+    if (err) err.textContent = '';
+  }
+
+  // Clear errors as user types/selects
+  ['title','category','description'].forEach((name) => {
+    const el = fieldContainers[name];
+    if (!el) return;
+    const evt = name === 'category' ? 'change' : 'input';
+    el.addEventListener(evt, () => clearError(el));
+  });
+  if (fieldContainers.evidence) {
+    fieldContainers.evidence.addEventListener('change', () => clearError(fieldContainers.evidence));
+  }
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const title = (form.title.value || '').trim();
@@ -48,8 +93,21 @@
     const description = (form.description.value || '').trim();
     const evidenceFile = form.evidence && form.evidence.files ? form.evidence.files[0] : null;
 
-    if (!title || !category || !description) {
-      alert('Please fill out all required fields (Title, Category, Description).');
+    // Reset previous errors
+    Object.values(fieldContainers).forEach((el) => el && clearError(el));
+
+    // Validate required fields including attachment
+    let hasError = false;
+    if (!title) { showError(fieldContainers.title, REQUIRED_MSG); hasError = true; }
+    if (!category) { showError(fieldContainers.category, REQUIRED_MSG); hasError = true; }
+    if (!description) { showError(fieldContainers.description, REQUIRED_MSG); hasError = true; }
+    if (!evidenceFile) { showError(fieldContainers.evidence, REQUIRED_MSG); hasError = true; }
+
+    if (hasError) {
+      // Focus the first invalid field
+      const firstInvalid = [fieldContainers.title, fieldContainers.category, fieldContainers.description, fieldContainers.evidence]
+        .find((el, idx) => [title, category, description, evidenceFile][idx] ? false : true);
+      if (firstInvalid) firstInvalid.focus();
       return;
     }
 
@@ -66,6 +124,13 @@
     openModal();
   });
 
+  // Clear errors on form reset
+  form.addEventListener('reset', () => {
+    setTimeout(() => {
+      Object.values(fieldContainers).forEach((el) => el && clearError(el));
+    }, 0);
+  });
+
   confirmBtn.addEventListener('click', () => {
     if (!pendingSubmission) { closeModal(); return; }
 
@@ -73,7 +138,13 @@
       try {
         // Append to submittedComplaints array
         const rawArr = localStorage.getItem('submittedComplaints');
-        const arr = rawArr ? JSON.parse(rawArr) || [] : [];
+        let arr = [];
+        try {
+          arr = rawArr ? JSON.parse(rawArr) || [] : [];
+        } catch (_) {
+          arr = [];
+        }
+
         const entry = {
           title: submission.title || 'Complaint',
           category: submission.category || 'General',
@@ -85,15 +156,46 @@
         };
         // Put newest complaint at the top
         arr.unshift(entry);
-        localStorage.setItem('submittedComplaints', JSON.stringify(arr));
+        try {
+          localStorage.setItem('submittedComplaints', JSON.stringify(arr));
+        } catch (e) {
+          // Likely quota exceeded due to large attachment; retry without attachment
+          if (arr[0]) arr[0].attachment = '';
+          localStorage.setItem('submittedComplaints', JSON.stringify(arr));
+        }
 
         // Maintain lastSubmittedComplaint for dashboard ordering behavior
-        localStorage.setItem('lastSubmittedComplaint', JSON.stringify(submission));
+        const slimLast = {
+          title: submission.title,
+          category: submission.category,
+          status: submission.status,
+          description: submission.description,
+          attachmentName: submission.attachmentName || '',
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem('lastSubmittedComplaint', JSON.stringify(slimLast));
 
-        alert('Complaint submitted successfully.');
+        // Show success popup (matching sign-in design) and then redirect
+        try {
+          const toast = document.createElement('div');
+          toast.className = 'complaint-toast';
+          toast.innerHTML = [
+            '<span class="icon" aria-hidden="true">',
+              '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+                '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
+              '</svg>',
+            '</span>',
+            '<div class="toast-content">',
+              '<strong>Success</strong>',
+              '<div class="subtitle">Complaint is submitted Successfully</div>',
+            '</div>'
+          ].join('');
+          document.body.appendChild(toast);
+        } catch (_) {}
+
         form.reset();
         closeModal();
-        window.location.href = './dashboard.html';
+        setTimeout(() => { window.location.href = './dashboard.html'; }, 1500);
       } catch (err) {
         console.error('Failed to store complaint:', err);
         alert('Failed to submit complaint.');
@@ -102,17 +204,25 @@
     };
 
     // If there is an evidence file, read it as a Data URL for download later
+    const MAX_INLINE_SIZE = 1024 * 1024; // 1MB limit for inline storage
     if (pendingFile) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        pendingSubmission.attachmentDataUrl = reader.result;
+      if (pendingFile.size > MAX_INLINE_SIZE) {
+        // Too large to store inline in localStorage; proceed without embedding
+        pendingSubmission.attachmentDataUrl = '';
         persistAndNavigate(pendingSubmission);
-      };
-      reader.onerror = () => {
-        console.warn('Failed to read attachment, submitting without file.');
-        persistAndNavigate(pendingSubmission);
-      };
-      reader.readAsDataURL(pendingFile);
+      } else {
+        const reader = new FileReader();
+        reader.onload = () => {
+          pendingSubmission.attachmentDataUrl = reader.result;
+          persistAndNavigate(pendingSubmission);
+        };
+        reader.onerror = () => {
+          console.warn('Failed to read attachment, submitting without file.');
+          pendingSubmission.attachmentDataUrl = '';
+          persistAndNavigate(pendingSubmission);
+        };
+        reader.readAsDataURL(pendingFile);
+      }
     } else {
       persistAndNavigate(pendingSubmission);
     }
