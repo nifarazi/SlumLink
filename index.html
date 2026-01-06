@@ -20,17 +20,17 @@
     <div class="canvas">
       <div class="frame" aria-label="SlumLink Home">
         <header class="header" aria-label="Header">
-          <a class="brand-wrap" href="/" aria-label="SlumLink">
+          <a class="brand-wrap" onclick="window.location='/'" style="cursor:pointer" aria-label="SlumLink">
             <span class="logo-mark" aria-hidden="true"></span>
             <span class="logo-text">SLUMLINK</span>
           </a>
 
           <nav class="nav" aria-label="Primary">
-            <a class="nav-link" href="/src/about.html">About</a>
-            <a class="nav-link" href="/src/impact.html">Impact</a>
+            <a class="nav-link" onclick="window.location='/src/about.html'" style="cursor:pointer">About</a>
+            <a class="nav-link" onclick="window.location='/src/impact.html'" style="cursor:pointer">Impact</a>
           </nav>
 
-          <a class="signin-btn" href="/src/signin.html">Sign In</a>
+          <a class="signin-btn" onclick="window.location='/src/signin.html'" style="cursor:pointer">Sign In</a>
         </header>
 
         <main class="stage" id="main">
@@ -69,8 +69,8 @@
                   </div>
 
                   <div class="cta-row" aria-label="Sign up options">
-                    <a href="#register-household" class="btn btn-primary">Register Household</a>
-                    <a href="#register-organization" class="btn btn-soft">Register Organization</a>
+                    <a onclick="document.getElementById('register-household').scrollIntoView({behavior:'smooth'})" class="btn btn-primary" style="cursor:pointer">Register Household</a>
+                    <a onclick="document.getElementById('register-organization').scrollIntoView({behavior:'smooth'})" class="btn btn-soft" style="cursor:pointer">Register Organization</a>
                   </div>
                 </div>
               </div>
@@ -148,7 +148,7 @@
                   </ul>
 
                   <div class="cta-row">
-                    <a class="btn btn-primary" href="/src/Slum_SignUp/signup.html">Register Household</a>
+                    <a class="btn btn-primary" onclick="window.location='/src/Slum_SignUp/signup.html'" style="cursor:pointer">Register Household</a>
                   </div>
                 </div>
 
@@ -185,7 +185,7 @@
                   </ul>
 
                   <div class="cta-row">
-                    <a class="btn btn-primary" href="/src/ngo/signup.html">Register Organization</a>
+                    <a class="btn btn-primary" onclick="window.location='/src/ngo/signup.html'" style="cursor:pointer">Register Organization</a>
                   </div>
                 </div>
 
