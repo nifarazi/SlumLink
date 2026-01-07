@@ -26,7 +26,7 @@
       min-height:100vh;
     }
 
-    /* ===== HEADER (UNCHANGED FROM viewcampaign.html) ===== */
+    /* ===== HEADER ===== */
     .topbar{
       position:fixed;
       top:0;left:0;right:0;
@@ -80,7 +80,7 @@
       font-weight:700;
     }
 
-    /* ===== FORM CARD ===== */
+    /* ===== FORM ===== */
     .form-card{
       background:radial-gradient(50% 50% at 50% 50%,
         rgba(164,98,77,.34),
@@ -119,7 +119,6 @@
 
     .full{grid-column:1/4}
 
-    /* ===== SUBMIT ===== */
     .submit-wrap{
       display:flex;
       justify-content:flex-end;
@@ -140,19 +139,86 @@
       textarea{grid-column:1}
       .full{grid-column:1}
     }
+
+    /* ===== CONFIRM MODAL ===== */
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(97,55,41,0.35);
+      backdrop-filter:blur(4px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:200;
+      opacity:0;
+      pointer-events:none;
+      transition:.3s ease;
+    }
+
+    .modal-overlay.active{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    .modal-box{
+      background:var(--paper);
+      border-radius:40px;
+      padding:36px 44px;
+      max-width:480px;
+      text-align:center;
+      box-shadow:0 25px 60px rgba(0,0,0,.25);
+      animation:scaleIn .35s ease;
+    }
+
+    @keyframes scaleIn{
+      from{transform:scale(.9);opacity:0}
+      to{transform:scale(1);opacity:1}
+    }
+
+    .modal-box h2{
+      font-size:30px;
+      font-weight:700;
+      margin-bottom:12px;
+    }
+
+    .modal-box p{
+      font-size:18px;
+      line-height:1.6;
+      margin-bottom:28px;
+    }
+
+    .modal-actions{
+      display:flex;
+      justify-content:center;
+      gap:20px;
+    }
+
+    .modal-btn{
+      border:none;
+      padding:12px 32px;
+      font-size:18px;
+      border-radius:20px;
+      cursor:pointer;
+      font-family:'Poppins';
+    }
+
+    .modal-btn.cancel{
+      background:#e6d2bb;
+      color:#613729;
+    }
+
+    .modal-btn.confirm{
+      background:var(--btn-grad);
+      color:#fff;
+    }
   </style>
 </head>
 
 <body>
 
-  <!-- HEADER -->
- <header class="topbar">
+<header class="topbar">
   <div class="brand" onclick="goDashboard()">
-    <img 
-      src="/src/images/slum Logo.png" 
-      alt="SlumLink Logo" 
-      class="brand-mark"
-    />
+    <img src="/src/images/slum Logo.png" alt="SlumLink Logo" class="brand-mark"/>
     <span class="brand-text">SLUMLINK</span>
   </div>
   <button class="back-btn" onclick="goDashboard()">
@@ -160,146 +226,157 @@
   </button>
 </header>
 
+<main class="page">
 
-  <main class="page">
+  <div class="title-box">
+    <h1>Edit a Pending Campaign</h1>
+  </div>
 
-    <!-- TITLE -->
-    <div class="title-box">
-      <h1>Edit a Pending Campaign</h1>
+  <form class="form-card">
+
+    <div>
+      <label>Title</label>
+      <input id="formTitle" value="Winter Blanket Drive">
     </div>
 
-    <!-- FORM -->
-    <form class="form-card" onsubmit="return confirmSubmit()">
+    <div>
+      <label>Category</label>
+      <select id="formCategory">
+        <option selected>Donation</option>
+        <option>Health</option>
+        <option>Education</option>
+      </select>
+    </div>
 
-      <div>
-        <label>Title</label>
-        <input id="formTitle" value="Winter Blanket Drive">
-      </div>
+    <div>
+      <label>Target Slum Area</label>
+      <select id="formSlum">
+        <option selected>Diyabari</option>
+        <option>Korail</option>
+        <option>Mirpur</option>
+      </select>
+    </div>
 
-      <div>
-        <label>Category</label>
-        <select id="formCategory">
-          <option selected>Donation</option>
-          <option>Health</option>
-          <option>Education</option>
-        </select>
-      </div>
+    <div>
+      <label>Date</label>
+      <input id="formDate" type="date" value="2025-04-03">
+    </div>
 
-      <div>
-        <label>Target Slum Area</label>
-        <select id="formSlum">
-          <option selected>Diyabari</option>
-          <option>Korail</option>
-          <option>Mirpur</option>
-        </select>
-      </div>
+    <div>
+      <label>Time</label>
+      <input id="formTime" value="5 p.m">
+    </div>
 
-      <div>
-        <label>Date</label>
-        <input id="formDate" type="date" value="2025-04-03">
-      </div>
+    <div>
+      <label>Target Gender</label>
+      <select id="formGender">
+        <option selected>None</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Both</option>
+      </select>
+    </div>
 
-      <div>
-        <label>Time</label>
-        <input id="formTime" value="5 p.m">
-      </div>
+    <div>
+      <label>Age Group</label>
+      <select id="formAgeGroup">
+        <option selected>16–25</option>
+        <option>26–40</option>
+        <option>All</option>
+      </select>
+    </div>
 
-      <div>
-        <label>Target Gender</label>
-        <select id="formGender">
-          <option selected>None</option>
-          <option>Male</option>
-          <option>Female</option>
-          <option>Both</option>
-        </select>
-      </div>
+    <div>
+      <label>Required Education</label>
+      <select id="formEducation">
+        <option selected>N/A</option>
+        <option>Primary</option>
+        <option>Secondary</option>
+      </select>
+    </div>
 
-      <div>
-        <label>Age Group</label>
-        <select id="formAgeGroup">
-          <option selected>16–25</option>
-          <option>26–40</option>
-          <option>All</option>
-        </select>
-      </div>
+    <div>
+      <label>Skills Required</label>
+      <select id="formSkills">
+        <option selected>Tailoring</option>
+        <option>Plumbing</option>
+        <option>None</option>
+      </select>
+    </div>
 
-      <div>
-        <label>Required Education</label>
-        <select id="formEducation">
-          <option selected>N/A</option>
-          <option>Primary</option>
-          <option>Secondary</option>
-        </select>
-      </div>
+    <div class="full">
+      <label>Description</label>
+      <textarea id="formDescription">Winter Clothes to be distributed among dwellers after collection from local schools, colleges, with the help of Volunteers from Social Welfare club</textarea>
+    </div>
 
-      <div>
-        <label>Skills Required</label>
-        <select id="formSkills">
-          <option selected>Tailoring</option>
-          <option>Plumbing</option>
-          <option>None</option>
-        </select>
-      </div>
+    <div class="submit-wrap full">
+      <button class="submit-btn" type="submit">SUBMIT</button>
+    </div>
 
-      <div class="full">
-        <label>Description</label>
-        <textarea id="formDescription">
-Winter Clothes to be distributed among dwellers after collection from local schools, colleges, with the help of Volunteers from Social Welfare club
-        </textarea>
-      </div>
+  </form>
+</main>
 
-      <div class="submit-wrap full">
-        <button class="submit-btn" type="submit">SUBMIT</button>
-      </div>
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <h2>Confirm Changes</h2>
+    <p>Are you sure you want to save these changes?</p>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="cancelBtn">Cancel</button>
+      <button class="modal-btn confirm" id="confirmBtn">Yes, Save</button>
+    </div>
+  </div>
+</div>
 
-    </form>
-  </main>
+<script>
+  function goDashboard(){
+    window.location.href = "./local-dashboard.html";
+  }
 
-  <script>
-    function goDashboard(){
-      window.location.href = "./local-dashboard.html";
+  const form = document.querySelector(".form-card");
+  const modal = document.getElementById("confirmModal");
+  const cancelBtn = document.getElementById("cancelBtn");
+  const confirmBtn = document.getElementById("confirmBtn");
+
+  let allowSubmit = false;
+
+  form.addEventListener("submit", function(e){
+    if(!allowSubmit){
+      e.preventDefault();
+      modal.classList.add("active");
     }
+  });
 
-    function confirmSubmit(){
-      return confirm("Are you sure you want to make changes?");
-    }
+  cancelBtn.onclick = () => modal.classList.remove("active");
+  confirmBtn.onclick = () => {
+    allowSubmit = true;
+    modal.classList.remove("active");
+    form.submit();
+  };
 
-    // Load campaign data from localStorage
-    function loadCampaignData(){
-      const params = new URLSearchParams(window.location.search);
-      const campaignTitle = params.get('campaign');
-      
-      if(!campaignTitle) return;
-      
-      // Get campaigns from localStorage
-      let campaigns = JSON.parse(localStorage.getItem("localAuthorityCampaigns")) || [];
-      
-      // Find the matching campaign
-      const campaign = campaigns.find(c => c.title === campaignTitle);
-      
-      if(!campaign){
-        console.log("Campaign not found in localStorage");
-        return;
-      }
-      
-      console.log("Loading campaign:", campaign);
-      
-      // Populate form fields using IDs
-      document.getElementById('formTitle').value = campaign.title;
-      document.getElementById('formCategory').value = campaign.category;
-      document.getElementById('formSlum').value = campaign.slum;
-      document.getElementById('formDate').value = campaign.date;
-      document.getElementById('formTime').value = campaign.time;
-      document.getElementById('formGender').value = campaign.gender;
-      document.getElementById('formAgeGroup').value = campaign.ageGroup;
-      document.getElementById('formEducation').value = campaign.education || 'N/A';
-      document.getElementById('formSkills').value = campaign.skills || 'None';
-      document.getElementById('formDescription').value = campaign.description;
-    }
-    
-    // Load campaign data when page loads
-    document.addEventListener('DOMContentLoaded', loadCampaignData);
-  </script>
+  document.addEventListener('DOMContentLoaded', loadCampaignData);
+
+  function loadCampaignData(){
+    const params = new URLSearchParams(window.location.search);
+    const campaignTitle = params.get('campaign');
+    if(!campaignTitle) return;
+
+    let campaigns = JSON.parse(localStorage.getItem("localAuthorityCampaigns")) || [];
+    const campaign = campaigns.find(c => c.title === campaignTitle);
+    if(!campaign) return;
+
+    formTitle.value = campaign.title;
+    formCategory.value = campaign.category;
+    formSlum.value = campaign.slum;
+    formDate.value = campaign.date;
+    formTime.value = campaign.time;
+    formGender.value = campaign.gender;
+    formAgeGroup.value = campaign.ageGroup;
+    formEducation.value = campaign.education || 'N/A';
+    formSkills.value = campaign.skills || 'None';
+    formDescription.value = campaign.description;
+  }
+</script>
 
 </body>
 </html>
