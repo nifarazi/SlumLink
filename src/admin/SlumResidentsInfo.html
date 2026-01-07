@@ -112,7 +112,7 @@
     <div class="admin">
       <span>Admin ▾</span>
       <div class="admin-dropdown">
-        <button class="logout-btn" id="logoutBtn" type="button" aria-label="Log out">
+        <button class="admin-logout" id="logoutBtn" type="button" aria-label="Log out">
           Logout
         </button>
       </div>
@@ -298,6 +298,18 @@
       <div class="modal-body" id="successModalBody"></div>
       <div class="modal-actions">
         <button class="btn btn-primary" id="closeSuccess">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logout Modal -->
+  <div class="modal-overlay" id="logoutModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+      <div class="modal-header" id="logoutTitle">Log out</div>
+      <div class="modal-body">You're currently signed in as Admin. Do you want to log out and return to the home page?</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelLogout">Cancel</button>
+        <button class="btn btn-primary" id="confirmLogout">Log out</button>
       </div>
     </div>
   </div>
