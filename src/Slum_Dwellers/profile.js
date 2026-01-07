@@ -113,6 +113,34 @@ function showProfileUpdateToast() {
   }, 2500);
 }
 
+// Show success toast for application submitted
+function showApplicationSubmittedToast() {
+  // Remove any existing toast
+  const existing = document.querySelector('.profile-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'profile-toast';
+  toast.innerHTML = [
+    '<span class="icon" aria-hidden="true">',
+      '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+        '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
+      '</svg>',
+    '</span>',
+    '<div class="toast-content">',
+      '<strong>Success</strong>',
+      '<div class="subtitle">Your application has been submitted successfully</div>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(toast);
+
+  // Auto-dismiss after 2.5s
+  setTimeout(() => {
+    toast.classList.add('toast-hide');
+    setTimeout(() => { try { toast.remove(); } catch {} }, 350);
+  }, 2500);
+}
+
 // Resolve slum name from area for SLUMLINK_APPLICATIONS
 function resolveSlumFromArea(area){
   const a = String(area || '').toLowerCase().trim();
@@ -787,3 +815,704 @@ function showPasswordChangeToast() {
     setTimeout(() => { try { toast.remove(); } catch {} }, 350);
   }, 2500);
 }
+
+// Edit Member Modal Logic
+(function () {
+  const modal = document.getElementById('editMemberModal');
+  const openBtn = document.getElementById('editMemberBtn');
+  const closeBtn = document.getElementById('closeEditMemberModal');
+  const cancelBtn = document.getElementById('cancelEditMemberBtn');
+  const form = document.getElementById('editMemberForm');
+  const errorEl = document.getElementById('memberError');
+  
+  const memberActionSelect = document.getElementById('memberAction');
+  const removeMembersSection = document.getElementById('removeMembersSection');
+  const addMembersSection = document.getElementById('addMembersSection');
+  const spouseRemoveCount = document.getElementById('spouseRemoveCount');
+  const childrenRemoveCount = document.getElementById('childrenRemoveCount');
+  const spouseRemovalForms = document.getElementById('spouseRemovalForms');
+  const childrenRemovalForms = document.getElementById('childrenRemovalForms');
+  
+  // Add members elements
+  const spouseAddCount = document.getElementById('spouseAddCount');
+  const childrenAddCount = document.getElementById('childrenAddCount');
+  const spouseAddForms = document.getElementById('spouseAddForms');
+  const childrenAddForms = document.getElementById('childrenAddForms');
+
+  if (!modal || !openBtn || !form) return;
+
+  // Check if user has pending edit member submission
+  function hasPendingEditMemberSubmission() {
+    const { app } = getCurrentUserApp();
+    return app?.data?.pendingEditMember === true;
+  }
+
+  // Disable/Enable Edit Member button based on pending status
+  function updateEditMemberButtonState() {
+    if (hasPendingEditMemberSubmission()) {
+      openBtn.disabled = true;
+      openBtn.classList.add('btn-disabled');
+      openBtn.title = 'You have a pending edit member request';
+    } else {
+      openBtn.disabled = false;
+      openBtn.classList.remove('btn-disabled');
+      openBtn.title = '';
+    }
+  }
+
+  // Initial check on page load
+  updateEditMemberButtonState();
+
+  // Get current user's spouse and children count
+  function getMemberCounts() {
+    const { app } = getCurrentUserApp();
+    const spouseCount = app?.data?.marital?.spouses?.length || 0;
+    const childrenCount = app?.data?.children?.children?.length || 0;
+    return { spouseCount, childrenCount };
+  }
+
+  // Populate spouse count dropdown
+  function populateSpouseCountDropdown() {
+    const { spouseCount } = getMemberCounts();
+    spouseRemoveCount.innerHTML = '';
+    for (let i = 0; i <= spouseCount; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i;
+      if (i === 0) opt.selected = true;
+      spouseRemoveCount.appendChild(opt);
+    }
+  }
+
+  // Populate children count dropdown
+  function populateChildrenCountDropdown() {
+    const { childrenCount } = getMemberCounts();
+    childrenRemoveCount.innerHTML = '';
+    for (let i = 0; i <= childrenCount; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i;
+      if (i === 0) opt.selected = true;
+      childrenRemoveCount.appendChild(opt);
+    }
+  }
+
+  // Create spouse removal form
+  function createSpouseRemovalForm(index) {
+    const card = document.createElement('div');
+    card.className = 'removal-card';
+    card.innerHTML = `
+      <p class="removal-card-title">Spouse ${index} Details</p>
+      <div class="modal-field">
+        <label><span>Name</span></label>
+        <input type="text" name="spouse_remove_${index}_name" class="modal-input" placeholder="Enter spouse name" />
+      </div>
+      <div class="modal-field">
+        <label><span>Divorce Certificate</span></label>
+        <div class="file-input-wrapper">
+          <input type="file" name="spouse_remove_${index}_certificate" accept=".pdf,image/*" />
+        </div>
+      </div>
+    `;
+    return card;
+  }
+
+  // Create children removal form
+  function createChildrenRemovalForm(index) {
+    const card = document.createElement('div');
+    card.className = 'removal-card';
+    card.innerHTML = `
+      <p class="removal-card-title">Child ${index} Details</p>
+      <div class="modal-field">
+        <label><span>Name</span></label>
+        <input type="text" name="child_remove_${index}_name" class="modal-input" placeholder="Enter child name" />
+      </div>
+      <div class="modal-field">
+        <label><span>Death Certificate</span></label>
+        <div class="file-input-wrapper">
+          <input type="file" name="child_remove_${index}_certificate" accept=".pdf,image/*" />
+        </div>
+      </div>
+    `;
+    return card;
+  }
+
+  // Render spouse removal forms
+  function renderSpouseRemovalForms(count) {
+    spouseRemovalForms.innerHTML = '';
+    for (let i = 1; i <= count; i++) {
+      spouseRemovalForms.appendChild(createSpouseRemovalForm(i));
+    }
+  }
+
+  // Render children removal forms
+  function renderChildrenRemovalForms(count) {
+    childrenRemovalForms.innerHTML = '';
+    for (let i = 1; i <= count; i++) {
+      childrenRemovalForms.appendChild(createChildrenRemovalForm(i));
+    }
+  }
+
+  // =====================
+  // ADD MEMBERS FUNCTIONS
+  // =====================
+
+  // Create spouse add form
+  function createSpouseAddForm(index) {
+    const card = document.createElement('div');
+    card.className = 'add-card';
+    card.innerHTML = `
+      <h4>Spouse ${index}</h4>
+      <div class="modal-field">
+        <label><span>Full Name</span></label>
+        <input type="text" name="spouse_add_${index}_name" placeholder="Enter full name" />
+      </div>
+      <div class="modal-field">
+        <label><span>Date of Birth</span></label>
+        <input type="date" name="spouse_add_${index}_dob" />
+      </div>
+      <div class="modal-field">
+        <label><span>Gender</span></label>
+        <select name="spouse_add_${index}_gender">
+          <option value="">Select gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label><span>NID</span></label>
+        <input type="text" name="spouse_add_${index}_nid" placeholder="Enter NID number" />
+      </div>
+      <div class="modal-field">
+        <label><span>Education</span></label>
+        <select name="spouse_add_${index}_education">
+          <option value="">Select education</option>
+          <option value="No Formal Education">No Formal Education</option>
+          <option value="Primary (Class 1-5)">Primary (Class 1-5)</option>
+          <option value="Secondary (Class 6-10)">Secondary (Class 6-10)</option>
+          <option value="Higher Secondary (Class 11-12)">Higher Secondary (Class 11-12)</option>
+          <option value="Graduate">Graduate</option>
+          <option value="Post Graduate">Post Graduate</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label><span>Occupation</span></label>
+        <select name="spouse_add_${index}_occupation">
+          <option value="">Select occupation</option>
+          <option value="Unemployed">Unemployed</option>
+          <option value="Day Laborer">Day Laborer</option>
+          <option value="Rickshaw/Van Puller">Rickshaw/Van Puller</option>
+          <option value="Domestic Worker">Domestic Worker</option>
+          <option value="Factory Worker">Factory Worker</option>
+          <option value="Small Business">Small Business</option>
+          <option value="Driver">Driver</option>
+          <option value="Security Guard">Security Guard</option>
+          <option value="Construction Worker">Construction Worker</option>
+          <option value="Street Vendor">Street Vendor</option>
+          <option value="Tailor">Tailor</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label><span>Income Range</span></label>
+        <select name="spouse_add_${index}_income">
+          <option value="">Select income range</option>
+          <option value="No Income">No Income</option>
+          <option value="Less than 5,000 BDT">Less than 5,000 BDT</option>
+          <option value="5,000 - 10,000 BDT">5,000 - 10,000 BDT</option>
+          <option value="10,001 - 15,000 BDT">10,001 - 15,000 BDT</option>
+          <option value="15,001 - 20,000 BDT">15,001 - 20,000 BDT</option>
+          <option value="Above 20,000 BDT">Above 20,000 BDT</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label><span>Mobile Number</span></label>
+        <input type="tel" name="spouse_add_${index}_mobile" placeholder="Enter mobile number" />
+      </div>
+      <div class="modal-field">
+        <label><span>Marriage Certificate</span></label>
+        <div class="file-input-wrapper">
+          <input type="file" name="spouse_add_${index}_certificate" accept=".pdf,image/*" />
+        </div>
+      </div>
+    `;
+    return card;
+  }
+
+  // Create child add form
+  function createChildAddForm(index) {
+    const card = document.createElement('div');
+    card.className = 'add-card';
+    card.innerHTML = `
+      <h4>Child ${index}</h4>
+      <div class="modal-field">
+        <label><span>Full Name</span></label>
+        <input type="text" name="child_add_${index}_name" placeholder="Enter full name" />
+      </div>
+      <div class="modal-field">
+        <label><span>Date of Birth</span></label>
+        <input type="date" name="child_add_${index}_dob" />
+      </div>
+      <div class="modal-field">
+        <label><span>Gender</span></label>
+        <select name="child_add_${index}_gender">
+          <option value="">Select gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label><span>Education</span></label>
+        <select name="child_add_${index}_education">
+          <option value="">Select education</option>
+          <option value="Not Applicable (Too Young)">Not Applicable (Too Young)</option>
+          <option value="No Formal Education">No Formal Education</option>
+          <option value="Primary (Class 1-5)">Primary (Class 1-5)</option>
+          <option value="Secondary (Class 6-10)">Secondary (Class 6-10)</option>
+          <option value="Higher Secondary (Class 11-12)">Higher Secondary (Class 11-12)</option>
+          <option value="Graduate">Graduate</option>
+          <option value="Post Graduate">Post Graduate</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label><span>Occupation</span></label>
+        <select name="child_add_${index}_occupation">
+          <option value="">Select occupation</option>
+          <option value="Not Applicable (Too Young)">Not Applicable (Too Young)</option>
+          <option value="Student">Student</option>
+          <option value="Unemployed">Unemployed</option>
+          <option value="Day Laborer">Day Laborer</option>
+          <option value="Domestic Worker">Domestic Worker</option>
+          <option value="Factory Worker">Factory Worker</option>
+          <option value="Small Business">Small Business</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label><span>Income Range</span></label>
+        <select name="child_add_${index}_income">
+          <option value="">Select income range</option>
+          <option value="No Income">No Income</option>
+          <option value="Less than 5,000 BDT">Less than 5,000 BDT</option>
+          <option value="5,000 - 10,000 BDT">5,000 - 10,000 BDT</option>
+          <option value="10,001 - 15,000 BDT">10,001 - 15,000 BDT</option>
+          <option value="15,001 - 20,000 BDT">15,001 - 20,000 BDT</option>
+          <option value="Above 20,000 BDT">Above 20,000 BDT</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label><span>Preferred Job</span></label>
+        <select name="child_add_${index}_preferred_job">
+          <option value="">Select preferred job</option>
+          <option value="Not Applicable (Too Young)">Not Applicable (Too Young)</option>
+          <option value="Any Available Work">Any Available Work</option>
+          <option value="Skilled Labor">Skilled Labor</option>
+          <option value="Factory Work">Factory Work</option>
+          <option value="Driving">Driving</option>
+          <option value="Tailoring">Tailoring</option>
+          <option value="Domestic Work">Domestic Work</option>
+          <option value="Small Business">Small Business</option>
+          <option value="Office/Clerical">Office/Clerical</option>
+          <option value="Teaching/Tutoring">Teaching/Tutoring</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label><span>Birth Certificate</span></label>
+        <div class="file-input-wrapper">
+          <input type="file" name="child_add_${index}_certificate" accept=".pdf,image/*" />
+        </div>
+      </div>
+    `;
+    return card;
+  }
+
+  // Render spouse add forms
+  function renderSpouseAddForms(count) {
+    if (!spouseAddForms) return;
+    spouseAddForms.innerHTML = '';
+    for (let i = 1; i <= count; i++) {
+      spouseAddForms.appendChild(createSpouseAddForm(i));
+    }
+  }
+
+  // Render children add forms
+  function renderChildrenAddForms(count) {
+    if (!childrenAddForms) return;
+    childrenAddForms.innerHTML = '';
+    for (let i = 1; i <= count; i++) {
+      childrenAddForms.appendChild(createChildAddForm(i));
+    }
+  }
+
+  const openModal = () => {
+    // Prevent opening if user has pending edit member submission
+    if (hasPendingEditMemberSubmission()) {
+      return;
+    }
+    modal.hidden = false;
+    form.reset();
+    errorEl.hidden = true;
+    removeMembersSection.hidden = true;
+    addMembersSection.hidden = true;
+    spouseRemovalForms.innerHTML = '';
+    childrenRemovalForms.innerHTML = '';
+    if (spouseAddForms) spouseAddForms.innerHTML = '';
+    if (childrenAddForms) childrenAddForms.innerHTML = '';
+    populateSpouseCountDropdown();
+    populateChildrenCountDropdown();
+  };
+
+  const closeModal = () => {
+    modal.hidden = true;
+    form.reset();
+    errorEl.hidden = true;
+    removeMembersSection.hidden = true;
+    addMembersSection.hidden = true;
+  };
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn?.addEventListener('click', closeModal);
+  cancelBtn?.addEventListener('click', closeModal);
+
+  // Close on overlay click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
+
+  // Handle action dropdown change
+  memberActionSelect?.addEventListener('change', () => {
+    const action = memberActionSelect.value;
+    if (action === 'remove') {
+      removeMembersSection.hidden = false;
+      addMembersSection.hidden = true;
+    } else if (action === 'add') {
+      removeMembersSection.hidden = true;
+      addMembersSection.hidden = false;
+    } else {
+      removeMembersSection.hidden = true;
+      addMembersSection.hidden = true;
+    }
+  });
+
+  // Handle spouse count change
+  spouseRemoveCount?.addEventListener('change', () => {
+    const count = parseInt(spouseRemoveCount.value, 10) || 0;
+    renderSpouseRemovalForms(count);
+  });
+
+  // Handle children count change
+  childrenRemoveCount?.addEventListener('change', () => {
+    const count = parseInt(childrenRemoveCount.value, 10) || 0;
+    renderChildrenRemovalForms(count);
+  });
+
+  // Handle spouse add count change
+  spouseAddCount?.addEventListener('input', () => {
+    let count = parseInt(spouseAddCount.value, 10) || 0;
+    if (count < 0) count = 0;
+    if (count > 10) count = 10;
+    renderSpouseAddForms(count);
+  });
+
+  // Handle children add count change
+  childrenAddCount?.addEventListener('input', () => {
+    let count = parseInt(childrenAddCount.value, 10) || 0;
+    if (count < 0) count = 0;
+    renderChildrenAddForms(count);
+  });
+
+  // Form submission with validation
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    errorEl.hidden = true;
+
+    // Clear previous error states
+    form.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+    form.querySelectorAll('.field-error-text').forEach(el => el.remove());
+
+    const action = memberActionSelect.value;
+
+    if (!action) {
+      errorEl.textContent = 'Please select an action.';
+      errorEl.hidden = false;
+      return;
+    }
+
+    if (action === 'remove') {
+      const spouseCount = parseInt(spouseRemoveCount.value, 10) || 0;
+      const childCount = parseInt(childrenRemoveCount.value, 10) || 0;
+
+      if (spouseCount === 0 && childCount === 0) {
+        errorEl.textContent = 'Please select at least one spouse or child to remove.';
+        errorEl.hidden = false;
+        return;
+      }
+
+      // Get actual spouse and children names from user data
+      const { app } = getCurrentUserApp();
+      const actualSpouseNames = (app?.data?.marital?.spouses || []).map(s => (s.name || '').toLowerCase().trim());
+      const actualChildrenNames = (app?.data?.children?.children || []).map(c => (c.name || '').toLowerCase().trim());
+
+      let hasError = false;
+      let firstErrorField = null;
+
+      // Validate spouse removal forms
+      for (let i = 1; i <= spouseCount; i++) {
+        const nameInput = form.querySelector(`[name="spouse_remove_${i}_name"]`);
+        const certInput = form.querySelector(`[name="spouse_remove_${i}_certificate"]`);
+
+        if (nameInput && !nameInput.value.trim()) {
+          nameInput.classList.add('field-error');
+          const errorText = document.createElement('div');
+          errorText.className = 'field-error-text';
+          errorText.textContent = 'This field is required';
+          nameInput.parentNode.appendChild(errorText);
+          if (!firstErrorField) firstErrorField = nameInput;
+          hasError = true;
+        } else if (nameInput && nameInput.value.trim()) {
+          // Validate that the name exists in actual spouse names
+          const enteredName = nameInput.value.trim().toLowerCase();
+          if (!actualSpouseNames.includes(enteredName)) {
+            nameInput.classList.add('field-error');
+            const errorText = document.createElement('div');
+            errorText.className = 'field-error-text';
+            errorText.textContent = 'Invalid name';
+            nameInput.parentNode.appendChild(errorText);
+            if (!firstErrorField) firstErrorField = nameInput;
+            hasError = true;
+          }
+        }
+
+        if (certInput && (!certInput.files || certInput.files.length === 0)) {
+          certInput.classList.add('field-error');
+          const errorText = document.createElement('div');
+          errorText.className = 'field-error-text';
+          errorText.textContent = 'This field is required';
+          certInput.parentNode.appendChild(errorText);
+          if (!firstErrorField) firstErrorField = certInput;
+          hasError = true;
+        }
+      }
+
+      // Validate children removal forms
+      for (let i = 1; i <= childCount; i++) {
+        const nameInput = form.querySelector(`[name="child_remove_${i}_name"]`);
+        const certInput = form.querySelector(`[name="child_remove_${i}_certificate"]`);
+
+        if (nameInput && !nameInput.value.trim()) {
+          nameInput.classList.add('field-error');
+          const errorText = document.createElement('div');
+          errorText.className = 'field-error-text';
+          errorText.textContent = 'This field is required';
+          nameInput.parentNode.appendChild(errorText);
+          if (!firstErrorField) firstErrorField = nameInput;
+          hasError = true;
+        } else if (nameInput && nameInput.value.trim()) {
+          // Validate that the name exists in actual children names
+          const enteredName = nameInput.value.trim().toLowerCase();
+          if (!actualChildrenNames.includes(enteredName)) {
+            nameInput.classList.add('field-error');
+            const errorText = document.createElement('div');
+            errorText.className = 'field-error-text';
+            errorText.textContent = 'Invalid name';
+            nameInput.parentNode.appendChild(errorText);
+            if (!firstErrorField) firstErrorField = nameInput;
+            hasError = true;
+          }
+        }
+
+        if (certInput && (!certInput.files || certInput.files.length === 0)) {
+          certInput.classList.add('field-error');
+          const errorText = document.createElement('div');
+          errorText.className = 'field-error-text';
+          errorText.textContent = 'This field is required';
+          certInput.parentNode.appendChild(errorText);
+          if (!firstErrorField) firstErrorField = certInput;
+          hasError = true;
+        }
+      }
+
+      if (hasError) {
+        errorEl.textContent = 'Please fill in all required fields correctly.';
+        errorEl.hidden = false;
+        if (firstErrorField) firstErrorField.focus();
+        return;
+      }
+
+      // All validations passed - show confirmation modal
+      showConfirmationModal('remove');
+    }
+
+    if (action === 'add') {
+      const spouseCount = parseInt(spouseAddCount?.value, 10) || 0;
+      const childCount = parseInt(childrenAddCount?.value, 10) || 0;
+
+      if (spouseCount === 0 && childCount === 0) {
+        errorEl.textContent = 'Please add at least one spouse or child.';
+        errorEl.hidden = false;
+        return;
+      }
+
+      let hasError = false;
+      let firstErrorField = null;
+
+      // Helper function to add error to a field
+      function addFieldError(input, message) {
+        if (!input) return;
+        input.classList.add('field-error');
+        // Remove any existing error text
+        const existingError = input.parentNode.querySelector('.field-error-text');
+        if (existingError) existingError.remove();
+        const errorText = document.createElement('div');
+        errorText.className = 'field-error-text';
+        errorText.textContent = message;
+        input.parentNode.appendChild(errorText);
+        if (!firstErrorField) firstErrorField = input;
+        hasError = true;
+      }
+
+      // Validate spouse add forms
+      for (let i = 1; i <= spouseCount; i++) {
+        const nameInput = form.querySelector(`[name="spouse_add_${i}_name"]`);
+        const dobInput = form.querySelector(`[name="spouse_add_${i}_dob"]`);
+        const genderInput = form.querySelector(`[name="spouse_add_${i}_gender"]`);
+        const nidInput = form.querySelector(`[name="spouse_add_${i}_nid"]`);
+        const educationInput = form.querySelector(`[name="spouse_add_${i}_education"]`);
+        const occupationInput = form.querySelector(`[name="spouse_add_${i}_occupation"]`);
+        const incomeInput = form.querySelector(`[name="spouse_add_${i}_income"]`);
+        const mobileInput = form.querySelector(`[name="spouse_add_${i}_mobile"]`);
+        const certInput = form.querySelector(`[name="spouse_add_${i}_certificate"]`);
+
+        if (nameInput && !nameInput.value.trim()) {
+          addFieldError(nameInput, 'This field is required');
+        }
+        if (dobInput && !dobInput.value) {
+          addFieldError(dobInput, 'This field is required');
+        }
+        if (genderInput && !genderInput.value) {
+          addFieldError(genderInput, 'This field is required');
+        }
+        if (nidInput && !nidInput.value.trim()) {
+          addFieldError(nidInput, 'This field is required');
+        }
+        if (educationInput && !educationInput.value) {
+          addFieldError(educationInput, 'This field is required');
+        }
+        if (occupationInput && !occupationInput.value) {
+          addFieldError(occupationInput, 'This field is required');
+        }
+        if (incomeInput && !incomeInput.value) {
+          addFieldError(incomeInput, 'This field is required');
+        }
+        if (mobileInput && !mobileInput.value.trim()) {
+          addFieldError(mobileInput, 'This field is required');
+        }
+        if (certInput && (!certInput.files || certInput.files.length === 0)) {
+          addFieldError(certInput, 'This field is required');
+        }
+      }
+
+      // Validate children add forms
+      for (let i = 1; i <= childCount; i++) {
+        const nameInput = form.querySelector(`[name="child_add_${i}_name"]`);
+        const dobInput = form.querySelector(`[name="child_add_${i}_dob"]`);
+        const genderInput = form.querySelector(`[name="child_add_${i}_gender"]`);
+        const educationInput = form.querySelector(`[name="child_add_${i}_education"]`);
+        const occupationInput = form.querySelector(`[name="child_add_${i}_occupation"]`);
+        const incomeInput = form.querySelector(`[name="child_add_${i}_income"]`);
+        const preferredJobInput = form.querySelector(`[name="child_add_${i}_preferred_job"]`);
+        const certInput = form.querySelector(`[name="child_add_${i}_certificate"]`);
+
+        if (nameInput && !nameInput.value.trim()) {
+          addFieldError(nameInput, 'This field is required');
+        }
+        if (dobInput && !dobInput.value) {
+          addFieldError(dobInput, 'This field is required');
+        }
+        if (genderInput && !genderInput.value) {
+          addFieldError(genderInput, 'This field is required');
+        }
+        if (educationInput && !educationInput.value) {
+          addFieldError(educationInput, 'This field is required');
+        }
+        if (occupationInput && !occupationInput.value) {
+          addFieldError(occupationInput, 'This field is required');
+        }
+        if (incomeInput && !incomeInput.value) {
+          addFieldError(incomeInput, 'This field is required');
+        }
+        if (preferredJobInput && !preferredJobInput.value) {
+          addFieldError(preferredJobInput, 'This field is required');
+        }
+        if (certInput && (!certInput.files || certInput.files.length === 0)) {
+          addFieldError(certInput, 'This field is required');
+        }
+      }
+
+      if (hasError) {
+        errorEl.textContent = 'Please fill in all required fields.';
+        errorEl.hidden = false;
+        if (firstErrorField) firstErrorField.focus();
+        return;
+      }
+
+      // All validations passed - show confirmation modal
+      showConfirmationModal('add');
+    }
+  });
+
+  // Confirmation Modal Logic
+  const confirmationModal = document.getElementById('confirmationModal');
+  const closeConfirmationBtn = document.getElementById('closeConfirmationModal');
+  const cancelConfirmationBtn = document.getElementById('cancelConfirmationBtn');
+  const confirmSubmitBtn = document.getElementById('confirmSubmitBtn');
+  let pendingAction = null;
+
+  function showConfirmationModal(action) {
+    pendingAction = action;
+    confirmationModal.hidden = false;
+  }
+
+  function hideConfirmationModal() {
+    confirmationModal.hidden = true;
+    pendingAction = null;
+  }
+
+  closeConfirmationBtn?.addEventListener('click', hideConfirmationModal);
+  cancelConfirmationBtn?.addEventListener('click', hideConfirmationModal);
+
+  confirmationModal?.addEventListener('click', (e) => {
+    if (e.target === confirmationModal) hideConfirmationModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && confirmationModal && !confirmationModal.hidden) {
+      hideConfirmationModal();
+    }
+  });
+
+  confirmSubmitBtn?.addEventListener('click', () => {
+    // Save pending edit member flag to user's application
+    const { app, idx } = getCurrentUserApp();
+    if (app && idx !== -1) {
+      if (!app.data) app.data = {};
+      app.data.pendingEditMember = true;
+      const apps = safeJsonParse(localStorage.getItem('SLUMLINK_APPLICATIONS'), []);
+      apps[idx] = app;
+      localStorage.setItem('SLUMLINK_APPLICATIONS', JSON.stringify(apps));
+    }
+
+    hideConfirmationModal();
+    closeModal();
+    showApplicationSubmittedToast();
+    updateEditMemberButtonState();
+  });
+})();

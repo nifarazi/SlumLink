@@ -85,6 +85,7 @@
               <div class="panel-title">Personal Information</div>
               <div class="panel-actions">
                 <button id="editProfileBtn" class="btn primary" type="button">Edit Profile</button>
+                <button id="editMemberBtn" class="btn primary" type="button">Edit Member</button>
                 <button id="saveProfileBtn" class="btn primary" type="button" hidden>Save</button>
                 <button id="cancelEditBtn" class="btn outlined" type="button" hidden>Cancel</button>
                 <button id="changePasswordBtn" class="btn outlined" type="button">Change Password</button>
@@ -217,6 +218,102 @@
           <button type="submit" class="btn primary">Save Password</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Edit Member Modal -->
+  <div id="editMemberModal" class="modal-overlay" hidden>
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h2 class="modal-title">Edit Family Members</h2>
+        <button class="modal-close" id="closeEditMemberModal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body-scroll">
+        <form id="editMemberForm" class="modal-form">
+          <p class="modal-question">Do you want to add or remove Family Members?</p>
+          <div class="modal-field">
+            <label for="memberAction"><span>Select Action</span></label>
+            <select id="memberAction" name="memberAction" class="modal-select">
+              <option value="" disabled selected>Select an option</option>
+              <option value="add">Add Members</option>
+              <option value="remove">Remove Members</option>
+            </select>
+          </div>
+
+          <!-- Remove Members Section (hidden by default) -->
+          <div id="removeMembersSection" class="remove-members-section" hidden>
+            <!-- Spouse Removal Section -->
+            <div class="removal-category">
+              <h3 class="removal-title">Spouse Removal</h3>
+              <div class="modal-field">
+                <label for="spouseRemoveCount"><span>Number of Spouse to Remove</span></label>
+                <select id="spouseRemoveCount" name="spouseRemoveCount" class="modal-select">
+                  <option value="0" selected>0</option>
+                </select>
+              </div>
+              <div id="spouseRemovalForms" class="removal-forms"></div>
+            </div>
+
+            <!-- Children Removal Section -->
+            <div class="removal-category">
+              <h3 class="removal-title">Children Removal</h3>
+              <div class="modal-field">
+                <label for="childrenRemoveCount"><span>Number of Children to Remove</span></label>
+                <select id="childrenRemoveCount" name="childrenRemoveCount" class="modal-select">
+                  <option value="0" selected>0</option>
+                </select>
+              </div>
+              <div id="childrenRemovalForms" class="removal-forms"></div>
+            </div>
+          </div>
+
+          <!-- Add Members Section (hidden by default) -->
+          <div id="addMembersSection" class="add-members-section" hidden>
+            <!-- Add Spouse Section -->
+            <div class="add-category">
+              <h3 class="add-title">Add Spouse</h3>
+              <div class="modal-field">
+                <label for="spouseAddCount"><span>Number of Spouse to Add</span></label>
+                <input type="number" id="spouseAddCount" name="spouseAddCount" class="modal-input" min="0" max="10" value="0" />
+              </div>
+              <div id="spouseAddForms" class="add-forms"></div>
+            </div>
+
+            <!-- Add Children Section -->
+            <div class="add-category">
+              <h3 class="add-title">Add Children</h3>
+              <div class="modal-field">
+                <label for="childrenAddCount"><span>Number of Children to Add</span></label>
+                <input type="number" id="childrenAddCount" name="childrenAddCount" class="modal-input" min="0" value="0" />
+              </div>
+              <div id="childrenAddForms" class="add-forms"></div>
+            </div>
+          </div>
+
+          <div class="modal-error" id="memberError" hidden></div>
+          <div class="modal-actions">
+            <button type="button" class="btn outlined" id="cancelEditMemberBtn">Cancel</button>
+            <button type="submit" class="btn primary">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal-overlay" id="confirmationModal" hidden>
+    <div class="modal-box confirmation-modal-box">
+      <div class="modal-header">
+        <h2>Confirm Submission</h2>
+        <button type="button" class="modal-close" id="closeConfirmationModal" aria-label="Close">&times;</button>
+      </div>
+      <div class="confirmation-content">
+        <p>Are you sure you want to submit this application?</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn outlined" id="cancelConfirmationBtn">Cancel</button>
+        <button type="button" class="btn primary" id="confirmSubmitBtn">Confirm</button>
+      </div>
     </div>
   </div>
 
