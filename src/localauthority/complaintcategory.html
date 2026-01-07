@@ -216,19 +216,72 @@
   backBtn.onclick = () => window.location.href = "./local-dashboard.html";
   notifBtn.onclick = () => window.location.href = "./waiting-complaints.html";
 
-  const categories = {
-    "Housing & Shelter":[{status:"Waiting"}],
-    "Electricity & Lighting":[{status:"Waiting"}],
-    "Aid & Relief Services":[{status:"Waiting"}],
-    "Safety & Security":[{status:"Waiting"}],
-    "Education & Child Welfare":[{status:"Waiting"}]
+  // Full complaints data (same as in complaints.html)
+  const allComplaints = {
+    "Housing & Shelter":[
+      {text:"No nearby shelters for families.", status:"Waiting"},
+      {text:"Some houses are damaged and unsafe.", status:"InProgress"},
+      {text:"Temporary shelters provided.", status:"Solved"}
+    ],
+    "Electricity & Lighting":[
+      {text:"Frequent power outages in the area.", status:"InProgress"},
+      {text:"Streetlights not working at night.", status:"Waiting"},
+      {text:"Solar lamps installed.", status:"Solved"}
+    ],
+    "Aid & Relief Services":[
+      {text:"Food rations delayed.", status:"Waiting"},
+      {text:"Distribution of blankets incomplete.", status:"InProgress"},
+      {text:"Aid distributed successfully.", status:"Solved"}
+    ],
+    "Education & Child Welfare":[
+      {text:"Children travel far to reach school.", status:"Solved"},
+      {text:"Some children forced to work.", status:"InProgress"},
+      {text:"Lack of books and learning materials.", status:"InProgress"},
+      {text:"School building unsafe.", status:"Waiting"}
+    ],
+    "Safety & Security":[
+      {text:"Street violence reported.", status:"Waiting"},
+      {text:"Insufficient police patrol.", status:"InProgress"},
+      {text:"Community watch program implemented.", status:"Solved"}
+    ],
+    "Environment & Disaster Issues":[
+      {text:"Flooded areas affecting homes.", status:"Waiting"},
+      {text:"Air pollution causing health issues.", status:"InProgress"},
+      {text:"Community cleanup drive completed.", status:"Solved"}
+    ],
+    "Waste Management":[
+      {text:"Garbage collection irregular.", status:"Waiting"},
+      {text:"Overflowing bins in alleys.", status:"InProgress"},
+      {text:"Local composting initiative successful.", status:"Solved"}
+    ],
+    "Health & Medical Services":[
+      {text:"Clinic shortage of medicines.", status:"InProgress"},
+      {text:"Vaccination clinic organized.", status:"Solved"}
+    ],
+    "Documentation & Registration Issues":[
+      {text:"Birth certificates delayed.", status:"Waiting"},
+      {text:"National ID registration pending.", status:"InProgress"}
+    ],
+    "Roads, Bridges & Infrastructure":[
+      {text:"Potholes making travel unsafe.", status:"Waiting"},
+      {text:"Bridge repair ongoing.", status:"InProgress"},
+      {text:"New road completed.", status:"Solved"}
+    ],
+    "Water & Sanitation":[
+      {text:"Water supply intermittent.", status:"InProgress"},
+      {text:"Public toilets cleaned regularly.", status:"Solved"}
+    ],
+    "Vaccination & Public Health Programs":[
+      {text:"Flu vaccination drive scheduled.", status:"Waiting"},
+      {text:"Polio vaccination completed.", status:"Solved"}
+    ]
   };
 
   let waitingCount = 0;
 
   document.querySelectorAll('.category-card').forEach(card=>{
     const cat = card.dataset.category;
-    const count = categories[cat]?.length || 0;
+    const count = allComplaints[cat]?.length || 0;  // use actual complaints length
     card.querySelector('.count').textContent = `(${count})`;
     waitingCount += count;
     card.onclick = () => window.location.href = `./complaints.html?category=${encodeURIComponent(cat)}`;
