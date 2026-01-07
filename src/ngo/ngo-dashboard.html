@@ -647,10 +647,8 @@
 
     document.getElementById("profileBtn").addEventListener("click", (e)=> {
       e.preventDefault();
-      const confirmed = confirm("Sign out from NGO Dashboard?");
-      if (confirmed) {
-        window.location.href = "/src/signin.html?role=ngo";
-      }
+        window.location.href = "/src/ngo/ngo-profile.html?role=ngo";
+     
     });
 
     document.getElementById("brandBtn").addEventListener("click", (e)=> {
