@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
-const PORT = process.env.SERVER_PORT || 5000;
+const PORT = process.env.SERVER_PORT || 5001;
 
 // ✅ CORS (not required in Option B but okay)
 app.use(cors());
@@ -49,6 +49,17 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(rootDir, "index.html"));
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`✅ Server running: http://localhost:${PORT}`);
+});
+
+server.on("error", (err) => {
+  if (err && err.code === "EADDRINUSE") {
+    console.error(`❌ Port ${PORT} is already in use.`);
+    console.error(
+      "Close the other process using it, or set SERVER_PORT to a different port (example: $env:SERVER_PORT=5001; npm start)."
+    );
+    process.exit(1);
+  }
+  throw err;
 });
