@@ -1,83 +1,54 @@
-import express from 'express';
-import cors from 'cors';
-import bodyParser from 'body-parser';
-import dotenv from 'dotenv';
-import pool from './db.js';
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
-dotenv.config();
+import ngoRoutes from "./routes/ngo.routes.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load backend/.env
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 const PORT = process.env.SERVER_PORT || 5000;
 
-// Middleware
+// ✅ CORS (not required in Option B but okay)
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'SlumLink Backend API',
-    version: '1.0.0',
-    endpoints: {
-      health: '/api/health',
-      test_connection: '/api/test-connection',
-      users: '/api/users'
-    }
-  });
-});
+// ✅ JSON body parsing (file uploads won't use this)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Test database connection
-app.get('/api/test-connection', async (req, res) => {
-  try {
-    const connection = await pool.getConnection();
-    await connection.ping();
-    connection.release();
-    res.json({ status: 'success', message: 'Database connected successfully' });
-  } catch (error) {
-    console.error('Database connection error:', error);
-    res.status(500).json({ status: 'error', message: 'Database connection failed', error: error.message });
+// ✅ Serve frontend files from ROOT project
+const rootDir = path.resolve(__dirname, "..");
+
+// ✅ Block exposing backend folder + node_modules
+app.use((req, res, next) => {
+  if (req.path.startsWith("/backend") || req.path.startsWith("/node_modules")) {
+    return res.status(404).send("Not Found");
   }
+  next();
 });
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'Server is running', timestamp: new Date() });
+// ✅ Serve your front-end
+app.use(express.static(rootDir));
+
+// ✅ API Routes
+app.use("/api/ngo", ngoRoutes);
+
+// ✅ Health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", message: "Server is running" });
 });
 
-// Example: Get all users (customize based on your needs)
-app.get('/api/users', async (req, res) => {
-  try {
-    const connection = await pool.getConnection();
-    const [rows] = await connection.query('SELECT * FROM users');
-    connection.release();
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: error.message });
-  }
+// ✅ Default home
+app.get("/", (req, res) => {
+  res.sendFile(path.join(rootDir, "index.html"));
 });
 
-// Example: Create a new user
-app.post('/api/users', async (req, res) => {
-  try {
-    const { email, password, name, role } = req.body;
-    const connection = await pool.getConnection();
-    const [result] = await connection.query(
-      'INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)',
-      [email, password, name, role]
-    );
-    connection.release();
-    res.json({ status: 'success', id: result.insertId, message: 'User created successfully' });
-  } catch (error) {
-    console.error('Error creating user:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Start server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log('Environment:', process.env.NODE_ENV);
-  console.log('Database:', process.env.DB_NAME);
+  console.log(`✅ Server running: http://localhost:${PORT}`);
 });

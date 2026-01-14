@@ -49,6 +49,7 @@ function setFieldError(input, message) {
   }
 }
 
+/* ✅ Regex validation */
 function normalizePhone(v) {
   return String(v || "").trim().replace(/[\s-]/g, "");
 }
@@ -57,41 +58,72 @@ function isValidBDPhone(v) {
   return /^(?:\+?88)?01[3-9][0-9]{8}$/.test(s);
 }
 
+function isValidEmail(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v || "").trim());
+}
+
+function isValidPassword(v) {
+  // 8+ chars, must include at least 1 letter + 1 number
+  return /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(String(v || ""));
+}
+
 function messageFor(input) {
   const v = (input.value || "").trim();
 
+  // ✅ File check
   if (input.type === "file") {
     if (!input.files || input.files.length === 0) return "";
+    const f = input.files[0];
+
+    const allowed = [
+      "application/pdf",
+      "image/png",
+      "image/jpeg",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!allowed.includes(f.type)) {
+      return "Upload PDF / JPG / PNG / DOC / DOCX only.";
+    }
     return "";
   }
 
+  // ✅ Phone
   if (input.id === "phone") {
     if (!v) return "";
-    if (!isValidBDPhone(v)) return "Enter a valid BD number (01XXXXXXXXX / 8801XXXXXXXXX / +8801XXXXXXXXX)";
+    if (!isValidBDPhone(v))
+      return "Enter a valid BD number (01XXXXXXXXX / 8801XXXXXXXXX / +8801XXXXXXXXX)";
     return "";
   }
 
+  // ✅ Email
+  if (input.id === "email") {
+    if (!v) return "";
+    if (!isValidEmail(v)) return "Enter a valid email address.";
+    return "";
+  }
+
+  // ✅ Password
   if (input.id === "password") {
     if (!v) return "";
-    if (v.length < 8) return "Password must be at least 8 characters.";
+    if (!isValidPassword(v))
+      return "Use 8+ characters. Mix letters & numbers.";
     return "";
   }
 
+  // ✅ Confirm password
   if (input.id === "confirmPassword") {
     if (!v) return "";
-    if (v.length < 8) return "Password must be at least 8 characters.";
+    if (!isValidPassword(v))
+      return "Use 8+ characters. Mix letters & numbers.";
     if (password.value !== confirmPassword.value) return "Passwords do not match.";
     return "";
   }
 
-  if (!v) return "";
-
-  if (input.type === "email") {
-    if (input.validity.typeMismatch) return "Enter a valid email address.";
-  }
-
-  if (input.type === "number") {
-    const num = Number(input.value);
+  // ✅ number constraints
+  if (input.type === "number" && v) {
+    const num = Number(v);
     if (Number.isNaN(num)) return "";
     if (input.min !== "" && num < Number(input.min)) return `Value must be ${input.min} or more.`;
     if (input.max !== "" && num > Number(input.max)) return `Value must be ${input.max} or less.`;
@@ -143,94 +175,100 @@ function goHome() {
   window.location.href = "../../index.html";
 }
 
-goHomeBtn.addEventListener("click", () => { closeModal(); goHome(); });
-modalOverlay.addEventListener("click", () => { closeModal(); goHome(); });
+goHomeBtn.addEventListener("click", () => {
+  closeModal();
+  goHome();
+});
+modalOverlay.addEventListener("click", () => {
+  closeModal();
+  goHome();
+});
 document.addEventListener("keydown", (e) => {
-  if (!modal.hidden && e.key === "Escape") { closeModal(); goHome(); }
+  if (!modal.hidden && e.key === "Escape") {
+    closeModal();
+    goHome();
+  }
 });
 
-/* Only validate after clicking Register once */
+/* Validate on input after submit attempt */
 form.addEventListener("input", (e) => {
   if (!submitAttempted) return;
   const t = e.target;
   if (!(t instanceof HTMLInputElement)) return;
 
   validateField(t);
-  
-  // Clear custom validity as user corrects the field
-  const msg = messageFor(t);
-  if (!msg) {
-    t.setCustomValidity("");
-  }
-  
+
   if (t.id === "password" || t.id === "confirmPassword") {
     validateField(confirmPassword);
-    const pwMsg = messageFor(confirmPassword);
-    if (!pwMsg) {
-      confirmPassword.setCustomValidity("");
-    }
   }
 });
+
 form.addEventListener("change", (e) => {
   if (!submitAttempted) return;
   const t = e.target;
   if (!(t instanceof HTMLInputElement)) return;
+
   validateField(t);
-  
-  // Clear custom validity as user corrects the field
-  const msg = messageFor(t);
-  if (!msg) {
-    t.setCustomValidity("");
-  }
 });
 
-form.addEventListener("submit", (e) => {
+/* ✅ Submit => send to backend */
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   submitAttempted = true;
   const ok = validateAll();
-  
-  // Set custom validation messages for HTML5 validation
-  for (const id of fieldIds) {
-    const input = getInput(id);
-    if (!input) continue;
-    
-    const msg = messageFor(input);
-    if (msg) {
-      input.setCustomValidity(msg);
-    } else {
-      input.setCustomValidity("");
-    }
-  }
-  
-  // Report validity to show native browser messages
-  if (!form.reportValidity()) {
-    return;
-  }
-  
+
+  if (!form.reportValidity()) return;
   if (!ok) return;
 
-  openModal();
+  try {
+    const btn = form.querySelector("button[type='submit']");
+    btn.disabled = true;
+    btn.textContent = "Registering...";
+
+    const fd = new FormData(form);
+
+    const res = await fetch("/api/ngo/register", {
+      method: "POST",
+      body: fd,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Registration failed.");
+      btn.disabled = false;
+      btn.textContent = "Register Account";
+      return;
+    }
+
+    // ✅ success
+    openModal();
+  } catch (err) {
+    console.error(err);
+    alert("Server error. Please try again.");
+  } finally {
+    const btn = form.querySelector("button[type='submit']");
+    btn.disabled = false;
+    btn.textContent = "Register Account";
+  }
 });
 
-/* ✅ Eye toggle: default slashed (hidden), click -> visible + normal eye */
+/* Eye toggle */
 document.querySelectorAll(".pw-toggle").forEach((btn) => {
   btn.addEventListener("click", () => {
     const targetId = btn.getAttribute("data-target");
     const input = document.getElementById(targetId);
     if (!input) return;
 
-    const toShow = input.type === "password"; // currently hidden
+    const toShow = input.type === "password";
     input.type = toShow ? "text" : "password";
 
     const icon = btn.querySelector("i");
     if (icon) {
-      // When showing text -> normal eye
       icon.className = toShow ? "fa-regular fa-eye" : "fa-regular fa-eye-slash";
     }
 
     btn.setAttribute("aria-pressed", toShow ? "true" : "false");
-    btn.setAttribute("aria-label", toShow ? "Hide password" : "Show password");
-    btn.setAttribute("title", toShow ? "Hide password" : "Show password");
   });
 });
