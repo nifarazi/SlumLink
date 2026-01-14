@@ -321,7 +321,7 @@
     });
 
     // Load NGO data when page loads
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
       var selectedNGO = sessionStorage.getItem('selectedNGO');
       
       if (!selectedNGO) {
@@ -331,14 +331,14 @@
 
       var ngo = JSON.parse(selectedNGO);
       currentNGO = ngo;
-      document.getElementById('ngoName').textContent = ngo.name;
+      document.getElementById('ngoName').textContent = ngo.org_name;
 
       var content = '<div class="info-grid">';
       
       // Foundation Name
       content += '<div class="info-field">';
       content += '<label>Foundation Name</label>';
-      content += '<p>' + (ngo.name || 'N/A') + '</p>';
+      content += '<p>' + (ngo.org_name || 'N/A') + '</p>';
       content += '</div>';
 
       // Email
@@ -356,24 +356,19 @@
       // Organization Year
       content += '<div class="info-field">';
       content += '<label>Organization Year</label>';
-      content += '<p>' + (ngo.year || 'N/A') + '</p>';
-      content += '</div>';
-
-      // Location
-      content += '<div class="info-field">';
-      content += '<label>Location</label>';
-      content += '<p>' + (ngo.location || 'N/A') + '</p>';
+      content += '<p>' + (ngo.org_age || 'N/A') + '</p>';
       content += '</div>';
 
       content += '</div>';
 
-      // Document Section
-      if (ngo.registrationDoc) {
+      // Document Section - Get license from backend
+      if (ngo.license_filename) {
         content += '<div class="document-section">';
         content += '<h3>Organization License</h3>';
-        content += '<img src="' + ngo.registrationDoc + '" alt="Organization License" class="doc-preview" onclick="openImageModal(\'' + ngo.registrationDoc + '\', \'Organization License - ' + ngo.name + '\')">';
+        var licenseUrl = `/api/ngo/${ngo.org_id}/license`;
+        content += '<img src="' + licenseUrl + '" alt="Organization License" class="doc-preview" onclick="openImageModal(\'' + licenseUrl + '\', \'Organization License - ' + ngo.org_name + '\')">';
         content += '<div style="margin-top: 10px;">';
-        content += '<button class="download-button" onclick="downloadImage(\'' + ngo.registrationDoc + '\', \'Organization License - ' + ngo.name + '\')">📥 Download Document</button>';
+        content += '<button class="download-button" onclick="downloadImage(\'' + licenseUrl + '\', \'Organization License - ' + ngo.org_name + '\')">📥 Download Document</button>';
         content += '</div>';
         content += '</div>';
       }
@@ -408,7 +403,7 @@
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(80, 80, 80);
-      doc.text('NGO: ' + currentNGO.name, margin, y);
+      doc.text('NGO: ' + currentNGO.org_name, margin, y);
       y += 10;
 
       // Generated Date
@@ -434,11 +429,10 @@
       doc.setTextColor(80, 80, 80);
       
       var orgData = [
-        ['Foundation Name:', String(currentNGO.name)],
+        ['Foundation Name:', String(currentNGO.org_name)],
         ['Email:', String(currentNGO.email || 'N/A')],
         ['Phone Number:', String(currentNGO.phone || 'N/A')],
-        ['Organization Year:', String(currentNGO.year || 'N/A')],
-        ['Location:', String(currentNGO.location || 'N/A')]
+        ['Organization Year:', String(currentNGO.org_age || 'N/A')]
       ];
 
       orgData.forEach(function(item) {
@@ -453,32 +447,6 @@
 
       y += 5;
 
-      // Documents Section - Add organization license image
-      if (currentNGO.registrationDoc) {
-        doc.addPage();
-        y = margin;
-        
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(139, 111, 90);
-        doc.text('Documents', margin, y);
-        y += 12;
-        
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(80, 80, 80);
-        doc.text('Organization License:', margin, y);
-        y += 8;
-        
-        try {
-          doc.addImage(currentNGO.registrationDoc, 'JPEG', margin + 5, y, 80, 80);
-          y += 85;
-        } catch(e) {
-          doc.text('[Document image not available]', margin + 5, y);
-          y += 8;
-        }
-      }
-
       // Footer
       var pageCount = doc.getNumberOfPages();
       for (var i = 1; i <= pageCount; i++) {
@@ -489,7 +457,7 @@
       }
 
       // Save PDF
-      doc.save(currentNGO.name.replace(/[^a-z0-9]+/gi, '_').toLowerCase() + '_information_report.pdf');
+      doc.save(currentNGO.org_name.replace(/[^a-z0-9]+/gi, '_').toLowerCase() + '_information_report.pdf');
     });
   </script>
 </body>
