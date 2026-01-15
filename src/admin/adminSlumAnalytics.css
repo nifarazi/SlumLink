@@ -73,7 +73,7 @@ body {
   margin-bottom: 20px;
   font-size: 16px;
   color: #AD7562;
-  font-weight: 700;
+  font-weight: 400;
   cursor: pointer;
 }
 
@@ -84,6 +84,7 @@ body {
   border-radius: 10px;
   padding: 8px 10px;
   position: relative;
+  font-weight: 700;
 }
 
 /* Optional left accent bar to indicate active state */

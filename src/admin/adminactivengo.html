@@ -2,28 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>SLUMLINK · Verify NGOs</title>
+  <title>SLUMLINK · Active NGOs</title>
   <link rel="stylesheet" href="adminSlumAnalytics.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    .pending-table th:last-child,
-    .pending-table td:last-child {
+    .active-table th:last-child {
       text-align: right;
-      padding-right: 150px;
+      padding-right: 350px;
     }
-    .btn-approve {
+
+    .active-table td:last-child {
+      text-align: right;
+      padding-right: 100px;
+    }
+    .btn-view {
       background-color: rgba(45, 122, 61, 0.15) !important;
       color: #2d7a3d !important;
       border: none !important;
     }
 
-    .btn-approve:hover {
+    .btn-view:hover {
       background-color: rgba(45, 122, 61, 0.25) !important;
     }
 
-    .btn-reject {
+    .btn-delete {
+      background-color: rgba(211, 47, 47, 0.15) !important;
+      color: #d32f2f !important;
       border: none !important;
-    }  </style>
+    }
+
+    .btn-delete:hover {
+      background-color: rgba(211, 47, 47, 0.25) !important;
+    }
+  </style>
 </head>
 <body>
 <header class="topbar" aria-label="Header">
@@ -57,8 +68,8 @@
         <li><a href="adminNgoAnalytics.html">📈 NGO Analytics</a></li>
         <li><a href="adminSlumResidents.html">🏠 Slum Residents</a></li>
         <li><a href="adminFieldAgents.html">🧑‍💼 Field Agents</a></li>
-        <li><a href="adminactivengo.html">✅ Active NGOs</a></li>
-        <li class="active"><a href="adminVerifyNgo.html">✔ Verify NGOs</a></li>
+        <li class="active"><a href="adminactivengo.html">✅ Active NGOs</a></li>
+        <li><a href="adminVerifyNgo.html">✔ Verify NGOs</a></li>
       </ul>
     </aside>
 
@@ -70,11 +81,11 @@
 
       <div class="table-card">
         <div class="card-header">
-          <h2>Pending NGO Verifications</h2>
+          <h2>Active NGOs</h2>
           
         </div>
         <div class="table-wrapper">
-          <table class="pending-table">
+          <table class="active-table">
             <thead>
               <tr>
                 <th>Foundation Name</th>
@@ -91,38 +102,14 @@
     </main>
   </div>
 
-  <!-- Image Modal -->
-  <div class="modal-overlay" id="imageModal" aria-hidden="true">
-    <div class="image-modal" role="dialog" aria-modal="true">
-      <button class="close-image-modal" id="closeImageModal" aria-label="Close">&times;</button>
-      <img id="modalImage" src="" alt="Document preview">
-      <div class="image-caption" id="imageCaption"></div>
-      <button class="btn btn-primary" id="downloadImage" style="margin-top: 15px;">
-        📥 Download Image
-      </button>
-    </div>
-  </div>
-
-  <!-- Approve Confirmation Modal -->
-  <div class="modal-overlay" id="approveModal" aria-hidden="true">
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
-      <div class="modal-header">Approve NGO</div>
-      <div class="modal-body" id="approveModalBody">Are you sure you want to approve this NGO?</div>
+      <div class="modal-header">Delete NGO</div>
+      <div class="modal-body" id="deleteModalBody">Are you sure you want to delete this NGO? This action cannot be undone.</div>
       <div class="modal-actions">
-        <button class="btn btn-secondary" id="cancelApprove">Cancel</button>
-        <button class="btn btn-primary" id="confirmApprove">Approve</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Reject Confirmation Modal -->
-  <div class="modal-overlay" id="rejectModal" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true">
-      <div class="modal-header">Reject NGO</div>
-      <div class="modal-body" id="rejectModalBody">Are you sure you want to reject this NGO?</div>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" id="cancelReject">Cancel</button>
-        <button class="btn btn-secondary" id="confirmReject">Reject</button>
+        <button class="btn btn-secondary" id="cancelDelete">Cancel</button>
+        <button class="btn btn-primary" id="confirmDelete">Delete</button>
       </div>
     </div>
   </div>
@@ -152,25 +139,23 @@
 
   <script src="adminSlumAnalytics.js"></script>
   <script>
-    var pendingNGOs = [];
-    var currentApproveIndex = -1;
-    var currentRejectIndex = -1;
+    var activeNGOs = [];
 
-    // Fetch pending NGOs from backend
-    async function fetchPendingNGOs() {
+    // Fetch active NGOs from backend
+    async function fetchActiveNGOs() {
       try {
-        const response = await fetch("/api/ngo/pending");
+        const response = await fetch("/api/ngo/active");
         const result = await response.json();
 
         if (result.status === "success") {
-          pendingNGOs = result.data;
+          activeNGOs = result.data;
           renderRows();
         } else {
-          alert("Failed to fetch pending NGOs");
+          alert("Failed to fetch active NGOs");
         }
       } catch (err) {
-        console.error("Error fetching pending NGOs:", err);
-        alert("Server error while fetching pending NGOs");
+        console.error("Error fetching active NGOs:", err);
+        alert("Server error while fetching active NGOs");
       }
     }
 
@@ -178,7 +163,7 @@
       var tbody = document.getElementById('ngoTableBody');
       tbody.innerHTML = '';
 
-      pendingNGOs.forEach(function(ngo, index) {
+      activeNGOs.forEach(function(ngo, index) {
         var row = document.createElement('tr');
         
         // Foundation Name (clickable)
@@ -190,7 +175,7 @@
         nameLink.style.textDecoration = 'underline';
         nameLink.onclick = function() { 
           sessionStorage.setItem('selectedNGO', JSON.stringify({...ngo, index: index}));
-          window.location.href = 'NGOinfo.html';
+          window.location.href = 'adminactivengoinfo.html';
         };
         nameCell.appendChild(nameLink);
         row.appendChild(nameCell);
@@ -202,7 +187,7 @@
 
         // Actions
         var actionsCell = document.createElement('td');
-        actionsCell.className = 'pending-actions';
+        actionsCell.className = 'active-actions';
         actionsCell.style.padding = '8px';
         
         var actionsContainer = document.createElement('div');
@@ -211,69 +196,56 @@
         actionsContainer.style.justifyContent = 'flex-end';
         actionsContainer.style.width = '100%';
         
-        var approveBtn = document.createElement('button');
-        approveBtn.textContent = 'Approve';
-        approveBtn.className = 'btn-approve';
-        approveBtn.style.minWidth = '85px';
-        approveBtn.onclick = function(e) { 
+        var viewBtn = document.createElement('button');
+        viewBtn.textContent = 'View';
+        viewBtn.className = 'btn-view';
+        viewBtn.style.minWidth = '85px';
+        viewBtn.onclick = function(e) { 
           e.stopPropagation();
-          currentApproveIndex = index;
-          openApproveModal(ngo.org_name);
+          sessionStorage.setItem('selectedNGO', JSON.stringify({...ngo, index: index}));
+          window.location.href = 'adminactivengoinfo.html';
         };
         
-        var rejectBtn = document.createElement('button');
-        rejectBtn.textContent = 'Reject';
-        rejectBtn.className = 'btn-reject';
-        rejectBtn.style.minWidth = '85px';
-        rejectBtn.onclick = function(e) { 
+        var deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.className = 'btn-delete';
+        deleteBtn.style.minWidth = '85px';
+        deleteBtn.onclick = function(e) { 
           e.stopPropagation();
-          currentRejectIndex = index;
-          openRejectModal(ngo.org_name);
+          currentDeleteNGO = ngo;
+          openDeleteModal(ngo.org_name);
         };
         
-        actionsContainer.appendChild(approveBtn);
-        actionsContainer.appendChild(rejectBtn);
+        actionsContainer.appendChild(viewBtn);
+        actionsContainer.appendChild(deleteBtn);
         actionsCell.appendChild(actionsContainer);
         row.appendChild(actionsCell);
         
         tbody.appendChild(row);
       });
 
-      if (pendingNGOs.length === 0) {
+      if (activeNGOs.length === 0) {
         var empty = document.createElement('tr');
-        empty.innerHTML = '<td colspan="3" style="text-align:center;color:#8b6f5a;">No pending NGO verifications.</td>';
+        empty.innerHTML = '<td colspan="3" style="text-align:center;color:#8b6f5a;">No active NGOs found.</td>';
         tbody.appendChild(empty);
       }
     }
 
-    function openApproveModal(name) {
-      var modal = document.getElementById('approveModal');
-      var body = document.getElementById('approveModalBody');
-      body.textContent = 'Are you sure you want to approve ' + name + '?';
+    var currentDeleteNGO = null;
+
+    function openDeleteModal(name) {
+      var modal = document.getElementById('deleteModal');
+      var body = document.getElementById('deleteModalBody');
+      body.textContent = 'Are you sure you want to delete ' + name + '? This action cannot be undone.';
       modal.setAttribute('aria-hidden', 'false');
       modal.classList.add('show');
     }
 
-    function closeApproveModal() {
-      var modal = document.getElementById('approveModal');
+    function closeDeleteModal() {
+      var modal = document.getElementById('deleteModal');
       modal.setAttribute('aria-hidden', 'true');
       modal.classList.remove('show');
-      currentApproveIndex = -1;
-    }
-
-    function openRejectModal(name) {
-      var modal = document.getElementById('rejectModal');
-      var body = document.getElementById('rejectModalBody');
-      body.textContent = 'Are you sure you want to reject ' + name + '?';
-      modal.setAttribute('aria-hidden', 'false');
-      modal.classList.add('show');
-    }
-
-    function closeRejectModal() {
-      var modal = document.getElementById('rejectModal');
-      modal.setAttribute('aria-hidden', 'true');
-      modal.classList.remove('show');
-      currentRejectIndex = -1;
+      currentDeleteNGO = null;
     }
 
     function showSuccessModal(message) {
@@ -290,63 +262,34 @@
       modal.classList.remove('show');
     }
 
-    document.getElementById('cancelApprove').addEventListener('click', closeApproveModal);
+    document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
     
-    document.getElementById('confirmApprove').addEventListener('click', async function() {
-      if (currentApproveIndex >= 0) {
-        var ngo = pendingNGOs[currentApproveIndex];
+    document.getElementById('confirmDelete').addEventListener('click', async function() {
+      if (currentDeleteNGO) {
+        var ngo = currentDeleteNGO;
         try {
-          const response = await fetch(`/api/ngo/${ngo.org_id}/approve`, { method: "PUT" });
+          const response = await fetch(`/api/ngo/${ngo.org_id}`, { method: "DELETE" });
           const result = await response.json();
 
           if (result.status === "success") {
-            pendingNGOs.splice(currentApproveIndex, 1);
-            closeApproveModal();
-            showSuccessModal(ngo.org_name + ' has been approved successfully! Email sent to ' + ngo.email);
+            closeDeleteModal();
+            showSuccessModal(ngo.org_name + ' has been deleted successfully!');
+            // Remove from local array
+            activeNGOs = activeNGOs.filter(function(n) { return n.org_id !== ngo.org_id; });
             renderRows();
           } else {
-            alert("Error: " + (result.message || "Failed to approve NGO"));
+            alert("Error: " + (result.message || "Failed to delete NGO"));
           }
         } catch (err) {
-          console.error("Error approving NGO:", err);
-          alert("Server error while approving NGO");
+          console.error("Error deleting NGO:", err);
+          alert("Server error while deleting NGO");
         }
       }
     });
 
-    document.getElementById('approveModal').addEventListener('click', function(e) {
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
       if (e.target === this) {
-        closeApproveModal();
-      }
-    });
-
-    document.getElementById('cancelReject').addEventListener('click', closeRejectModal);
-    
-    document.getElementById('confirmReject').addEventListener('click', async function() {
-      if (currentRejectIndex >= 0) {
-        var ngo = pendingNGOs[currentRejectIndex];
-        try {
-          const response = await fetch(`/api/ngo/${ngo.org_id}/reject`, { method: "PUT" });
-          const result = await response.json();
-
-          if (result.status === "success") {
-            pendingNGOs.splice(currentRejectIndex, 1);
-            closeRejectModal();
-            showSuccessModal(ngo.org_name + ' has been rejected. Email sent to ' + ngo.email);
-            renderRows();
-          } else {
-            alert("Error: " + (result.message || "Failed to reject NGO"));
-          }
-        } catch (err) {
-          console.error("Error rejecting NGO:", err);
-          alert("Server error while rejecting NGO");
-        }
-      }
-    });
-
-    document.getElementById('rejectModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeRejectModal();
+        closeDeleteModal();
       }
     });
 
@@ -358,8 +301,8 @@
       }
     });
 
-    // Load pending NGOs on page load
-    document.addEventListener('DOMContentLoaded', fetchPendingNGOs);
+    // Load active NGOs on page load
+    document.addEventListener('DOMContentLoaded', fetchActiveNGOs);
   </script>
 </body>
 </html>

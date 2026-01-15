@@ -84,6 +84,31 @@ export const getPendingNGOs = async (req, res) => {
   }
 };
 
+// Get all active (accepted) NGOs
+export const getActiveNGOs = async (req, res) => {
+  try {
+    const sql = `
+      SELECT org_id, org_name, email, phone, org_age, status, license_filename
+      FROM organizations
+      WHERE status = 'accepted'
+      ORDER BY org_id DESC
+    `;
+
+    const [ngos] = await pool.query(sql);
+
+    return res.json({
+      status: "success",
+      data: ngos,
+    });
+  } catch (err) {
+    console.error("Get Active NGOs Error:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while fetching active NGOs.",
+    });
+  }
+};
+
 // Get single NGO details by ID
 export const getNGODetails = async (req, res) => {
   try {
@@ -257,3 +282,36 @@ export const rejectNGO = async (req, res) => {
   }
 };
 
+// Delete NGO by ID
+export const deleteNGO = async (req, res) => {
+  try {
+    const { orgId } = req.params;
+
+    if (!orgId) {
+      return res.status(400).json({ status: "error", message: "Organization ID is required." });
+    }
+
+    // Check if NGO exists
+    const checkSql = `SELECT org_id, org_name FROM organizations WHERE org_id = ?`;
+    const [ngo] = await pool.query(checkSql, [orgId]);
+
+    if (ngo.length === 0) {
+      return res.status(404).json({ status: "error", message: "Organization not found." });
+    }
+
+    // Delete the NGO
+    const deleteSql = `DELETE FROM organizations WHERE org_id = ?`;
+    await pool.query(deleteSql, [orgId]);
+
+    return res.json({
+      status: "success",
+      message: `${ngo[0].org_name} has been deleted successfully.`,
+    });
+  } catch (err) {
+    console.error("Delete NGO Error:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while deleting organization.",
+    });
+  }
+};
