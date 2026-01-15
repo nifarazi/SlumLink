@@ -2,9 +2,9 @@ import { execSync } from "node:child_process";
 
 function getPortFromEnv() {
   const raw = process.env.SERVER_PORT ?? process.env.PORT;
-  if (!raw) return 5000;
+  if (!raw) return 5001;
   const parsed = Number(raw);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 5000;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 5001;
 }
 
 function isWindows() {
