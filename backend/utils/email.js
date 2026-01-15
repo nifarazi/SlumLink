@@ -12,8 +12,62 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+function getAppBaseUrl() {
+  if (process.env.APP_BASE_URL) return process.env.APP_BASE_URL;
+
+  const port = process.env.SERVER_PORT || 5001;
+  return `http://localhost:${port}`;
+}
+
+export const sendRegistrationReceivedEmail = async (orgName, email) => {
+  try {
+    const baseUrl = getAppBaseUrl();
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER || "slumlink@gmail.com",
+      to: email,
+      subject: "📝 NGO Registration Received - SLUMLINK",
+      html: `
+        <div style="font-family: Poppins, Arial, sans-serif; background: #f5f5f5; padding: 20px;">
+          <div style="background: white; padding: 30px; border-radius: 8px; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2d7a3d; margin-bottom: 15px;">Thank you for registering</h2>
+            <p style="color: #333; font-size: 16px; line-height: 1.6;">
+              Dear <strong>${orgName}</strong>,
+            </p>
+            <p style="color: #333; font-size: 16px; line-height: 1.6;">
+              We have received your NGO registration on <strong>SLUMLINK</strong>.
+              Your account is currently <strong>pending verification</strong>.
+            </p>
+            <p style="color: #333; font-size: 16px; line-height: 1.6;">
+              Please wait for your account to be verified by the admin team.
+              Once your account is approved, you will be able to sign in using the email address you registered with.
+            </p>
+            <a href="${baseUrl}" style="display: inline-block; background: #2d7a3d; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: 600;">
+              Visit SLUMLINK
+            </a>
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+              If you have any questions, please contact our support team.
+            </p>
+            <p style="color: #999; font-size: 12px; text-align: center; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
+              SLUMLINK - Empowering Slum Communities
+            </p>
+          </div>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ Registration received email sent to ${email}`);
+  } catch (err) {
+    console.error("Error sending registration received email:", err);
+    throw err;
+  }
+};
+
 export const sendApprovalEmail = async (orgName, email) => {
   try {
+    const baseUrl = getAppBaseUrl();
+
     const mailOptions = {
       from: process.env.EMAIL_USER || "slumlink@gmail.com",
       to: email,
@@ -33,7 +87,7 @@ export const sendApprovalEmail = async (orgName, email) => {
               You can now log in to your account and begin managing campaigns, connecting with slum dwellers, 
               and making a positive impact in communities.
             </p>
-            <a href="http://localhost:5001" style="display: inline-block; background: #2d7a3d; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: 600;">
+            <a href="${baseUrl}" style="display: inline-block; background: #2d7a3d; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: 600;">
               Log In to Your Account
             </a>
             <p style="color: #666; font-size: 14px; margin-top: 30px;">

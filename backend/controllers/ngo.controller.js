@@ -1,5 +1,5 @@
 import pool from "../db.js";
-import { sendApprovalEmail, sendRejectionEmail } from "../utils/email.js";
+import { sendApprovalEmail, sendRejectionEmail, sendRegistrationReceivedEmail } from "../utils/email.js";
 
 export const registerOrganization = async (req, res) => {
   try {
@@ -35,6 +35,13 @@ export const registerOrganization = async (req, res) => {
     ];
 
     const [result] = await pool.query(sql, values);
+
+    // Send registration received email (do not fail registration if email fails)
+    try {
+      await sendRegistrationReceivedEmail(orgName.trim(), email.trim());
+    } catch (emailErr) {
+      console.warn("⚠️ Registration email failed to send:", emailErr?.message || emailErr);
+    }
 
     return res.json({
       status: "success",

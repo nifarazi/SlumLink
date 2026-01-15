@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
-const PORT = process.env.SERVER_PORT || 5001;
+const PREFERRED_PORT = Number(process.env.SERVER_PORT) || 5001;
 
 // ✅ CORS (not required in Option B but okay)
 app.use(cors());
@@ -49,17 +49,37 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(rootDir, "index.html"));
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`✅ Server running: http://localhost:${PORT}`);
-});
+function listenOnce(port) {
+  return new Promise((resolve, reject) => {
+    const server = app.listen(port, () => resolve({ server, port }));
+    server.on("error", reject);
+  });
+}
 
-server.on("error", (err) => {
-  if (err && err.code === "EADDRINUSE") {
-    console.error(`❌ Port ${PORT} is already in use.`);
-    console.error(
-      "Close the other process using it, or set SERVER_PORT to a different port (example: $env:SERVER_PORT=5001; npm start)."
-    );
-    process.exit(1);
+async function startServerWithFallback(preferredPort, maxAttempts = 20) {
+  let port = preferredPort;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    try {
+      const { port: actualPort } = await listenOnce(port);
+      console.log(`✅ Server running: http://localhost:${actualPort}`);
+      if (actualPort !== preferredPort) {
+        console.warn(`ℹ️ Preferred port ${preferredPort} was busy; using ${actualPort} instead.`);
+      }
+      return;
+    } catch (err) {
+      if (err && err.code === "EADDRINUSE") {
+        port += 1;
+        continue;
+      }
+      throw err;
+    }
   }
-  throw err;
-});
+
+  console.error(
+    `❌ Could not find a free port starting at ${preferredPort} (tried ${maxAttempts} ports). Set SERVER_PORT to a different value.`
+  );
+  process.exit(1);
+}
+
+startServerWithFallback(PREFERRED_PORT);
