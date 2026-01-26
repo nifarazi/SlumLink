@@ -169,11 +169,11 @@
   // Load only the signed-in user's complaints from localStorage
   let complaints = [];
   try {
-    const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
+    const currentRaw = sessionStorage.getItem('SLUMLINK_CURRENT_USER');
     const current = currentRaw ? JSON.parse(currentRaw) : null;
     const userId = current && current.id ? String(current.id) : '';
     if (userId) {
-      const byUserRaw = localStorage.getItem('submittedComplaintsByUser');
+      const byUserRaw = sessionStorage.getItem('submittedComplaintsByUser');
       const map = byUserRaw ? JSON.parse(byUserRaw) : {};
       complaints = Array.isArray(map[userId]) ? map[userId] : [];
     } else {

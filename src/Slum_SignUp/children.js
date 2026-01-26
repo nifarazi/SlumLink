@@ -3,7 +3,7 @@
   const SESSION_FLAG = 'SLUMLINK_SESSION_INIT';
   function initSession(){
     if (!sessionStorage.getItem(SESSION_FLAG)){
-      ['SLUMLINK_SIGNUP','SLUMLINK_MARITAL','SLUMLINK_CHILDREN'].forEach(k => localStorage.removeItem(k));
+      ['SLUMLINK_SIGNUP','SLUMLINK_MARITAL','SLUMLINK_CHILDREN'].forEach(k => sessionStorage.removeItem(k));
       sessionStorage.setItem(SESSION_FLAG, '1');
     }
   }
@@ -115,8 +115,8 @@
       if (el.type === 'checkbox') el.checked = !!v; else el.value = v;
     });
   }
-  function save(){ if (!form) return; localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormData(form))); }
-  function load(){ const raw = localStorage.getItem(STORAGE_KEY); return raw ? safeJsonParse(raw, {}) : {}; }
+  function save(){ if (!form) return; sessionStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormData(form))); }
+  function load(){ const raw = sessionStorage.getItem(STORAGE_KEY); return raw ? safeJsonParse(raw, {}) : {}; }
 
   function validateAllVisible(frm){
     let firstInvalid = null;
@@ -125,7 +125,7 @@
       if (el.disabled || el.offsetParent === null) return; // skip hidden
       const val = (el.type === 'checkbox') ? (el.checked ? 'on' : '') : String(el.value || '').trim();
       // For children segments, optional fields are acceptable; only account info required
-      const requiredNames = ['account_username','account_password','account_confirm'];
+      const requiredNames = ['account_password','account_confirm'];
       const isRequired = requiredNames.includes(el.name) || el.closest('.child-segment') === null; // count input required?
       if (isRequired && !val) {
         if (!firstInvalid) firstInvalid = el;
@@ -152,7 +152,7 @@
 
   // Apply rule: if marital status is 'unmarried', force children count to 0 and disable editing
   function applyMaritalChildrenRule(){
-    const raw = localStorage.getItem(MARITAL_STORAGE_KEY);
+    const raw = sessionStorage.getItem(MARITAL_STORAGE_KEY);
     const marital = raw ? safeJsonParse(raw, {}) : {};
     const status = (marital?.maritalStatus || '').toLowerCase();
     if (status === 'unmarried'){
@@ -222,130 +222,208 @@
     save();
     window.location.href = './marital.html';
   });
-  document.querySelector('.nav-btn.right')?.addEventListener('click', () => {
+  document.querySelector('.nav-btn.right')?.addEventListener('click', async (ev) => {
     if (!form) return;
     if (!validateAllVisible(form)) return;
     save();
-    // Compile submission for admin approval
-    try {
-      const personal = safeJsonParse(localStorage.getItem('SLUMLINK_SIGNUP'), {});
-      const marital = safeJsonParse(localStorage.getItem('SLUMLINK_MARITAL'), {});
-      const children = safeJsonParse(localStorage.getItem('SLUMLINK_CHILDREN'), {});
-      function resolveSlumFromArea(area){
-        const a = String(area || '').toLowerCase().trim();
-        const clean = a.replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ');
-        const map = new Map([
-          ['korail','Korail'],
-          ['begun bari','Begun Bari'],
-          ['begunbari','Begun Bari'],
-          ['molla','Molla'],
-          ['duaripara','DuariPara'],
-          ['duari para','DuariPara'],
-          ['kallyanpur','Kallyanpur'],
-          ['pora basti','Pora Basti'],
-          ['porabasti','Pora Basti'],
-          ['pura','Pura'],
-          ['nubur','Nubur'],
-          ['mannan','Mannan'],
-          ['basbari','Basbari'],
-          ['chalantika','Chalantika'],
-          ['nama para','Nama Para'],
-          ['namapara','Nama Para'],
-        ]);
-        if (map.has(clean)) return map.get(clean);
-        for (const [key, val] of map.entries()) { if (clean.includes(key)) return val; }
-        return '';
-      }
 
-      // Transform spouses
-      const spouseCount = Number(marital.spouseCount || 0) || 0;
-      const spouses = [];
-      for (let i = 1; i <= spouseCount; i++) {
-        const s = {
-          name: marital[`spouse_${i}_name`] || '',
-          dob: marital[`spouse_${i}_dob`] || '',
-          gender: marital[`spouse_${i}_gender`] || '',
-          nid: marital[`spouse_${i}_nid`] || '',
-          education: marital[`spouse_${i}_education`] || '',
-          job: marital[`spouse_${i}_job`] || '',
-          income: marital[`spouse_${i}_income`] || '',
-          mobile: marital[`spouse_${i}_mobile`] || '',
-          marriageCertificate: marital[`spouse_${i}_marriage_certificate`] || '',
-          marriageCertificateName: marital[`spouse_${i}_marriage_certificate_filename`] || '',
-        };
-        spouses.push(s);
-      }
+    // Gather mobile numbers from personal and spouse data
+    const personal = safeJsonParse(sessionStorage.getItem('SLUMLINK_SIGNUP'), {});
+    const marital = safeJsonParse(sessionStorage.getItem('SLUMLINK_MARITAL'), {});
 
-      // Transform children
-      const childCount = Number(children.childrenCount || 0) || 0;
-      const kids = [];
-      for (let i = 1; i <= childCount; i++) {
-        const c = {
-          name: children[`child_${i}_name`] || '',
-          dob: children[`child_${i}_dob`] || '',
-          gender: children[`child_${i}_gender`] || '',
-          education: children[`child_${i}_education`] || '',
-          job: children[`child_${i}_job`] || '',
-          income: children[`child_${i}_income`] || '',
-          preferredJob: children[`child_${i}_preferred_job`] || '',
-          birthCertificate: children[`child_${i}_birth_certificate`] || '',
-          birthCertificateName: children[`child_${i}_birth_certificate_filename`] || '',
-        };
-        kids.push(c);
-      }
-
-      // Build submission (exclude account credentials from PDF payload)
-      // Prefer mapped Area; if unknown, use the raw Area name
-      const rawArea = String(personal.area || '').trim();
-      const slumName = resolveSlumFromArea(personal.area) || rawArea || resolveSlumFromArea(personal.district) || resolveSlumFromArea(personal.division) || 'Unknown';
-
-      // Prepare list and generate unique Slum ID in format SR + 6 digits
-      const LIST_KEY = 'SLUMLINK_APPLICATIONS';
-      const listRaw = localStorage.getItem(LIST_KEY);
-      const list = listRaw ? safeJsonParse(listRaw, []) : [];
-      function generateSlumId(){
-        // zero-padded 6-digit
-        const n = Math.floor(Math.random() * 1000000); // 0..999999
-        const pad = String(n).padStart(6, '0');
-        return 'SR' + pad;
-      }
-      let slumId = generateSlumId();
-      const existingIds = new Set(list.map(a => String(a.id || '')));
-      let guard = 0;
-      while (existingIds.has(slumId) && guard < 10){ slumId = generateSlumId(); guard++; }
-
-      const submission = {
-        id: slumId,
-        slumId: slumId,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        slum: slumName,
-        account: {
-          username: children.account_username || '',
-          password: children.account_password || '',
-        },
-        data: {
-          personal,
-          marital: { maritalStatus: marital.maritalStatus || '', spouseCount: spouseCount, spouses },
-          children: { childrenCount: childCount, children: kids },
-        }
-      };
-
-      // Persist application and Slum ID
-      list.push(submission);
-      localStorage.setItem(LIST_KEY, JSON.stringify(list));
-      try { localStorage.setItem('slumId', slumId); } catch {}
-
-      // Clear signup form data so new account can sign in with fresh forms
-      // This does NOT affect the stored applications in SLUMLINK_APPLICATIONS
-      ['SLUMLINK_SIGNUP', 'SLUMLINK_MARITAL', 'SLUMLINK_CHILDREN'].forEach(k => localStorage.removeItem(k));
-      // Clear session flag so next visit starts fresh
-      sessionStorage.removeItem(SESSION_FLAG);
-    } catch (e) {
-      console.error('Failed to compile submission', e);
+    function normalizeNumber(raw){
+      if (!raw) return '';
+      let s = String(raw).trim();
+      // Remove spaces and non-digits except leading +
+      s = s.replace(/[^+0-9]/g,'');
+      if (s.startsWith('+')) s = s.slice(1);
+      if (s.startsWith('0')) s = '880' + s.slice(1);
+      if (s.startsWith('880')) return s;
+      // assume local without leading zero
+      if (/^1[0-9]{9}$/.test(s)) return '88' + s; // less likely
+      return s;
     }
 
-    // Proceed to signin with role preselected to Slum Dweller and show success notice
-    window.location.href = '/src/signin.html?role=dweller&submitted=1';
+    const numbers = [];
+    const addIf = (n) => { const norm = normalizeNumber(n); if (norm && !numbers.includes(norm)) numbers.push(norm); };
+    addIf(personal.mobile);
+    const spouseCount = Number(marital.spouseCount || 0) || 0;
+    for (let i=1;i<=spouseCount;i++) addIf(marital[`spouse_${i}_mobile`]);
+
+    if (!numbers.length){
+      alert('No mobile numbers found to send OTPs.');
+      return;
+    }
+
+    // Generate OTPs and store in sessionStorage key SLUMLINK_OTP_MAP
+    function genOtp(){ return String(Math.floor(100000 + Math.random()*900000)); }
+    const otpMap = {};
+    numbers.forEach(n => otpMap[n] = genOtp());
+    sessionStorage.setItem('SLUMLINK_OTP_MAP', JSON.stringify(otpMap));
+
+    // Send SMS via BulkSMSBD API for each number
+    async function sendSms(number, message){
+      try{
+        const apiKey = 'L5HyW41W5a76U8FgunBb';
+        const senderid = '8809648905759';
+        const url = `http://bulksmsbd.net/api/smsapi?api_key=${encodeURIComponent(apiKey)}&type=text&number=${encodeURIComponent(number)}&senderid=${encodeURIComponent(senderid)}&message=${encodeURIComponent(message)}`;
+        // Use GET
+        const resp = await fetch(url, { method: 'GET' });
+        // best-effort: don't require response parsing; return ok status
+        return resp.ok;
+      }catch(err){ console.warn('SMS send failed', err); return false; }
+    }
+
+    // Fire off sends (do not block UI heavily)
+    for (const num of numbers){
+      const msg = `Your SLUMLINK OTP is: ${otpMap[num]}`;
+      sendSms(num, msg).then(ok => {
+        if (!ok) console.warn('SMS might have failed for', num);
+      });
+    }
+
+    // Populate modal inputs and open
+    function makeInputsForNumbers(list){
+      const container = document.getElementById('otpInputs');
+      container.innerHTML = '';
+      container.dataset.count = list.length;
+      list.forEach((num, idx) => {
+        const wrap = document.createElement('div'); wrap.className = 'otp-item';
+        const label = document.createElement('label'); label.className='otp-label'; label.textContent = num;
+        const row = document.createElement('div'); row.className='otp-row';
+        const input = document.createElement('input'); input.className='otp-box'; input.setAttribute('inputmode','numeric'); input.maxLength = 6; input.setAttribute('aria-label', `OTP for ${num}`);
+        row.appendChild(input);
+        wrap.appendChild(label);
+        wrap.appendChild(row);
+        container.appendChild(wrap);
+      });
+      // wire inputs
+      const boxes = container.querySelectorAll('.otp-box');
+      boxes.forEach((el, i) => {
+        el.addEventListener('input', ()=>{ el.value = el.value.replace(/[^0-9]/g,''); if (el.value.length>=6 && i<boxes.length-1) boxes[i+1].focus(); });
+      });
+      const first = container.querySelector('.otp-box'); if (first) first.focus();
+    }
+
+    // Open modal
+    const modal = document.getElementById('otpModal');
+    function openModal(){ modal.setAttribute('aria-hidden','false'); modal.classList.add('open'); }
+    function closeModal(){ modal.setAttribute('aria-hidden','true'); modal.classList.remove('open'); }
+
+    makeInputsForNumbers(numbers);
+    openModal();
+
+    // Wire verify/cancel/resend actions (idempotent)
+    document.getElementById('cancelOtpBtn').onclick = () => { closeModal(); };
+    document.getElementById('verifyOtpBtn').onclick = async () => {
+      const map = safeJsonParse(sessionStorage.getItem('SLUMLINK_OTP_MAP'), {});
+      const boxes = Array.from(document.querySelectorAll('#otpInputs .otp-box'));
+      const entered = boxes.map((b, i) => ({ num: numbers[i], code: (b.value||'').trim() }));
+      const allOk = entered.every(e => map[e.num] && map[e.num] === e.code);
+      if (!allOk){
+        alert('Invalid OTP.');
+        return;
+      }
+      // OTP verified: send data to backend
+      try{
+        const childrenData = safeJsonParse(sessionStorage.getItem('SLUMLINK_CHILDREN'), {});
+        const personalData = safeJsonParse(sessionStorage.getItem('SLUMLINK_SIGNUP'), {});
+        const maritalData = safeJsonParse(sessionStorage.getItem('SLUMLINK_MARITAL'), {});
+        
+        // Prepare personal information (only fields from signup form)
+        const personal = {
+          name: personalData.fullName || '',
+          mobile: personalData.mobile || '',
+          dob: personalData.dob || null,
+          gender: personalData.gender || null,
+          education: personalData.education || null,
+          occupation: personalData.occupation || null,
+          income: personalData.income || null,
+          area: personalData.area || null,
+          district: personalData.district || null,
+          division: personalData.division || null,
+          nid: personalData.nidNumber || null,
+          members: personalData.members || null,
+          password: childrenData.account_password || ''
+        };
+
+        // Prepare spouse information (only fields from marital form)
+        const spouseCount = Number(maritalData.spouseCount || 0) || 0;
+        const spouses = [];
+        for (let i=1; i<=spouseCount; i++) {
+          spouses.push({
+            name: maritalData[`spouse_${i}_name`] || '',
+            dob: maritalData[`spouse_${i}_dob`] || null,
+            gender: maritalData[`spouse_${i}_gender`] || null,
+            nid: maritalData[`spouse_${i}_nid`] || null,
+            education: maritalData[`spouse_${i}_education`] || null,
+            occupation: maritalData[`spouse_${i}_job`] || null,
+            income: maritalData[`spouse_${i}_income`] || null,
+            mobile: maritalData[`spouse_${i}_mobile`] || null,
+            marriageCertificate: maritalData[`spouse_${i}_marriage_certificate`] || null
+          });
+        }
+
+        // Prepare children information (only fields from children form)
+        const childCount = Number(childrenData.childrenCount || 0) || 0;
+        const children = [];
+        for (let i=1; i<=childCount; i++) {
+          children.push({
+            name: childrenData[`child_${i}_name`] || '',
+            dob: childrenData[`child_${i}_dob`] || null,
+            gender: childrenData[`child_${i}_gender`] || null,
+            education: childrenData[`child_${i}_education`] || null,
+            job: childrenData[`child_${i}_job`] || null,
+            income: childrenData[`child_${i}_income`] || null,
+            preferredJob: childrenData[`child_${i}_preferred_job`] || null,
+            birthCertificate: childrenData[`child_${i}_birth_certificate`] || null
+          });
+        }
+
+        // Send to backend
+        const response = await fetch('/api/slum-dweller/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ personal, spouses, children })
+        });
+
+        const result = await response.json();
+        
+        console.log('Registration response:', result);
+        
+        if (result.status === 'success') {
+          // Store slum_code in session for reference
+          try{ sessionStorage.setItem('slumId', result.slum_code); }catch{}
+          // clear form data
+          ['SLUMLINK_SIGNUP','SLUMLINK_MARITAL','SLUMLINK_CHILDREN'].forEach(k=>sessionStorage.removeItem(k));
+          sessionStorage.removeItem(SESSION_FLAG);
+        } else {
+          throw new Error(result.message || 'Registration failed');
+        }
+      }catch(e){ 
+        console.error('Failed to submit registration', e); 
+        closeModal();
+        alert('Registration failed: ' + e.message);
+        return;
+      }
+
+      // success toast
+      try{
+        const toast = document.createElement('div'); toast.className='profile-toast'; toast.innerHTML = '<strong>Success</strong><div class="subtitle">Your application has been submitted successfully</div>'; document.body.appendChild(toast);
+        setTimeout(()=>{ toast.classList.add('toast-hide'); setTimeout(()=>{ try{ toast.remove(); }catch{} },350); },2500);
+      }catch(_){}
+      closeModal();
+      setTimeout(()=>{ window.location.href = '/src/signin.html?role=dweller&submitted=1'; }, 1200);
+    };
+
+    document.getElementById('resendOtpLink').onclick = (e) => {
+      e.preventDefault();
+      // regenerate OTPs and resend
+      const newMap = {};
+      numbers.forEach(n => newMap[n] = genOtp());
+      sessionStorage.setItem('SLUMLINK_OTP_MAP', JSON.stringify(newMap));
+      for (const num of numbers){ const msg = `Your SLUMLINK OTP is: ${newMap[num]}`; sendSms(num, msg); }
+      alert('New OTPs sent');
+    };
   });
 })();

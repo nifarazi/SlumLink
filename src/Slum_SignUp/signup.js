@@ -3,7 +3,7 @@
   const SESSION_FLAG = 'SLUMLINK_SESSION_INIT';
   function initSession(){
     if (!sessionStorage.getItem(SESSION_FLAG)){
-      ['SLUMLINK_SIGNUP','SLUMLINK_MARITAL','SLUMLINK_CHILDREN'].forEach(k => localStorage.removeItem(k));
+      ['SLUMLINK_SIGNUP','SLUMLINK_MARITAL','SLUMLINK_CHILDREN'].forEach(k => sessionStorage.removeItem(k));
       sessionStorage.setItem(SESSION_FLAG, '1');
     }
   }
@@ -33,8 +33,8 @@
       if (el.type === 'checkbox') el.checked = !!v; else el.value = v;
     });
   }
-  function save(){ if (!form) return; localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormData(form))); }
-  function load(){ const raw = localStorage.getItem(STORAGE_KEY); return raw ? safeJsonParse(raw, {}) : {}; }
+  function save(){ if (!form) return; sessionStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormData(form))); }
+  function load(){ const raw = sessionStorage.getItem(STORAGE_KEY); return raw ? safeJsonParse(raw, {}) : {}; }
 
   function validateAllVisible(frm){
     let firstInvalid = null;
