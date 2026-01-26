@@ -48,7 +48,7 @@
   function getSlumId() {
     // Prefer stored ID, then DOM, then default
     try {
-      const stored = localStorage.getItem('slumId');
+      const stored = sessionStorage.getItem('slumId');
       if (stored) return stored;
     } catch {}
     const idEl = document.querySelector('.slum-id');
