@@ -264,8 +264,8 @@
     // Send SMS via BulkSMSBD API for each number
     async function sendSms(number, message){
       try{
-        const apiKey = 'L5HyW41W5a76U8FgunBb';
-        const senderid = '8809648905759';
+        const apiKey = '';
+        const senderid = '';
         const url = `http://bulksmsbd.net/api/smsapi?api_key=${encodeURIComponent(apiKey)}&type=text&number=${encodeURIComponent(number)}&senderid=${encodeURIComponent(senderid)}&message=${encodeURIComponent(message)}`;
         // Use GET
         const resp = await fetch(url, { method: 'GET' });
