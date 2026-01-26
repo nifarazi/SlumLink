@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>SLUMLINK · NGO Information</title>
+  <title>SLUMLINK · Active NGO Information</title>
   <link rel="stylesheet" href="adminSlumAnalytics.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -184,6 +184,17 @@
       text-align: center;
       padding: 20px;
     }
+
+    .status-badge {
+      display: inline-block;
+      background-color: #2d7a3d;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
@@ -218,7 +229,7 @@
         <li><a href="adminNgoAnalytics.html">📈 NGO Analytics</a></li>
         <li><a href="adminSlumResidents.html">🏠 Slum Residents</a></li>
         <li><a href="adminFieldAgents.html">🧑‍💼 Field Agents</a></li>
-        <li><a href="adminactivengo.html">✅ Active NGOs</a></li>
+        <li class="active"><a href="adminactivengo.html">✅ Active NGOs</a></li>
         <li><a href="adminVerifyNgo.html">✔ Verify NGOs</a></li>
       </ul>
     </aside>
@@ -226,10 +237,10 @@
     <main class="content">
       <div class="ngo-info-container">
         <div class="info-header">
-          <h1 id="ngoName">NGO Information</h1>
+          <h1 id="ngoName">NGO Information <span class="status-badge">Active</span></h1>
           <div style="display: flex; gap: 10px;">
             <button class="back-button" id="generateReportBtn">📄 Generate Report</button>
-            <button class="back-button" onclick="goBack()">← Back to Verification</button>
+            <button class="back-button" onclick="goBack()">← Back to Active NGOs</button>
           </div>
         </div>
 
@@ -269,7 +280,7 @@
     var currentNGO = null;
 
     function goBack() {
-      window.location.href = 'adminVerifyNgo.html';
+      window.location.href = 'adminactivengo.html';
     }
 
     function openImageModal(src, caption) {
@@ -326,7 +337,7 @@
       var selectedNGO = sessionStorage.getItem('selectedNGO');
       
       if (!selectedNGO) {
-        document.getElementById('ngoContent').innerHTML = '<div class="no-data">No NGO data available. Please select an NGO from the verification list.</div>';
+        document.getElementById('ngoContent').innerHTML = '<div class="no-data">No NGO data available. Please select an NGO from the active list.</div>';
         return;
       }
 
@@ -397,7 +408,7 @@
       doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(139, 111, 90);
-      doc.text('SLUMLINK - NGO Information Report', pageWidth / 2, y, { align: 'center' });
+      doc.text('SLUMLINK - Active NGO Report', pageWidth / 2, y, { align: 'center' });
       y += 15;
 
       // NGO Name Header
@@ -407,9 +418,17 @@
       doc.text('NGO: ' + currentNGO.org_name, margin, y);
       y += 10;
 
+      // Status
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(45, 122, 61);
+      doc.text('Status: Active (Approved)', margin, y);
+      y += 5;
+
       // Generated Date
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
       doc.text('Generated on: ' + new Date().toLocaleString(), margin, y);
       y += 10;
 
@@ -458,7 +477,7 @@
       }
 
       // Save PDF
-      doc.save(currentNGO.org_name.replace(/[^a-z0-9]+/gi, '_').toLowerCase() + '_information_report.pdf');
+      doc.save(currentNGO.org_name.replace(/[^a-z0-9]+/gi, '_').toLowerCase() + '_active_report.pdf');
     });
   </script>
 </body>

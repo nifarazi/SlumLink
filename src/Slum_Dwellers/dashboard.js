@@ -46,7 +46,7 @@
 // Populate top profile bar from localStorage (current signed-in user)
 (function(){
   function safeJsonParse(raw, fallback){ try { return JSON.parse(raw); } catch { return fallback; } }
-  const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
+  const currentRaw = sessionStorage.getItem('SLUMLINK_CURRENT_USER');
   const current = currentRaw ? safeJsonParse(currentRaw, null) : null;
   if (!current) return;
 
@@ -58,7 +58,7 @@
   const displayName = current.name || '';
   const displayPhone = current.mobile ? ('Phone: ' + current.mobile) : '';
   // Prefer an explicit stored Slum ID, else use the user's id
-  const storedSlumId = localStorage.getItem('slumId');
+  const storedSlumId = sessionStorage.getItem('slumId');
   const displaySlumId = storedSlumId || current.id || '';
 
   if (nameEl) nameEl.textContent = displayName || '—';
@@ -67,8 +67,8 @@
   if (welcomeEl) welcomeEl.textContent = 'Welcome Back, ' + (displayName || '');
 
   // Persist Slum ID for use in QR and elsewhere
-  if (displaySlumId) {
-    localStorage.setItem('slumId', displaySlumId);
+    if (displaySlumId) {
+    sessionStorage.setItem('slumId', displaySlumId);
   }
 })();
 
@@ -80,7 +80,7 @@
     const txt = (idEl.textContent || '').trim();
     const m = txt.match(/Slum ID:\s*(\S+)/i);
     if (m && m[1]) {
-      localStorage.setItem('slumId', m[1]);
+      sessionStorage.setItem('slumId', m[1]);
     }
   } catch {}
 })();
@@ -227,11 +227,11 @@
   // Build the Recent Complaint list for the current user only (no static fallback)
   let complaints = [];
   try {
-    const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
+    const currentRaw = sessionStorage.getItem('SLUMLINK_CURRENT_USER');
     const current = currentRaw ? JSON.parse(currentRaw) : null;
     const userId = current && current.id ? String(current.id) : '';
     if (userId) {
-      const byUserRaw = localStorage.getItem('submittedComplaintsByUser');
+      const byUserRaw = sessionStorage.getItem('submittedComplaintsByUser');
       const map = byUserRaw ? JSON.parse(byUserRaw) : {};
       const list = Array.isArray(map[userId]) ? map[userId] : [];
       // Newest first already; ensure at most two for the dashboard

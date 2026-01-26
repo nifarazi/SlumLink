@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 import ngoRoutes from "./routes/ngo.routes.js";
+import slumDwellerRoutes from "./routes/slumDweller.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,6 +39,7 @@ app.use(express.static(rootDir));
 
 // ✅ API Routes
 app.use("/api/ngo", ngoRoutes);
+app.use("/api/slum-dweller", slumDwellerRoutes);
 
 // ✅ Health check
 app.get("/api/health", (req, res) => {

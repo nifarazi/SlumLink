@@ -179,11 +179,11 @@ const incomeRangeOptions = [
 
 // Get current user and application data
 function getCurrentUserApp() {
-  const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
+  const currentRaw = sessionStorage.getItem('SLUMLINK_CURRENT_USER');
   const current = currentRaw ? safeJsonParse(currentRaw, null) : null;
   if (!current) return { current: null, app: null, apps: [], appIndex: -1 };
 
-  const appsRaw = localStorage.getItem('SLUMLINK_APPLICATIONS');
+  const appsRaw = sessionStorage.getItem('SLUMLINK_APPLICATIONS');
   const apps = appsRaw ? safeJsonParse(appsRaw, []) : [];
   const appIndex = apps.findIndex(a => String(a.id || '') === String(current.id || ''));
   const app = appIndex >= 0 ? apps[appIndex] : null;
@@ -193,7 +193,7 @@ function getCurrentUserApp() {
 
 // Save updated application back to localStorage
 function saveApplication(apps) {
-  localStorage.setItem('SLUMLINK_APPLICATIONS', JSON.stringify(apps));
+  sessionStorage.setItem('SLUMLINK_APPLICATIONS', JSON.stringify(apps));
 }
 
 // Populate profile data from localStorage for the signed-in user
@@ -1505,9 +1505,9 @@ function showPasswordChangeToast() {
     if (app && idx !== -1) {
       if (!app.data) app.data = {};
       app.data.pendingEditMember = true;
-      const apps = safeJsonParse(localStorage.getItem('SLUMLINK_APPLICATIONS'), []);
+      const apps = safeJsonParse(sessionStorage.getItem('SLUMLINK_APPLICATIONS'), []);
       apps[idx] = app;
-      localStorage.setItem('SLUMLINK_APPLICATIONS', JSON.stringify(apps));
+      sessionStorage.setItem('SLUMLINK_APPLICATIONS', JSON.stringify(apps));
     }
 
     hideConfirmationModal();

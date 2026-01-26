@@ -137,7 +137,7 @@
     const persistAndNavigate = (submission) => {
       try {
         // Append to submittedComplaints array (legacy/global)
-        const rawArr = localStorage.getItem('submittedComplaints');
+        const rawArr = sessionStorage.getItem('submittedComplaints');
         let arr = [];
         try {
           arr = rawArr ? JSON.parse(rawArr) || [] : [];
@@ -157,31 +157,31 @@
         // Put newest complaint at the top
         arr.unshift(entry);
         try {
-          localStorage.setItem('submittedComplaints', JSON.stringify(arr));
+          sessionStorage.setItem('submittedComplaints', JSON.stringify(arr));
         } catch (e) {
           // Likely quota exceeded due to large attachment; retry without attachment
           if (arr[0]) arr[0].attachment = '';
-          localStorage.setItem('submittedComplaints', JSON.stringify(arr));
+          sessionStorage.setItem('submittedComplaints', JSON.stringify(arr));
         }
 
         // Store complaint under the signed-in user as well
         try {
-          const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
+          const currentRaw = sessionStorage.getItem('SLUMLINK_CURRENT_USER');
           const current = currentRaw ? JSON.parse(currentRaw) : null;
           const userId = current && current.id ? String(current.id) : '';
           if (userId) {
-            const byUserRaw = localStorage.getItem('submittedComplaintsByUser');
+            const byUserRaw = sessionStorage.getItem('submittedComplaintsByUser');
             const map = byUserRaw ? JSON.parse(byUserRaw) : {};
             const list = Array.isArray(map[userId]) ? map[userId] : [];
             list.unshift(entry);
             map[userId] = list;
             try {
-              localStorage.setItem('submittedComplaintsByUser', JSON.stringify(map));
+              sessionStorage.setItem('submittedComplaintsByUser', JSON.stringify(map));
             } catch (e2) {
               // Retry without attachment for this user's list if quota exceeded
               if (list[0]) list[0].attachment = '';
               map[userId] = list;
-              localStorage.setItem('submittedComplaintsByUser', JSON.stringify(map));
+              sessionStorage.setItem('submittedComplaintsByUser', JSON.stringify(map));
             }
           }
         } catch (e) {
@@ -197,7 +197,7 @@
           attachmentName: submission.attachmentName || '',
           createdAt: new Date().toISOString()
         };
-        localStorage.setItem('lastSubmittedComplaint', JSON.stringify(slimLast));
+        sessionStorage.setItem('lastSubmittedComplaint', JSON.stringify(slimLast));
 
         // Show success popup (matching sign-in design) and then redirect
         try {
