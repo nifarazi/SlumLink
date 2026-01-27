@@ -124,3 +124,45 @@ drop table spouses;
 drop table children;
 drop table slum_dwellers;
 
+-- Fix for the slum_dwellers trigger error
+-- Drop the problematic AFTER INSERT trigger
+DROP TRIGGER IF EXISTS trg_slum_dwellers_after_insert;
+
+-- Create a new BEFORE INSERT trigger that sets slum_code before insertion
+DELIMITER $$
+CREATE TRIGGER trg_slum_dwellers_before_insert
+BEFORE INSERT ON slum_dwellers
+FOR EACH ROW
+BEGIN
+  -- We can't use NEW.id because it's not assigned yet (AUTO_INCREMENT)
+  -- So we'll use a different approach: set slum_code to NULL and update after
+  -- Actually, let's compute the next ID value
+  DECLARE next_id BIGINT;
+  
+  SELECT IFNULL(MAX(id), 0) + 1 INTO next_id FROM slum_dwellers;
+  SET NEW.slum_code = CONCAT('SR', LPAD(next_id, 6, '0'));
+END$$
+DELIMITER ;
+
+
+-- Add documents table for tracking new document uploads by residents
+CREATE TABLE IF NOT EXISTS documents (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  slum_id VARCHAR(8) NOT NULL,
+  document_type VARCHAR(100) NOT NULL, -- 'marriage_certificate', 'birth_certificate', 'nid_scan', etc.
+  document_title VARCHAR(150),
+  file_blob LONGBLOB NOT NULL,
+  file_mimetype VARCHAR(100),
+  file_size BIGINT UNSIGNED,
+  status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  reviewed_by VARCHAR(150), -- Admin email or name
+  reviewed_at TIMESTAMP NULL,
+  rejection_reason TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (slum_id) REFERENCES slum_dwellers(slum_code) ON DELETE CASCADE,
+  INDEX idx_slum_status (slum_id, status),
+  INDEX idx_status (status),
+  INDEX idx_created_at (created_at)
+);
