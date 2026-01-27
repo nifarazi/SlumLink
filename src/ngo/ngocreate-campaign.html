@@ -470,11 +470,19 @@
               </div>
             </div>
 
-            <!-- DATE -->
+            <!-- START DATE -->
             <div class="field">
-              <label for="date">Date</label>
+              <label for="startDate">Start Date</label>
               <div class="control">
-                <input id="date" name="date" type="date" required />
+                <input id="startDate" name="startDate" type="date" required />
+              </div>
+            </div>
+
+            <!-- END DATE -->
+            <div class="field">
+              <label for="endDate">End Date</label>
+              <div class="control">
+                <input id="endDate" name="endDate" type="date" required />
               </div>
             </div>
 
@@ -483,26 +491,6 @@
               <label for="time">Time</label>
               <div class="control">
                 <input id="time" name="time" type="time" required />
-              </div>
-            </div>
-
-            <!-- DURATION -->
-            <div class="field">
-              <label for="duration">Duration</label>
-              <div class="control">
-                <select id="duration" name="duration" required>
-                  <option value="">Select</option>
-                  <option value="30_mins">30 minutes</option>
-                  <option value="1_hour">1 hour</option>
-                  <option value="2_hours">2 hours</option>
-                  <option value="3_hours">3 hours</option>
-                  <option value="half_day">Half day (4-6 hours)</option>
-                  <option value="full_day">Full day (8+ hours)</option>
-                  <option value="multiple_days">Multiple days</option>
-                  <option value="weekly">Weekly event</option>
-                  <option value="monthly">Monthly event</option>
-                </select>
-                <i class="fas fa-chevron-down ic-right" aria-hidden="true"></i>
               </div>
             </div>
 
@@ -702,7 +690,8 @@
       const title = getValue("title");
       const category = getValue("category");
       const slum = getValue("slum");
-      const date = getValue("date");
+      const startDate = getValue("startDate");
+      const endDate = getValue("endDate");
       const time = getValue("time");
       const gender = getValue("gender");
       const ageGroup = getValue("ageGroup");
@@ -712,7 +701,8 @@
       document.getElementById("title").setCustomValidity("");
       document.getElementById("category").setCustomValidity("");
       document.getElementById("slum").setCustomValidity("");
-      document.getElementById("date").setCustomValidity("");
+      document.getElementById("startDate").setCustomValidity("");
+      document.getElementById("endDate").setCustomValidity("");
       document.getElementById("time").setCustomValidity("");
       document.getElementById("gender").setCustomValidity("");
       document.getElementById("ageGroup").setCustomValidity("");
@@ -732,8 +722,16 @@
         document.getElementById("slum").setCustomValidity("Please fill out this field.");
         return false;
       }
-      if(!date) {
-        document.getElementById("date").setCustomValidity("Please fill out this field.");
+      if(!startDate) {
+        document.getElementById("startDate").setCustomValidity("Please fill out this field.");
+        return false;
+      }
+      if(!endDate) {
+        document.getElementById("endDate").setCustomValidity("Please fill out this field.");
+        return false;
+      }
+      if(endDate < startDate) {
+        document.getElementById("endDate").setCustomValidity("To Date must be on or after From Date.");
         return false;
       }
       if(!time) {
@@ -784,9 +782,12 @@
       const title = getValue("title");
       const categoryText = categoryEl.options[categoryEl.selectedIndex].text;
       const slumText = document.getElementById("slum").options[document.getElementById("slum").selectedIndex].text;
+      const startDate = getValue("startDate");
+      const endDate = getValue("endDate");
 
       confirmBody.innerHTML = `
         You're about to create <b>${title}</b> in <b>${categoryText}</b> for <b>${slumText}</b>.<br/>
+        Dates: <b>${startDate}</b> → <b>${endDate}</b>.<br/>
         Do you want to continue?
       `;
 
