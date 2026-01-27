@@ -130,6 +130,56 @@ export const registerSlumDweller = async (req, res) => {
           certBuffer
         ];
         await connection.query(childSql, childValues);
+
+        // Also insert birth certificate as a document if it exists
+        if (certBuffer) {
+          const mimetypeMatch = child.birthCertificate?.match(/^data:([^;]+)/) || [];
+          const mimetype = mimetypeMatch[1] || 'application/octet-stream';
+          
+          const docSql = `
+            INSERT INTO documents 
+            (slum_id, document_type, document_title, file_blob, file_mimetype, file_size, status)
+            VALUES (?, ?, ?, ?, ?, ?, 'pending')
+          `;
+          const docValues = [
+            slumCode,
+            'Birth Certificate',
+            `${child.name} - Birth Certificate`,
+            certBuffer,
+            mimetype,
+            certBuffer.length
+          ];
+          await connection.query(docSql, docValues);
+          console.log('📄 Birth certificate uploaded for child:', child.name);
+        }
+      }
+    }
+
+    // Also insert marriage certificates as documents
+    if (spouses && Array.isArray(spouses) && spouses.length > 0) {
+      for (let idx = 0; idx < spouses.length; idx++) {
+        const spouse = spouses[idx];
+        const certBuffer = dataUrlToBuffer(spouse.marriageCertificate);
+        if (certBuffer) {
+          const mimetypeMatch = spouse.marriageCertificate?.match(/^data:([^;]+)/) || [];
+          const mimetype = mimetypeMatch[1] || 'application/octet-stream';
+          
+          const docSql = `
+            INSERT INTO documents 
+            (slum_id, document_type, document_title, file_blob, file_mimetype, file_size, status)
+            VALUES (?, ?, ?, ?, ?, ?, 'pending')
+          `;
+          const docValues = [
+            slumCode,
+            'Marriage Certificate',
+            `${spouse.name} - Marriage Certificate`,
+            certBuffer,
+            mimetype,
+            certBuffer.length
+          ];
+          await connection.query(docSql, docValues);
+          console.log('📄 Marriage certificate uploaded for spouse:', spouse.name);
+        }
       }
     }
 
@@ -151,6 +201,234 @@ export const registerSlumDweller = async (req, res) => {
     return res.status(500).json({ 
       status: "error", 
       message: "Registration failed. Please try again.",
+      error: error.message 
+    });
+  } finally {
+    connection.release();
+  }
+};
+
+// Get all pending slum dwellers
+export const getPendingSlumDwellers = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT id, slum_code, full_name, mobile, gender, education, occupation, income, area, district, division, created_at FROM slum_dwellers WHERE status = ? ORDER BY created_at DESC',
+      ['pending']
+    );
+    
+    console.log('📋 Retrieved pending slum dwellers:', rows.length);
+    return res.json({
+      status: "success",
+      data: rows || []
+    });
+  } catch (error) {
+    console.error("❌ Error fetching pending slum dwellers:", error);
+    return res.status(500).json({ 
+      status: "error", 
+      message: "Failed to fetch pending accounts.",
+      error: error.message 
+    });
+  }
+};
+
+// Get all active slum dwellers
+export const getActiveSlumDwellers = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT id, slum_code, full_name, mobile, gender, education, occupation, income, area, district, division, created_at FROM slum_dwellers WHERE status = ? ORDER BY created_at DESC',
+      ['accepted']
+    );
+    
+    console.log('📋 Retrieved active slum dwellers:', rows.length);
+    return res.json({
+      status: "success",
+      data: rows || []
+    });
+  } catch (error) {
+    console.error("❌ Error fetching active slum dwellers:", error);
+    return res.status(500).json({ 
+      status: "error", 
+      message: "Failed to fetch active accounts.",
+      error: error.message 
+    });
+  }
+};
+
+// Get single slum dweller with spouse and children
+export const getSlumDwellerById = async (req, res) => {
+  const { id } = req.params;
+  const connection = await pool.getConnection();
+  
+  try {
+    // Get main resident info
+    const [dwellerRows] = await connection.query(
+      'SELECT * FROM slum_dwellers WHERE id = ?',
+      [id]
+    );
+
+    if (!dwellerRows || dwellerRows.length === 0) {
+      return res.status(404).json({ 
+        status: "error", 
+        message: "Resident not found." 
+      });
+    }
+
+    const resident = dwellerRows[0];
+    const slumCode = resident.slum_code;
+
+    // Get spouses
+    const [spouseRows] = await connection.query(
+      'SELECT * FROM spouses WHERE slum_id = ?',
+      [slumCode]
+    );
+
+    // Get children
+    const [childrenRows] = await connection.query(
+      'SELECT * FROM children WHERE slum_id = ?',
+      [slumCode]
+    );
+
+    console.log('👤 Retrieved resident:', resident.full_name);
+
+    return res.json({
+      status: "success",
+      data: {
+        resident,
+        spouses: spouseRows || [],
+        children: childrenRows || []
+      }
+    });
+  } catch (error) {
+    console.error("❌ Error fetching resident:", error);
+    return res.status(500).json({ 
+      status: "error", 
+      message: "Failed to fetch resident details.",
+      error: error.message 
+    });
+  } finally {
+    connection.release();
+  }
+};
+
+// Approve pending slum dweller (change status to 'accepted')
+export const approveSlumDweller = async (req, res) => {
+  const { id } = req.params;
+  const connection = await pool.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+
+    // Get slum_code first
+    const [dwellerRows] = await connection.query(
+      'SELECT slum_code FROM slum_dwellers WHERE id = ?',
+      [id]
+    );
+
+    if (!dwellerRows || dwellerRows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ 
+        status: "error", 
+        message: "Resident not found." 
+      });
+    }
+
+    const slumCode = dwellerRows[0].slum_code;
+
+    // Update slum_dweller status to 'accepted'
+    await connection.query(
+      'UPDATE slum_dwellers SET status = ? WHERE id = ?',
+      ['accepted', id]
+    );
+
+    // Update all spouses status to 'active'
+    await connection.query(
+      'UPDATE spouses SET status = ? WHERE slum_id = ?',
+      ['active', slumCode]
+    );
+
+    // Update all children status to 'active'
+    await connection.query(
+      'UPDATE children SET status = ? WHERE slum_id = ?',
+      ['active', slumCode]
+    );
+
+    await connection.commit();
+
+    console.log('✅ Approved slum dweller:', id);
+
+    return res.json({
+      status: "success",
+      message: "Account approved successfully."
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error("❌ Error approving slum dweller:", error);
+    return res.status(500).json({ 
+      status: "error", 
+      message: "Failed to approve account.",
+      error: error.message 
+    });
+  } finally {
+    connection.release();
+  }
+};
+
+// Reject/Delete slum dweller
+export const rejectSlumDweller = async (req, res) => {
+  const { id } = req.params;
+  const connection = await pool.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+
+    // Get slum_code first
+    const [dwellerRows] = await connection.query(
+      'SELECT slum_code FROM slum_dwellers WHERE id = ?',
+      [id]
+    );
+
+    if (!dwellerRows || dwellerRows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ 
+        status: "error", 
+        message: "Resident not found." 
+      });
+    }
+
+    const slumCode = dwellerRows[0].slum_code;
+
+    // Delete spouses first (due to foreign key)
+    await connection.query(
+      'DELETE FROM spouses WHERE slum_id = ?',
+      [slumCode]
+    );
+
+    // Delete children (due to foreign key)
+    await connection.query(
+      'DELETE FROM children WHERE slum_id = ?',
+      [slumCode]
+    );
+
+    // Delete slum_dweller
+    await connection.query(
+      'DELETE FROM slum_dwellers WHERE id = ?',
+      [id]
+    );
+
+    await connection.commit();
+
+    console.log('✅ Rejected/deleted slum dweller:', id);
+
+    return res.json({
+      status: "success",
+      message: "Account rejected and deleted successfully."
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error("❌ Error rejecting slum dweller:", error);
+    return res.status(500).json({ 
+      status: "error", 
+      message: "Failed to reject account.",
       error: error.message 
     });
   } finally {

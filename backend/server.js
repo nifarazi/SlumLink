@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 
 import ngoRoutes from "./routes/ngo.routes.js";
 import slumDwellerRoutes from "./routes/slumDweller.routes.js";
+import documentRoutes from "./routes/document.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,9 +20,9 @@ const PREFERRED_PORT = Number(process.env.SERVER_PORT) || 5001;
 // ✅ CORS (not required in Option B but okay)
 app.use(cors());
 
-// ✅ JSON body parsing (file uploads won't use this)
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// ✅ JSON body parsing - increase limit for document uploads (base64 encoded)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // ✅ Serve frontend files from ROOT project
 const rootDir = path.resolve(__dirname, "..");
@@ -40,10 +41,32 @@ app.use(express.static(rootDir));
 // ✅ API Routes
 app.use("/api/ngo", ngoRoutes);
 app.use("/api/slum-dweller", slumDwellerRoutes);
+app.use("/api/documents", documentRoutes);
 
 // ✅ Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Server is running" });
+});
+
+// ✅ Debug endpoint - Show all documents
+app.get("/api/debug/documents", async (req, res) => {
+  try {
+    const [docs] = await (await import("mysql2/promise")).createConnection({
+      host: process.env.DB_HOST || "localhost",
+      port: Number(process.env.DB_PORT || 3306),
+      user: process.env.DB_USER || "root",
+      password: process.env.DB_PASSWORD || "nanjiba@282002",
+      database: process.env.DB_NAME || "slumlink",
+    }).then(conn => {
+      return Promise.all([
+        conn.query('SELECT id, slum_id, document_type, status FROM documents LIMIT 20'),
+        conn.end()
+      ]);
+    });
+    res.json({ documents: docs[0] });
+  } catch (error) {
+    res.json({ error: error.message });
+  }
 });
 
 // ✅ Default home
