@@ -1,11 +1,13 @@
 import express from "express";
 import { 
   registerSlumDweller,
+  signinSlumDweller,
   getPendingSlumDwellers,
   getActiveSlumDwellers,
   getSlumDwellerById,
   approveSlumDweller,
-  rejectSlumDweller
+  rejectSlumDweller,
+  getCurrentUserProfile
 } from "../controllers/slumDweller.controller.js";
 
 const router = express.Router();
@@ -13,13 +15,19 @@ const router = express.Router();
 // POST /api/slum-dweller/register
 router.post("/register", registerSlumDweller);
 
+// POST /api/slum-dweller/signin
+router.post("/signin", signinSlumDweller);
+
 // GET /api/slum-dweller/pending
 router.get("/pending", getPendingSlumDwellers);
 
 // GET /api/slum-dweller/active
 router.get("/active", getActiveSlumDwellers);
 
-// GET /api/slum-dweller/:id
+// GET /api/slum-dweller/profile/:id (for dashboard - lightweight)
+router.get("/profile/:id", getCurrentUserProfile);
+
+// GET /api/slum-dweller/:id (full details with spouse and children)
 router.get("/:id", getSlumDwellerById);
 
 // PATCH /api/slum-dweller/:id/approve

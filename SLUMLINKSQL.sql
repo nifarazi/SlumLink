@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS spouses (
 
 
 -- Children records. Same lifecycle as spouses.
-drop TABLE IF EXISTS children;
+
 CREATE TABLE IF NOT EXISTS children (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   slum_id VARCHAR(8) DEFAULT NULL,
