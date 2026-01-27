@@ -276,5 +276,29 @@ CREATE TABLE IF NOT EXISTS distribution_entries (
   INDEX idx_campaign_history (campaign_id, distributed_at)
 );
 
-
-
+-- ==================================================
+-- Complaints table
+-- ==================================================
+CREATE TABLE IF NOT EXISTS complaints (
+  complaint_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  slum_id VARCHAR(8) NOT NULL,
+  title VARCHAR(200) NOT NULL,
+  category VARCHAR(100) NOT NULL,
+  description TEXT NOT NULL,
+  location VARCHAR(150) NOT NULL,
+  attachment_filename VARCHAR(255) NOT NULL,
+  attachment_mimetype VARCHAR(100) NOT NULL,
+  attachment_size BIGINT UNSIGNED NOT NULL,
+  attachment_file LONGBLOB NOT NULL,
+  status ENUM('pending', 'in progress', 'resolved') NOT NULL DEFAULT 'pending',
+  responded_by VARCHAR(150) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  CONSTRAINT fk_complaint_dweller
+    FOREIGN KEY (slum_id) REFERENCES slum_dwellers(slum_code) ON DELETE CASCADE,
+  
+  INDEX idx_complaint_slum (slum_id),
+  INDEX idx_complaint_status (status),
+  INDEX idx_complaint_created (created_at DESC)
+);
