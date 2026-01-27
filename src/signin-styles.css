@@ -260,6 +260,16 @@ body {
   font-weight: 300;
 }
 
+/* Error text */
+.form-error {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  color: #c41e3a;
+  font-weight: 500;
+}
+
 /* Password wrapper */
 .password-wrapper {
   position: relative;

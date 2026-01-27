@@ -44,22 +44,27 @@
 })();
 
 // Populate top profile bar from localStorage (current signed-in user)
+// Also fetch fresh data from backend to update the display
 (function(){
   function safeJsonParse(raw, fallback){ try { return JSON.parse(raw); } catch { return fallback; } }
-  const currentRaw = sessionStorage.getItem('SLUMLINK_CURRENT_USER');
+  const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
   const current = currentRaw ? safeJsonParse(currentRaw, null) : null;
-  if (!current) return;
+  
+  if (!current) {
+    // No user data, redirect to sign-in
+    window.location.href = '/src/signin.html?role=dweller';
+    return;
+  }
 
   const nameEl = document.querySelector('.profile-text .name');
   const phoneEl = document.querySelector('.profile-text .phone');
   const slumIdEl = document.querySelector('.slum-id');
   const welcomeEl = document.querySelector('.welcome-title');
 
+  // Display stored data first (immediate feedback)
   const displayName = current.name || '';
   const displayPhone = current.mobile ? ('Phone: ' + current.mobile) : '';
-  // Prefer an explicit stored Slum ID, else use the user's id
-  const storedSlumId = sessionStorage.getItem('slumId');
-  const displaySlumId = storedSlumId || current.id || '';
+  const displaySlumId = current.slum_code || '';
 
   if (nameEl) nameEl.textContent = displayName || '—';
   if (phoneEl) phoneEl.textContent = displayPhone || 'Phone: —';
@@ -67,8 +72,50 @@
   if (welcomeEl) welcomeEl.textContent = 'Welcome Back, ' + (displayName || '');
 
   // Persist Slum ID for use in QR and elsewhere
-    if (displaySlumId) {
+  if (displaySlumId) {
     sessionStorage.setItem('slumId', displaySlumId);
+  }
+
+  // Fetch fresh data from backend to ensure it's up to date
+  if (current.id) {
+    fetch(`/api/slum-dweller/profile/${current.id}`)
+      .then(async (r) => {
+        if (!r.ok) {
+          console.warn('Failed to fetch fresh profile data');
+          return;
+        }
+        const response = await r.json();
+        if (response.status === 'success' && response.data) {
+          const freshData = response.data;
+          
+          // Update display with fresh data
+          const freshName = freshData.full_name || '';
+          const freshPhone = freshData.mobile ? ('Phone: ' + freshData.mobile) : '';
+          const freshSlumCode = freshData.slum_code || '';
+
+          if (nameEl) nameEl.textContent = freshName || '—';
+          if (phoneEl) phoneEl.textContent = freshPhone || 'Phone: —';
+          if (slumIdEl) slumIdEl.textContent = 'Slum ID: ' + (freshSlumCode || '—');
+          if (welcomeEl) welcomeEl.textContent = 'Welcome Back, ' + (freshName || '');
+
+          // Update localStorage with fresh data
+          localStorage.setItem('SLUMLINK_CURRENT_USER', JSON.stringify({
+            id: freshData.id,
+            slum_code: freshData.slum_code,
+            name: freshData.full_name,
+            mobile: freshData.mobile
+          }));
+
+          // Update session storage for QR
+          if (freshSlumCode) {
+            sessionStorage.setItem('slumId', freshSlumCode);
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn('Error fetching fresh profile:', err);
+        // Continue with cached data if fetch fails
+      });
   }
 })();
 
@@ -227,7 +274,7 @@
   // Build the Recent Complaint list for the current user only (no static fallback)
   let complaints = [];
   try {
-    const currentRaw = sessionStorage.getItem('SLUMLINK_CURRENT_USER');
+    const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
     const current = currentRaw ? JSON.parse(currentRaw) : null;
     const userId = current && current.id ? String(current.id) : '';
     if (userId) {
