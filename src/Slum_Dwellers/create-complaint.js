@@ -134,41 +134,72 @@
   confirmBtn.addEventListener('click', () => {
     if (!pendingSubmission) { closeModal(); return; }
 
-    const persistAndNavigate = (submission) => {
+    const persistAndNavigate = async (submission) => {
       try {
-        // Append to submittedComplaints array (legacy/global)
-        const rawArr = sessionStorage.getItem('submittedComplaints');
-        let arr = [];
-        try {
-          arr = rawArr ? JSON.parse(rawArr) || [] : [];
-        } catch (_) {
-          arr = [];
+        // Get current user info
+        const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
+        const current = currentRaw ? JSON.parse(currentRaw) : null;
+        
+        if (!current || !current.slum_code) {
+          alert('User session not found. Please sign in again.');
+          window.location.href = '/src/signin.html?role=dweller';
+          return;
         }
 
-        const entry = {
-          title: submission.title || 'Complaint',
-          category: submission.category || 'General',
-          status: submission.status || 'Pending',
-          description: submission.description || '—',
-          attachment: submission.attachmentDataUrl || '',
-          attachmentName: submission.attachmentName || '',
-          createdAt: new Date().toISOString()
+        // Prepare complaint data for backend
+        const complaintData = {
+          slum_id: current.slum_code,
+          title: submission.title,
+          category: submission.category,
+          description: submission.description,
+          attachment: submission.attachmentDataUrl
         };
-        // Put newest complaint at the top
-        arr.unshift(entry);
-        try {
-          sessionStorage.setItem('submittedComplaints', JSON.stringify(arr));
-        } catch (e) {
-          // Likely quota exceeded due to large attachment; retry without attachment
-          if (arr[0]) arr[0].attachment = '';
-          sessionStorage.setItem('submittedComplaints', JSON.stringify(arr));
+
+        // Submit to backend API
+        const response = await fetch('/api/complaints', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(complaintData)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to submit complaint');
         }
 
-        // Store complaint under the signed-in user as well
+        // Also store in sessionStorage for immediate display (legacy support)
         try {
-          const currentRaw = sessionStorage.getItem('SLUMLINK_CURRENT_USER');
-          const current = currentRaw ? JSON.parse(currentRaw) : null;
-          const userId = current && current.id ? String(current.id) : '';
+          const rawArr = sessionStorage.getItem('submittedComplaints');
+          let arr = [];
+          try {
+            arr = rawArr ? JSON.parse(rawArr) || [] : [];
+          } catch (_) {
+            arr = [];
+          }
+
+          const entry = {
+            title: submission.title || 'Complaint',
+            category: submission.category || 'General',
+            status: 'Pending',
+            description: submission.description || '—',
+            attachment: submission.attachmentDataUrl || '',
+            attachmentName: submission.attachmentName || '',
+            createdAt: new Date().toISOString()
+          };
+          
+          arr.unshift(entry);
+          try {
+            sessionStorage.setItem('submittedComplaints', JSON.stringify(arr));
+          } catch (e) {
+            if (arr[0]) arr[0].attachment = '';
+            sessionStorage.setItem('submittedComplaints', JSON.stringify(arr));
+          }
+
+          // Store complaint under the signed-in user as well
+          const userId = current.id ? String(current.id) : '';
           if (userId) {
             const byUserRaw = sessionStorage.getItem('submittedComplaintsByUser');
             const map = byUserRaw ? JSON.parse(byUserRaw) : {};
@@ -178,28 +209,16 @@
             try {
               sessionStorage.setItem('submittedComplaintsByUser', JSON.stringify(map));
             } catch (e2) {
-              // Retry without attachment for this user's list if quota exceeded
               if (list[0]) list[0].attachment = '';
               map[userId] = list;
               sessionStorage.setItem('submittedComplaintsByUser', JSON.stringify(map));
             }
           }
         } catch (e) {
-          console.warn('Failed to store per-user complaints:', e);
+          console.warn('Failed to store in sessionStorage:', e);
         }
 
-        // Maintain lastSubmittedComplaint for legacy behavior (not used for per-user views)
-        const slimLast = {
-          title: submission.title,
-          category: submission.category,
-          status: submission.status,
-          description: submission.description,
-          attachmentName: submission.attachmentName || '',
-          createdAt: new Date().toISOString()
-        };
-        sessionStorage.setItem('lastSubmittedComplaint', JSON.stringify(slimLast));
-
-        // Show success popup (matching sign-in design) and then redirect
+        // Show success popup
         try {
           const toast = document.createElement('div');
           toast.className = 'complaint-toast';
@@ -221,34 +240,29 @@
         closeModal();
         setTimeout(() => { window.location.href = './dashboard.html'; }, 1500);
       } catch (err) {
-        console.error('Failed to store complaint:', err);
-        alert('Failed to submit complaint.');
+        console.error('Failed to submit complaint:', err);
+        alert('Failed to submit complaint: ' + err.message);
         closeModal();
       }
     };
 
-    // If there is an evidence file, read it as a Data URL for download later
-    const MAX_INLINE_SIZE = 1024 * 1024; // 1MB limit for inline storage
+    // If there is an evidence file, read it as a Data URL for backend and display
     if (pendingFile) {
-      if (pendingFile.size > MAX_INLINE_SIZE) {
-        // Too large to store inline in localStorage; proceed without embedding
-        pendingSubmission.attachmentDataUrl = '';
+      const reader = new FileReader();
+      reader.onload = () => {
+        pendingSubmission.attachmentDataUrl = reader.result;
         persistAndNavigate(pendingSubmission);
-      } else {
-        const reader = new FileReader();
-        reader.onload = () => {
-          pendingSubmission.attachmentDataUrl = reader.result;
-          persistAndNavigate(pendingSubmission);
-        };
-        reader.onerror = () => {
-          console.warn('Failed to read attachment, submitting without file.');
-          pendingSubmission.attachmentDataUrl = '';
-          persistAndNavigate(pendingSubmission);
-        };
-        reader.readAsDataURL(pendingFile);
-      }
+      };
+      reader.onerror = () => {
+        console.warn('Failed to read attachment');
+        alert('Failed to read attachment file. Please try again.');
+        closeModal();
+      };
+      reader.readAsDataURL(pendingFile);
     } else {
-      persistAndNavigate(pendingSubmission);
+      // No file attached (shouldn't happen due to validation)
+      alert('Please attach an evidence file.');
+      closeModal();
     }
   });
 
