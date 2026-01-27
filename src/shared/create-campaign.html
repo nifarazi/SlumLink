@@ -1,4 +1,4 @@
-<!-- localauthority/create-campaign.html -->
+<!-- ngo/ngocreate-campaign.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -396,7 +396,7 @@
 </head>
 
 <body>
- <header class="topbar" aria-label="Header">
+  <header class="topbar" aria-label="Header">
   <div class="brand" id="brandBtn" aria-label="SlumLink Home" role="button" tabindex="0">
     <img
       src="/src/images/slum Logo.png"
@@ -405,13 +405,14 @@
     />
     <div class="brand-text">SLUMLINK</div>
   </div>
-  
+
   <!-- ✅ ONLY Back button -->
   <button class="pill-btn" id="backBtn" type="button" aria-label="Back to dashboard">
     <i class="fas fa-arrow-left" aria-hidden="true"></i>
     <span>Back to Dashboard</span>
   </button>
 </header>
+
 
   <main class="container">
     <section class="hero" aria-label="Create campaign intro">
@@ -606,7 +607,7 @@
         <div class="modal-title" id="successTitle">Campaign created</div>
       </div>
       <div class="modal-body">
-        Thank you for helping others. You’ll be taken back to the dashboard.
+        Thank you for helping others. You'll be taken back to the dashboard.
       </div>
       <div class="modal-actions">
         <button class="btn btn-primary" id="goDashboard" type="button">Back to Dashboard</button>
@@ -621,6 +622,28 @@
     const brandBtn = document.getElementById("brandBtn");
     const backBtn  = document.getElementById("backBtn");
 
+    function getRole(){
+      const params = new URLSearchParams(window.location.search);
+      return (params.get("role") || "").toLowerCase();
+    }
+
+    function getCampaignStorageKey(){
+      const role = getRole();
+      if(role === "ngo") return "ngoCampaigns";
+      // default: local authority
+      return "localAuthorityCampaigns";
+    }
+
+    function getBackLink(){
+      const params = new URLSearchParams(window.location.search);
+      const explicit = params.get("back");
+      if(explicit) return explicit;
+
+      const role = getRole();
+      if(role === "ngo") return "../ngo/ngo-dashboard.html";
+      return "../localauthority/local-dashboard.html";
+    }
+
     function goHome(){ window.location.href = "/"; }
     brandBtn.addEventListener("click", goHome);
     brandBtn.addEventListener("keydown", (e)=> {
@@ -628,7 +651,7 @@
     });
 
     backBtn.addEventListener("click", ()=> {
-      window.location.href = "./local-dashboard.html";
+      window.location.href = getBackLink();
     });
 
     // ===== Toast =====
@@ -730,7 +753,7 @@
         return false;
       }
       if(endDate < startDate) {
-        document.getElementById("endDate").setCustomValidity("End Date must be on or after Start Date.");
+        document.getElementById("endDate").setCustomValidity("To Date must be on or after From Date.");
         return false;
       }
       if(!time) {
@@ -785,7 +808,7 @@
       const endDate = getValue("endDate");
 
       confirmBody.innerHTML = `
-        You’re about to create <b>${title}</b> in <b>${categoryText}</b> for <b>${slumText}</b>.<br/>
+        You're about to create <b>${title}</b> in <b>${categoryText}</b> for <b>${slumText}</b>.<br/>
         Dates: <b>${startDate}</b> → <b>${endDate}</b>.<br/>
         Do you want to continue?
       `;
@@ -799,8 +822,8 @@
 
     confirmCreate.addEventListener("click", ()=>{
       closeModal(confirmModal);
-      
-      // Store campaign in localStorage
+
+      // Store campaign in localStorage (role-based key)
       const campaign = {
         id: Date.now().toString(),
         title: getValue("title"),
@@ -808,6 +831,7 @@
         slum: getValue("slum"),
         startDate: getValue("startDate"),
         endDate: getValue("endDate"),
+        // Backwards compatibility for older pages expecting campaign.date
         date: getValue("startDate"),
         time: getValue("time"),
         gender: getValue("gender"),
@@ -816,25 +840,25 @@
         skills: getValue("skills") || "",
         description: (document.getElementById("description").value || "").trim(),
         status: "pending",
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        createdByRole: getRole() || "localauthority"
       };
-      
-      // Get existing campaigns from localStorage
-      let campaigns = JSON.parse(localStorage.getItem("localAuthorityCampaigns")) || [];
+
+      const key = getCampaignStorageKey();
+      let campaigns = [];
+      try{
+        campaigns = JSON.parse(localStorage.getItem(key)) || [];
+        if(!Array.isArray(campaigns)) campaigns = [];
+      }catch{ campaigns = []; }
+
       campaigns.push(campaign);
-      localStorage.setItem("localAuthorityCampaigns", JSON.stringify(campaigns));
-      
-      console.log("Campaign saved:", campaign);
-      console.log("All campaigns:", campaigns);
-      
-      // Reset form
-      form.reset();
-      
+      localStorage.setItem(key, JSON.stringify(campaigns));
+
       openModal(successModal);
     });
 
     goDashboard.addEventListener("click", ()=> {
-      window.location.href = "./local-dashboard.html";
+      window.location.href = getBackLink();
     });
 
     document.addEventListener("keydown", (e)=>{

@@ -268,8 +268,21 @@
       flex-direction:column;
       justify-content:flex-start;
       gap: 12px;            /* ✅ tighter gap so it fits */
-      padding-top: 6px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 6px 12px 12px 8px;
       flex: 1;
+    }
+
+    .quick-actions .qa-list::-webkit-scrollbar{ width: 10px; }
+    .quick-actions .qa-list::-webkit-scrollbar-track{ background: transparent; }
+    .quick-actions .qa-list::-webkit-scrollbar-thumb{
+      background: rgba(164,98,77,0.22);
+      border-radius: 999px;
+      border: 3px solid rgba(255,244,230,0.92);
+    }
+    .quick-actions .qa-list::-webkit-scrollbar-thumb:hover{
+      background: rgba(164,98,77,0.34);
     }
 
     .qa-btn{
@@ -535,6 +548,7 @@
       .stats-grid{ grid-template-columns: repeat(2, 1fr); }
       .dashboard-grid{ grid-template-columns: 1fr; }
       .quick-actions{ height: auto; }
+      .quick-actions .qa-list{ overflow: visible; padding: 0; }
       .panel.recent-aid{ height: auto; }
       .recent-aid .aid-list{ overflow: visible; padding: 0; }
       .aid-item + .aid-item{ border-top: 1px solid rgba(97,55,41,0.10); }
@@ -640,6 +654,12 @@
             <span class="qa-ic"><i class="fas fa-triangle-exclamation"></i></span>
             <span>Complaint Checking</span>
           </button>
+
+          <!-- ✅ NEW: Aid Distribution (same feature as NGO dashboard) -->
+          <button class="qa-btn clickable" type="button" data-toast="Opening Aid Distribution">
+            <span class="qa-ic"><i class="fas fa-hand-holding-heart"></i></span>
+            <span>Aid Distribution</span>
+          </button>
         </div>
       </section>
 
@@ -735,7 +755,8 @@
     document.querySelector('button[data-toast="Navigating to Campaign Creation"]')?.addEventListener("click", (e)=>{
       e.preventDefault();
       e.stopPropagation();
-      window.location.href = "./create-campaign.html";
+      const back = encodeURIComponent("../localauthority/local-dashboard.html");
+      window.location.href = `../shared/create-campaign.html?role=localauthority&back=${back}`;
     });
 // ✅ Complaint Checking navigation
 document.querySelector('button[data-toast="Opening Complaint Checking"]')?.addEventListener("click", (e)=>{
@@ -747,7 +768,17 @@ document.querySelector('button[data-toast="Opening Complaint Checking"]')?.addEv
 document.querySelector('button[data-toast="View All Campaigns"]')?.addEventListener("click", (e)=>{
   e.preventDefault();
   e.stopPropagation();
-  window.location.href = "./viewcampaign.html";
+  const back = encodeURIComponent("../localauthority/local-dashboard.html");
+  window.location.href = `../shared/viewcampaign.html?back=${back}`;
+});
+
+// ✅ Aid Distribution navigation
+document.querySelector('button[data-toast="Opening Aid Distribution"]')?.addEventListener("click", (e)=>{
+  e.preventDefault();
+  e.stopPropagation();
+  // Shared Aid Distribution flow
+  const back = encodeURIComponent("../localauthority/local-dashboard.html");
+  window.location.href = `../shared/aid-distribution-setup.html?back=${back}`;
 });
 
     // Brand click (go to home)

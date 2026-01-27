@@ -5,7 +5,7 @@
    - Quantity shown only if aidType requires it
    - Optional comment
    - Confirm entry resets form for next family
-   - Finish distribution returns to ngo-dashboard.html
+  - Finish distribution returns to the provided back= URL
 ========================= */
 
 const API_BASE = ""; // "" if same origin
@@ -248,7 +248,7 @@ async function finishSession(sessionId){
 
 function getBackLink(){
   const params = new URLSearchParams(location.search);
-  return params.get("back") || "./ngo-dashboard.html";
+  return params.get("back") || "../localauthority/local-dashboard.html";
 }
 
 /* =========================

@@ -12,7 +12,7 @@ document.getElementById("brandBtn")?.addEventListener("click", ()=> window.locat
 
 function getBackLink(){
   const params = new URLSearchParams(location.search);
-  return params.get("back") || "./ngo-dashboard.html";
+  return params.get("back") || "../localauthority/local-dashboard.html";
 }
 
 backBtn?.addEventListener("click", ()=> {
@@ -155,7 +155,7 @@ startBtn.addEventListener("click", async ()=>{
   }));
 
   const params = new URLSearchParams(location.search);
-  const back = params.get("back") || "./ngo-dashboard.html";
+  const back = params.get("back") || getBackLink();
   window.location.href = `./aid-distribution-session.html?back=${encodeURIComponent(back)}`;
 });
 

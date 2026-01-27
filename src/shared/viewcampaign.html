@@ -156,7 +156,23 @@
   </main>
 
   <script>
-    function goDashboard(){ window.location.href = "./local-dashboard.html"; }
+    function getRole(){
+      const params = new URLSearchParams(window.location.search);
+      return (params.get("role") || "").toLowerCase();
+    }
+
+    function getCampaignStorageKey(){
+      const role = getRole();
+      if(role === "ngo") return "ngoCampaigns";
+      return "localAuthorityCampaigns";
+    }
+
+    function getBackLink(){
+      const params = new URLSearchParams(window.location.search);
+      return params.get("back") || (getRole() === "ngo" ? "../ngo/ngo-dashboard.html" : "../localauthority/local-dashboard.html");
+    }
+
+    function goDashboard(){ window.location.href = getBackLink(); }
 
     // Load campaigns from localStorage and static data
     function loadCampaigns(){
@@ -177,7 +193,7 @@
       // Get campaigns from localStorage
       let storedCampaigns = [];
       try {
-        storedCampaigns = JSON.parse(localStorage.getItem("localAuthorityCampaigns")) || [];
+        storedCampaigns = JSON.parse(localStorage.getItem(getCampaignStorageKey())) || [];
       } catch(e) {
         console.error("Error loading campaigns from localStorage:", e);
       }
@@ -221,10 +237,12 @@
     }
 
     function handleCampaignClick(campaignName, status){
+      const back = encodeURIComponent(getBackLink());
+      const role = encodeURIComponent(getRole());
       if(status === 'pending'){
-        window.location.href = `pendingcampaign.html?campaign=${encodeURIComponent(campaignName)}`;
+        window.location.href = `pendingcampaign.html?campaign=${encodeURIComponent(campaignName)}&back=${back}&role=${role}`;
       } else if(status === 'completed'){
-        window.location.href = `campaigndetails.html?campaign=${encodeURIComponent(campaignName)}`;
+        window.location.href = `campaigndetails.html?campaign=${encodeURIComponent(campaignName)}&back=${back}&role=${role}`;
       }
     }
 

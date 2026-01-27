@@ -18,14 +18,23 @@ document.getElementById("qaAnalytics")?.addEventListener("click", (e)=>{
 document.getElementById("qaCreateCampaign")?.addEventListener("click", (e)=>{
   e.preventDefault();
   e.stopPropagation();
-  window.location.href = "./ngocreate-campaign.html";
+  const back = encodeURIComponent("../ngo/ngo-dashboard.html");
+  window.location.href = `../shared/create-campaign.html?role=ngo&back=${back}`;
+});
+
+document.getElementById("qaViewCampaigns")?.addEventListener("click", (e)=>{
+  e.preventDefault();
+  e.stopPropagation();
+  const back = encodeURIComponent("../ngo/ngo-dashboard.html");
+  window.location.href = `../shared/viewcampaign.html?back=${back}`;
 });
 
 // ✅ NEW: Aid Distribution
 document.getElementById("qaAidDistribution")?.addEventListener("click", (e)=>{
   e.preventDefault();
   e.stopPropagation();
-  window.location.href = "./aid-distribution-setup.html?back=./ngo-dashboard.html";
+  const back = encodeURIComponent("../ngo/ngo-dashboard.html");
+  window.location.href = `../shared/aid-distribution-setup.html?back=${back}`;
 });
 
 document.getElementById("profileBtn")?.addEventListener("click", (e)=> {

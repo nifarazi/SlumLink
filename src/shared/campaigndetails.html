@@ -167,7 +167,11 @@
   function goHome(){ window.location.href = '/'; }
   brandBtn.addEventListener('click', goHome);
   brandBtn.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); goHome(); } });
-  backBtn.addEventListener('click', ()=>{ window.location.href = './viewcampaign.html'; });
+  backBtn.addEventListener('click', ()=>{
+    const params = new URLSearchParams(window.location.search);
+    const back = params.get('back');
+    window.location.href = back ? `./viewcampaign.html?back=${encodeURIComponent(back)}` : './viewcampaign.html';
+  });
 </script>
 
 </body>

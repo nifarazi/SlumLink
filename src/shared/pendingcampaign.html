@@ -329,8 +329,22 @@
 </div>
 
 <script>
+  function getBackLink(){
+    const params = new URLSearchParams(window.location.search);
+    return params.get("back") || "../localauthority/local-dashboard.html";
+  }
+
+  function getRole(){
+    const params = new URLSearchParams(window.location.search);
+    return (params.get("role") || "").toLowerCase();
+  }
+
+  function getCampaignStorageKey(){
+    return getRole() === "ngo" ? "ngoCampaigns" : "localAuthorityCampaigns";
+  }
+
   function goDashboard(){
-    window.location.href = "./local-dashboard.html";
+    window.location.href = getBackLink();
   }
 
   const form = document.querySelector(".form-card");
@@ -361,7 +375,7 @@
     const campaignTitle = params.get('campaign');
     if(!campaignTitle) return;
 
-    let campaigns = JSON.parse(localStorage.getItem("localAuthorityCampaigns")) || [];
+    let campaigns = JSON.parse(localStorage.getItem(getCampaignStorageKey())) || [];
     const campaign = campaigns.find(c => c.title === campaignTitle);
     if(!campaign) return;
 

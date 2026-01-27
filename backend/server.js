@@ -35,6 +35,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// ✅ Backward-compatible redirects (create-campaign moved to /src/shared)
+app.get("/src/localauthority/create-campaign.html", (req, res) => {
+  res.redirect(302, "/src/shared/create-campaign.html?role=localauthority");
+});
+
+app.get("/src/ngo/ngocreate-campaign.html", (req, res) => {
+  res.redirect(302, "/src/shared/create-campaign.html?role=ngo");
+});
+
 // ✅ Serve your front-end
 app.use(express.static(rootDir));
 
