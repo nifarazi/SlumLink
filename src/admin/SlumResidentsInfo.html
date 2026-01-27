@@ -210,6 +210,13 @@
   <script>
     let currentResident = null;
 
+    function formatDate(value) {
+      if (!value) return '-';
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return value;
+      return d.toISOString().split('T')[0];
+    }
+
     document.addEventListener('DOMContentLoaded', async function () {
       const mainContent = document.getElementById('mainContent');
       const params = new URLSearchParams(window.location.search);
@@ -267,7 +274,7 @@
             </div>
             <div class="info-item">
               <span class="info-label">Date of Birth</span>
-              <span class="info-value">${resident.dob || '-'}</span>
+              <span class="info-value">${formatDate(resident.dob)}</span>
             </div>
             <div class="info-item">
               <span class="info-label">Gender</span>
@@ -334,7 +341,7 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">Date of Birth</span>
-                  <span class="info-value">${spouse.dob || '-'}</span>
+                  <span class="info-value">${formatDate(spouse.dob)}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Gender</span>
@@ -381,7 +388,7 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">Date of Birth</span>
-                  <span class="info-value">${child.dob || '-'}</span>
+                  <span class="info-value">${formatDate(child.dob)}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Gender</span>
@@ -518,7 +525,12 @@
         modalTitle.textContent = doc.document_title || doc.document_type;
         
         if (doc.file_mimetype.startsWith('image/')) {
-          modalContent.innerHTML = `<img src="${doc.file_data}" alt="Document image">`;
+          modalContent.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 16px; align-items: center; padding: 10px 0;">
+              <img src="${doc.file_data}" alt="Document image" style="max-height: 500px; max-width: 100%; border-radius: 4px;" />
+              <a href="${doc.file_data}" download="${(doc.document_title || doc.document_type || 'document')}.png" style="display: inline-block; padding: 10px 20px; background: #7D5A3B; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">⬇ Download Image</a>
+            </div>
+          `;
         } else if (doc.file_mimetype === 'application/pdf') {
           modalContent.innerHTML = `
             <div style="padding: 20px;">
@@ -609,7 +621,7 @@
       addSection('Personal Information');
       addLine(`Name: ${resident.full_name || '-'}`);
       addLine(`Slum Code: ${resident.slum_code || '-'}`);
-      addLine(`Date of Birth: ${resident.dob || '-'}`);
+      addLine(`Date of Birth: ${formatDate(resident.dob)}`);
       addLine(`Gender: ${resident.gender || '-'}`);
       addLine(`NID: ${resident.nid || '-'}`);
       addLine(`Mobile: ${resident.mobile || '-'}`);
@@ -631,7 +643,7 @@
         spouses.forEach((spouse, idx) => {
           addLine(`Spouse ${idx + 1}:`, 12, true);
           addLine(`  Name: ${spouse.name || '-'}`);
-          addLine(`  Date of Birth: ${spouse.dob || '-'}`);
+          addLine(`  Date of Birth: ${formatDate(spouse.dob)}`);
           addLine(`  Gender: ${spouse.gender || '-'}`);
           addLine(`  NID: ${spouse.nid || '-'}`);
           addLine(`  Education: ${spouse.education || '-'}`);
@@ -648,7 +660,7 @@
         children.forEach((child, idx) => {
           addLine(`Child ${idx + 1}:`, 12, true);
           addLine(`  Name: ${child.name || '-'}`);
-          addLine(`  Date of Birth: ${child.dob || '-'}`);
+          addLine(`  Date of Birth: ${formatDate(child.dob)}`);
           addLine(`  Gender: ${child.gender || '-'}`);
           addLine(`  Education: ${child.education || '-'}`);
           addLine(`  Job: ${child.job || '-'}`);
