@@ -279,7 +279,7 @@ export const registerSlumDweller = async (req, res) => {
 export const getPendingSlumDwellers = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT id, slum_code, full_name, mobile, gender, education, occupation, income, area, district, division, created_at FROM slum_dwellers WHERE status = ? ORDER BY created_at DESC',
+      'SELECT id, slum_code, full_name, mobile, nid, gender, education, occupation, income, area, district, division, created_at FROM slum_dwellers WHERE status = ? ORDER BY created_at DESC',
       ['pending']
     );
     
@@ -302,7 +302,7 @@ export const getPendingSlumDwellers = async (req, res) => {
 export const getActiveSlumDwellers = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT id, slum_code, full_name, mobile, gender, education, occupation, income, area, district, division, created_at FROM slum_dwellers WHERE status = ? ORDER BY created_at DESC',
+      'SELECT id, slum_code, full_name, mobile, nid, gender, education, occupation, income, area, district, division, created_at FROM slum_dwellers WHERE status = ? ORDER BY created_at DESC',
       ['accepted']
     );
     
