@@ -166,3 +166,115 @@ CREATE TABLE IF NOT EXISTS documents (
   INDEX idx_status (status),
   INDEX idx_created_at (created_at)
 );
+
+
+CREATE TABLE IF NOT EXISTS campaigns (
+  campaign_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  org_id BIGINT UNSIGNED NOT NULL,
+
+  title VARCHAR(180) NOT NULL,
+  category VARCHAR(120) NOT NULL,
+  target_slum_area VARCHAR(150) NOT NULL,
+
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  start_time TIME NULL,
+
+  target_gender ENUM('Any','Male','Female','Others') NOT NULL DEFAULT 'Any',
+  age_group VARCHAR(60) NOT NULL,
+  description TEXT,
+
+  status ENUM('PENDING','IN_PROGRESS','COMPLETED','NOT_EXECUTED','CANCELLED')
+    NOT NULL DEFAULT 'PENDING',
+
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_campaign_org
+    FOREIGN KEY (org_id) REFERENCES organizations(org_id) ON DELETE CASCADE,
+
+  INDEX idx_campaign_org (org_id),
+  INDEX idx_campaign_status (status),
+  INDEX idx_campaign_dates (start_date, end_date)
+);
+
+-- Aid types
+CREATE TABLE IF NOT EXISTS aid_types (
+  aid_type_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(80) NOT NULL UNIQUE,
+  requires_quantity TINYINT(1) NOT NULL DEFAULT 0,
+  unit_label VARCHAR(40) NULL
+);
+
+INSERT IGNORE INTO aid_types (name, requires_quantity, unit_label) VALUES
+('Food', 1, 'pack'),
+('Clothing', 1, 'pcs'),
+('Medicine', 1, 'pcs'),
+('Cash', 1, 'BDT'),
+('Skill Training', 0, NULL),
+('Job Placement', 0, NULL);
+
+-- Distribution sessions (Start Distribution)
+CREATE TABLE IF NOT EXISTS distribution_sessions (
+  session_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+  campaign_id BIGINT UNSIGNED NOT NULL,
+  org_id BIGINT UNSIGNED NOT NULL,
+  aid_type_id INT UNSIGNED NOT NULL,
+
+  status ENUM('OPEN','CLOSED') NOT NULL DEFAULT 'OPEN',
+  started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  finished_at TIMESTAMP NULL,
+
+  performed_by VARCHAR(150) NULL,
+
+  CONSTRAINT fk_session_campaign
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id) ON DELETE CASCADE,
+
+  CONSTRAINT fk_session_org
+    FOREIGN KEY (org_id) REFERENCES organizations(org_id) ON DELETE CASCADE,
+
+  CONSTRAINT fk_session_aid_type
+    FOREIGN KEY (aid_type_id) REFERENCES aid_types(aid_type_id),
+
+  INDEX idx_session_campaign (campaign_id),
+  INDEX idx_session_org (org_id),
+  INDEX idx_session_status (status)
+);
+
+-- Distribution entries (Aid History)
+CREATE TABLE IF NOT EXISTS distribution_entries (
+  entry_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+  session_id BIGINT UNSIGNED NOT NULL,
+  campaign_id BIGINT UNSIGNED NOT NULL,
+  org_id BIGINT UNSIGNED NOT NULL,
+
+  family_code VARCHAR(8) NOT NULL,  
+  quantity INT UNSIGNED NULL,
+  comment VARCHAR(500) NULL,
+
+  distributed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  verification_method ENUM('CODE','QR') NOT NULL DEFAULT 'CODE',
+
+  CONSTRAINT fk_entry_session
+    FOREIGN KEY (session_id) REFERENCES distribution_sessions(session_id) ON DELETE CASCADE,
+
+  CONSTRAINT fk_entry_campaign
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id) ON DELETE CASCADE,
+
+  CONSTRAINT fk_entry_org
+    FOREIGN KEY (org_id) REFERENCES organizations(org_id) ON DELETE CASCADE,
+
+  CONSTRAINT fk_entry_family
+    FOREIGN KEY (family_code) REFERENCES slum_dwellers(slum_code) ON DELETE RESTRICT,
+
+  UNIQUE KEY uq_session_family (session_id, family_code),
+
+  INDEX idx_family_history (family_code, distributed_at),
+  INDEX idx_org_history (org_id, distributed_at),
+  INDEX idx_campaign_history (campaign_id, distributed_at)
+);
+
+
+
