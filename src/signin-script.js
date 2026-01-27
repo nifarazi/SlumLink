@@ -218,27 +218,58 @@ signinForm?.addEventListener("submit", (e) => {
 
   // Route based on role
   if (role === "ngo") {
-    // Show success toast then redirect to NGO Dashboard
-    try {
-      const toast = document.createElement('div');
-      toast.className = 'signin-toast';
-      toast.innerHTML = [
-        '<span class="icon" aria-hidden="true">',
-          '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
-            '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
-          '</svg>',
-        '</span>',
-        '<div class="toast-content">',
-          '<strong>Success</strong>',
-          '<div class="subtitle">You are signed in successfully</div>',
-        '</div>'
-      ].join('');
-      document.body.appendChild(toast);
-    } catch (err) {}
+    // ✅ NGO sign-in via backend (only accepted can proceed)
+    fetch("/api/ngo/signin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: identifier, password }),
+    })
+      .then(async (r) => {
+        const data = await r.json().catch(() => null);
 
-    setTimeout(() => {
-      window.location.href = "/src/ngo/ngo-dashboard.html";
-    }, 1500);
+        if (!r.ok) {
+          const msg = data?.message || "Unable to sign in. Please try again.";
+          showErrorNotification(msg);
+
+          // mark fields as error for better UX
+          identifierInput?.classList.add("has-error");
+          passwordInput?.classList.add("has-error");
+          return;
+        }
+
+        // success
+        try {
+          // store NGO info for later use (optional)
+          localStorage.setItem("SLUMLINK_NGO_SESSION", JSON.stringify(data.data));
+        } catch {}
+
+        // show success toast
+        try {
+          const toast = document.createElement("div");
+          toast.className = "signin-toast";
+          toast.innerHTML = [
+            '<span class="icon" aria-hidden="true">',
+            '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+            '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
+            "</svg>",
+            "</span>",
+            '<div class="toast-content">',
+            "<strong>Success</strong>",
+            '<div class="subtitle">You are signed in successfully</div>',
+            "</div>",
+          ].join("");
+          document.body.appendChild(toast);
+        } catch {}
+
+        setTimeout(() => {
+          window.location.href = "/src/ngo/ngo-dashboard.html";
+        }, 1200);
+      })
+      .catch(() => {
+        showErrorNotification("Network error. Please try again.");
+      });
+
+    return; // ✅ prevent falling into other role branches
   } else if (role === "admin") {
     // Show success toast then redirect to Admin Dashboard
     try {

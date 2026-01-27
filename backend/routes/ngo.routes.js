@@ -9,12 +9,16 @@ import {
   approveNGO,
   rejectNGO,
   deleteNGO,
+  signinNGO,
 } from "../controllers/ngo.controller.js";
 
 const router = express.Router();
 
 // POST /api/ngo/register
 router.post("/register", upload.single("license"), registerOrganization);
+
+// POST /api/ngo/signin
+router.post("/signin", signinNGO);
 
 // GET /api/ngo/pending - Get all pending NGOs
 router.get("/pending", getPendingNGOs);

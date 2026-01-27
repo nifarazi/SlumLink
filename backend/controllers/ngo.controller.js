@@ -322,3 +322,96 @@ export const deleteNGO = async (req, res) => {
     });
   }
 };
+
+export const signinNGO = async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+
+    if (!email || !password) {
+      return res.status(400).json({
+        status: "error",
+        message: "Email and password are required.",
+      });
+    }
+
+    const sql = `
+      SELECT org_id, org_name, email, status, password
+      FROM organizations
+      WHERE email = ?
+      LIMIT 1
+    `;
+
+    const [rows] = await pool.query(sql, [email.trim()]);
+    if (rows.length === 0) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid email or password.",
+      });
+    }
+
+    const org = rows[0];
+
+    // NOTE: currently password is stored in plain text in your table.
+    // If you later hash passwords, this compare must change to bcrypt.compare(...)
+    if (org.password !== password) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid email or password.",
+      });
+    }
+
+    // Status checks
+    if (org.status === "pending") {
+      return res.status(403).json({
+        status: "error",
+        code: "PENDING",
+        message:
+          "Your account is still under review. Please wait for admin verification. You’ll be able to sign in once your organization is approved.",
+      });
+    }
+
+    if (org.status === "suspended") {
+      return res.status(403).json({
+        status: "error",
+        code: "SUSPENDED",
+        message:
+          "Your account has been suspended. Sign-in access is currently disabled. Please contact support or the admin team for assistance.",
+      });
+    }
+
+    if (org.status === "rejected") {
+      return res.status(403).json({
+        status: "error",
+        code: "REJECTED",
+        message:
+          "Your registration was not approved. Your organization’s application has been rejected. If you believe this was a mistake, please contact the admin team for clarification.",
+      });
+    }
+
+    // Only accepted can sign in
+    if (org.status !== "accepted") {
+      return res.status(403).json({
+        status: "error",
+        code: "NOT_ALLOWED",
+        message: "Sign-in is not available for this account status.",
+      });
+    }
+
+    return res.json({
+      status: "success",
+      message: "Sign-in successful.",
+      data: {
+        org_id: org.org_id,
+        org_name: org.org_name,
+        email: org.email,
+        status: org.status,
+      },
+    });
+  } catch (err) {
+    console.error("NGO Signin Error:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while signing in.",
+    });
+  }
+};
