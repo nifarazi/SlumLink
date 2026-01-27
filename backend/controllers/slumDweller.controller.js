@@ -1,6 +1,73 @@
 import pool from "../db.js";
 import bcrypt from "bcrypt";
 
+// Signin controller for slum dwellers using slum_code and password
+export const signinSlumDweller = async (req, res) => {
+  try {
+    const { slum_code, password } = req.body;
+
+    // Validate required fields
+    if (!slum_code || !password) {
+      return res.status(400).json({
+        status: "error",
+        message: "Please provide both slum code and password."
+      });
+    }
+
+    // Query slum dweller by slum_code
+    const [dwellers] = await pool.query(
+      'SELECT id, slum_code, password_hash, full_name, mobile, status FROM slum_dwellers WHERE slum_code = ?',
+      [slum_code]
+    );
+
+    // Check if user exists
+    if (dwellers.length === 0) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid slum code or password"
+      });
+    }
+
+    const dweller = dwellers[0];
+
+    // Check if account is accepted/active
+    if (dweller.status !== 'accepted') {
+      return res.status(403).json({
+        status: "error",
+        message: `Your account is ${dweller.status}. Please wait for admin approval.`
+      });
+    }
+
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, dweller.password_hash);
+    if (!passwordMatch) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid slum code or password"
+      });
+    }
+
+    // Successful authentication
+    return res.json({
+      status: "success",
+      message: "Sign in successful",
+      data: {
+        id: dweller.id,
+        slum_code: dweller.slum_code,
+        full_name: dweller.full_name,
+        mobile: dweller.mobile
+      }
+    });
+
+  } catch (error) {
+    console.error("Slum Dweller Signin Error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while signing in."
+    });
+  }
+};
+
 // Helper function to convert Data URL to Buffer for BLOB storage
 function dataUrlToBuffer(dataUrl) {
   if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) {
@@ -433,5 +500,46 @@ export const rejectSlumDweller = async (req, res) => {
     });
   } finally {
     connection.release();
+  }
+};
+
+// Get current user's profile (for dashboard)
+export const getCurrentUserProfile = async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    // Get main resident info (basic fields for dashboard)
+    const [dwellerRows] = await pool.query(
+      'SELECT id, slum_code, full_name, mobile, status FROM slum_dwellers WHERE id = ? AND status = ?',
+      [id, 'accepted']
+    );
+
+    if (!dwellerRows || dwellerRows.length === 0) {
+      return res.status(404).json({ 
+        status: "error", 
+        message: "User not found or account not active." 
+      });
+    }
+
+    const user = dwellerRows[0];
+
+    console.log('👤 Retrieved user profile for dashboard:', user.full_name);
+
+    return res.json({
+      status: "success",
+      data: {
+        id: user.id,
+        slum_code: user.slum_code,
+        full_name: user.full_name,
+        mobile: user.mobile
+      }
+    });
+  } catch (error) {
+    console.error("❌ Error fetching user profile:", error);
+    return res.status(500).json({ 
+      status: "error", 
+      message: "Failed to fetch user profile.",
+      error: error.message 
+    });
   }
 };

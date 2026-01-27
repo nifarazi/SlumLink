@@ -15,9 +15,9 @@ const roleConfig = {
     showSignup: false
   },
   dweller: {
-    label: "Username",
-    placeholder: "e.g., hasan123",
-    hint: "Enter your Slum Dweller username.",
+    label: "Slum Code",
+    placeholder: "e.g., SR000123",
+    hint: "Enter your assigned Slum Code.",
     showSignup: true,
     signupLinkText: "Sign up",
     signupHref: "/src/Slum_SignUp/signup.html"
@@ -315,89 +315,78 @@ signinForm?.addEventListener("submit", (e) => {
       window.location.href = "/src/localauthority/local-dashboard.html";
     }, 1500);
   } else if (role === "dweller") {
-    // Validate Slum Dweller credentials against localStorage and hardcoded accounts
-    const validUser = "hasan123";
-    const validPass = "123456";
+    // Authenticate Slum Dweller using slum_code and password via backend
+    const loginError = document.getElementById("loginError");
     
-    // Check hardcoded account first
-    let authenticated = (identifier === validUser && password === validPass);
-    let loggedInApp = null;
-    
-    // If not authenticated, check approved accounts from localStorage
-    if (!authenticated) {
-      try {
-        const LIST_KEY = 'SLUMLINK_APPLICATIONS';
-        const stored = localStorage.getItem(LIST_KEY);
-        if (stored) {
-          const applications = JSON.parse(stored);
-          const approvedApps = applications.filter(app => app.status === 'approved');
-          
-          // Check if credentials match any approved account using signup username/password
-          loggedInApp = approvedApps.find(app => {
-            const account = app.account;
-            if (!account) return false;
-            
-            // Match username and password from signup
-            return (
-              account.username === identifier &&
-              account.password === password
-            );
-          });
-          
-          authenticated = !!loggedInApp;
-          
-          // Store the logged-in user info for the dashboard
-          if (authenticated && loggedInApp) {
-            localStorage.setItem('SLUMLINK_CURRENT_USER', JSON.stringify({
-              id: loggedInApp.id,
-              name: loggedInApp.data.personal.fullName,
-              mobile: loggedInApp.data.personal.mobile,
-              nid: loggedInApp.data.personal.nidNumber,
-              slum: loggedInApp.slum
-            }));
-          }
-        }
-      } catch (e) {
-        console.error('Error checking approved accounts:', e);
-      }
-    } else {
-      // Store hardcoded user info
-      localStorage.setItem('SLUMLINK_CURRENT_USER', JSON.stringify({
-        id: 'SR000',
-        name: 'Hasan Ahmed',
-        mobile: '01712345678',
-        nid: 'hardcoded',
-        slum: 'Korail'
-      }));
-    }
-    
-    if (!authenticated) {
-      alert("Invalid username or password for Slum Dweller.\n\nPlease use the username and password you created during signup.");
-      return;
-    }
-    
-    // Show small popup and redirect to Slum Dweller Dashboard on success
-    try {
-      const toast = document.createElement('div');
-      toast.className = 'signin-toast';
-      toast.innerHTML = [
-        '<span class="icon" aria-hidden="true">',
-          '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
-            '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
-          '</svg>',
-        '</span>',
-        '<div class="toast-content">',
-          '<strong>Success</strong>',
-          '<div class="subtitle">You are signed in successfully</div>',
-        '</div>'
-      ].join('');
-      document.body.appendChild(toast);
-    } catch (err) {
-      // Fallback: no-op if DOM not available
+    // Hide previous error message
+    if (loginError) {
+      loginError.style.display = "none";
+      loginError.textContent = "";
     }
 
-    setTimeout(() => {
-      window.location.href = "/src/Slum_Dwellers/dashboard.html";
-    }, 1500);
+    fetch("/api/slum-dweller/signin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slum_code: identifier, password }),
+    })
+      .then(async (r) => {
+        const data = await r.json().catch(() => null);
+
+        if (!r.ok) {
+          // Show inline error message below password field
+          const msg = data?.message || "Invalid slum code or password";
+          
+          if (loginError) {
+            loginError.textContent = msg;
+            loginError.style.display = "block";
+          }
+
+          // Mark fields as error for better UX
+          identifierInput?.classList.add("has-error");
+          passwordInput?.classList.add("has-error");
+          return;
+        }
+
+        // Success - store user info
+        try {
+          localStorage.setItem('SLUMLINK_CURRENT_USER', JSON.stringify({
+            id: data.data.id,
+            slum_code: data.data.slum_code,
+            name: data.data.full_name,
+            mobile: data.data.mobile
+          }));
+        } catch {}
+
+        // Show success toast
+        try {
+          const toast = document.createElement("div");
+          toast.className = "signin-toast";
+          toast.innerHTML = [
+            '<span class="icon" aria-hidden="true">',
+            '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+            '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
+            "</svg>",
+            "</span>",
+            '<div class="toast-content">',
+            "<strong>Success</strong>",
+            '<div class="subtitle">You are signed in successfully</div>',
+            "</div>",
+          ].join("");
+          document.body.appendChild(toast);
+        } catch {}
+
+        setTimeout(() => {
+          window.location.href = "/src/Slum_Dwellers/dashboard.html";
+        }, 1200);
+      })
+      .catch(() => {
+        // Show network error inline
+        if (loginError) {
+          loginError.textContent = "Network error. Please try again.";
+          loginError.style.display = "block";
+        }
+      });
+
+    return; // Prevent falling into other role branches
   }
 });

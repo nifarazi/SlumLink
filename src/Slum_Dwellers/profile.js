@@ -179,7 +179,7 @@ const incomeRangeOptions = [
 
 // Get current user and application data
 function getCurrentUserApp() {
-  const currentRaw = sessionStorage.getItem('SLUMLINK_CURRENT_USER');
+  const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
   const current = currentRaw ? safeJsonParse(currentRaw, null) : null;
   if (!current) return { current: null, app: null, apps: [], appIndex: -1 };
 
@@ -196,10 +196,26 @@ function saveApplication(apps) {
   sessionStorage.setItem('SLUMLINK_APPLICATIONS', JSON.stringify(apps));
 }
 
-// Populate profile data from localStorage for the signed-in user
+// Format date to readable format
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '—';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  } catch {
+    return '—';
+  }
+}
+
+// Populate profile data from database for the signed-in user
 (function(){
-  const { current, app } = getCurrentUserApp();
-  if (!current) return;
+  const { current } = getCurrentUserApp();
+  if (!current || !current.id) {
+    window.location.href = '/src/signin.html?role=dweller';
+    return;
+  }
 
   const personalPanel = document.getElementById('tab-personal');
   const maritalPanel = document.getElementById('tab-marital');
@@ -208,91 +224,127 @@ function saveApplication(apps) {
   const spouseList = maritalPanel?.querySelector('.spouse-list');
   const childrenList = childrenPanel?.querySelector('.children-list');
 
-  const personal = app?.data?.personal || {};
-  const marital = app?.data?.marital || {};
-  const kids = app?.data?.children || {};
+  // Fetch data from backend
+  fetch(`/api/slum-dweller/${current.id}`)
+    .then(async (r) => {
+      if (!r.ok) {
+        throw new Error('Failed to fetch profile data');
+      }
+      const response = await r.json();
+      if (response.status === 'success' && response.data) {
+        return response.data;
+      }
+      throw new Error('Invalid response format');
+    })
+    .then((data) => {
+      const resident = data.resident || {};
+      const spouses = data.spouses || [];
+      const children = data.children || [];
 
-  // Render Personal Information
-  if (personalGrid){
-    const rows = [
-      { key: 'Full Name', val: personal.fullName || current.name || '', editable: false },
-      { key: 'Phone Number', val: personal.mobile || current.mobile || '', editable: true, field: 'mobile' },
-      { key: 'Gender', val: personal.gender || '', editable: false },
-      { key: 'Date of Birth', val: personal.dob || '', editable: false },
-      { key: 'Occupation', val: personal.occupation || '', editable: true, field: 'occupation' },
-      { key: 'Education', val: personal.education || '', editable: true, field: 'education' },
-      { key: 'Income Range', val: personal.income || '', editable: true, field: 'income', type: 'select' },
-      { key: 'Area', val: personal.area || '', editable: true, field: 'area' },
-      { key: 'District', val: personal.district || '', editable: true, field: 'district' },
-      { key: 'Division', val: personal.division || '', editable: true, field: 'division' },
-      { key: 'Family Members', val: personal.members || '', editable: false },
-    ];
-    personalGrid.innerHTML = rows.map(r => `
-      <div class="info-row" data-field="${r.field || ''}" data-editable="${r.editable}" data-type="${r.type || 'text'}">
-        <span class="info-key">${r.key}</span>
-        <span class="info-val">${r.val || '—'}</span>
-      </div>
-    `).join('');
-  }
+      // Render Personal Information
+      if (personalGrid) {
+        const rows = [
+          { key: 'Full Name', val: resident.full_name || '', editable: false },
+          { key: 'Phone Number', val: resident.mobile || '', editable: true, field: 'mobile' },
+          { key: 'Gender', val: resident.gender || '', editable: false },
+          { key: 'Date of Birth', val: formatDate(resident.dob), editable: false },
+          { key: 'NID', val: resident.nid || '', editable: false },
+          { key: 'Occupation', val: resident.occupation || '', editable: true, field: 'occupation' },
+          { key: 'Education', val: resident.education || '', editable: true, field: 'education' },
+          { key: 'Income Range', val: resident.income || '', editable: true, field: 'income', type: 'select' },
+          { key: 'Area', val: resident.area || '', editable: true, field: 'area' },
+          { key: 'District', val: resident.district || '', editable: true, field: 'district' },
+          { key: 'Division', val: resident.division || '', editable: true, field: 'division' },
+          { key: 'Family Members', val: resident.family_members || '', editable: false },
+        ];
+        personalGrid.innerHTML = rows.map(r => `
+          <div class="info-row" data-field="${r.field || ''}" data-editable="${r.editable}" data-type="${r.type || 'text'}">
+            <span class="info-key">${r.key}</span>
+            <span class="info-val">${r.val || '—'}</span>
+          </div>
+        `).join('');
+      }
 
-  // Render Marital Information (spouses)
-  if (spouseList){
-    const spouses = Array.isArray(marital.spouses) ? marital.spouses : [];
-    if (!spouses.length){
-      spouseList.innerHTML = '<div class="empty">No spouse information available.</div>';
-    } else {
-      spouseList.innerHTML = spouses.map((s, idx) => `
-        <div class="spouse-card" data-spouse-index="${idx}">
-          <div class="spouse-header">
-            <div class="spouse-name">${s.name || 'Spouse ' + (idx+1)}</div>
-            <div class="card-actions">
-              <button class="btn primary edit-spouse-btn" type="button">Edit Profile</button>
-              <button class="btn primary save-spouse-btn" type="button" hidden>Save</button>
-              <button class="btn outlined cancel-spouse-btn" type="button" hidden>Cancel</button>
+      // Render Marital Information (spouses)
+      if (spouseList) {
+        if (!spouses.length) {
+          spouseList.innerHTML = '<div class="empty">No spouse information available.</div>';
+        } else {
+          spouseList.innerHTML = spouses.map((s, idx) => `
+            <div class="spouse-card" data-spouse-index="${idx}" data-spouse-id="${s.id}">
+              <div class="spouse-header">
+                <div class="spouse-name">${s.name || 'Spouse ' + (idx + 1)}</div>
+                <div class="card-actions">
+                  <button class="btn primary edit-spouse-btn" type="button">Edit Profile</button>
+                  <button class="btn primary save-spouse-btn" type="button" hidden>Save</button>
+                  <button class="btn outlined cancel-spouse-btn" type="button" hidden>Cancel</button>
+                </div>
+              </div>
+              <div class="info-grid">
+                <div class="info-row" data-field="name" data-editable="false"><span class="info-key">Name</span><span class="info-val">${s.name || '—'}</span></div>
+                <div class="info-row" data-field="dob" data-editable="false"><span class="info-key">Date of Birth</span><span class="info-val">${formatDate(s.dob)}</span></div>
+                <div class="info-row" data-field="gender" data-editable="false"><span class="info-key">Gender</span><span class="info-val">${s.gender || '—'}</span></div>
+                <div class="info-row" data-field="nid" data-editable="false"><span class="info-key">NID</span><span class="info-val">${s.nid || '—'}</span></div>
+                <div class="info-row" data-field="mobile" data-editable="true"><span class="info-key">Phone Number</span><span class="info-val">${s.mobile || '—'}</span></div>
+                <div class="info-row" data-field="education" data-editable="true"><span class="info-key">Education</span><span class="info-val">${s.education || '—'}</span></div>
+                <div class="info-row" data-field="job" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">${s.job || '—'}</span></div>
+                <div class="info-row" data-field="income" data-editable="true" data-type="select"><span class="info-key">Income Range</span><span class="info-val">${s.income || '—'}</span></div>
+              </div>
             </div>
-          </div>
-          <div class="info-grid">
-            <div class="info-row" data-field="name" data-editable="false"><span class="info-key">Name</span><span class="info-val">${s.name || '—'}</span></div>
-            <div class="info-row" data-field="dob" data-editable="false"><span class="info-key">Date of Birth</span><span class="info-val">${s.dob || '—'}</span></div>
-            <div class="info-row" data-field="gender" data-editable="false"><span class="info-key">Gender</span><span class="info-val">${s.gender || '—'}</span></div>
-            <div class="info-row" data-field="mobile" data-editable="true"><span class="info-key">Phone Number</span><span class="info-val">${s.mobile || '—'}</span></div>
-            <div class="info-row" data-field="education" data-editable="true"><span class="info-key">Education</span><span class="info-val">${s.education || '—'}</span></div>
-            <div class="info-row" data-field="job" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">${s.job || '—'}</span></div>
-            <div class="info-row" data-field="income" data-editable="true" data-type="select"><span class="info-key">Income Range</span><span class="info-val">${s.income || '—'}</span></div>
-          </div>
-        </div>
-      `).join('');
-    }
-  }
+          `).join('');
+        }
+      }
 
-  // Render Children Information
-  if (childrenList){
-    const children = Array.isArray(kids.children) ? kids.children : [];
-    if (!children.length){
-      childrenList.innerHTML = '<div class="empty">No children information available.</div>';
-    } else {
-      childrenList.innerHTML = children.map((c, idx) => `
-        <div class="child-card" data-child-index="${idx}">
-          <div class="child-header">
-            <div class="child-name">${c.name || 'Child ' + (idx+1)}</div>
-            <div class="card-actions">
-              <button class="btn primary edit-child-btn" type="button">Edit Profile</button>
-              <button class="btn primary save-child-btn" type="button" hidden>Save</button>
-              <button class="btn outlined cancel-child-btn" type="button" hidden>Cancel</button>
+      // Render Children Information
+      if (childrenList) {
+        if (!children.length) {
+          childrenList.innerHTML = '<div class="empty">No children information available.</div>';
+        } else {
+          childrenList.innerHTML = children.map((c, idx) => `
+            <div class="child-card" data-child-index="${idx}" data-child-id="${c.id}">
+              <div class="child-header">
+                <div class="child-name">${c.name || 'Child ' + (idx + 1)}</div>
+                <div class="card-actions">
+                  <button class="btn primary edit-child-btn" type="button">Edit Profile</button>
+                  <button class="btn primary save-child-btn" type="button" hidden>Save</button>
+                  <button class="btn outlined cancel-child-btn" type="button" hidden>Cancel</button>
+                </div>
+              </div>
+              <div class="info-grid">
+                <div class="info-row" data-field="name" data-editable="false"><span class="info-key">Name</span><span class="info-val">${c.name || '—'}</span></div>
+                <div class="info-row" data-field="dob" data-editable="false"><span class="info-key">Date of Birth</span><span class="info-val">${formatDate(c.dob)}</span></div>
+                <div class="info-row" data-field="gender" data-editable="false"><span class="info-key">Gender</span><span class="info-val">${c.gender || '—'}</span></div>
+                <div class="info-row" data-field="education" data-editable="true"><span class="info-key">Education</span><span class="info-val">${c.education || '—'}</span></div>
+                <div class="info-row" data-field="job" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">${c.job || '—'}</span></div>
+                <div class="info-row" data-field="income" data-editable="true" data-type="select"><span class="info-key">Income Range</span><span class="info-val">${c.income || '—'}</span></div>
+                <div class="info-row" data-field="preferred_job" data-editable="true"><span class="info-key">Preferred Job</span><span class="info-val">${c.preferred_job || '—'}</span></div>
+              </div>
             </div>
-          </div>
-          <div class="info-grid">
-            <div class="info-row" data-field="name" data-editable="false"><span class="info-key">Name</span><span class="info-val">${c.name || '—'}</span></div>
-            <div class="info-row" data-field="dob" data-editable="false"><span class="info-key">Date of Birth</span><span class="info-val">${c.dob || '—'}</span></div>
-            <div class="info-row" data-field="education" data-editable="true"><span class="info-key">Education</span><span class="info-val">${c.education || '—'}</span></div>
-            <div class="info-row" data-field="job" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">${c.job || '—'}</span></div>
-            <div class="info-row" data-field="income" data-editable="true" data-type="select"><span class="info-key">Income Range</span><span class="info-val">${c.income || '—'}</span></div>
-            <div class="info-row" data-field="preferredJob" data-editable="true"><span class="info-key">Preferred Job</span><span class="info-val">${c.preferredJob || '—'}</span></div>
-          </div>
-        </div>
-      `).join('');
-    }
-  }
+          `).join('');
+        }
+      }
+
+      // Store fetched data for edit functionality
+      window.__profileData = {
+        resident,
+        spouses,
+        children
+      };
+    })
+    .catch((err) => {
+      console.error('Failed to load profile data:', err);
+      
+      // Show error message to user
+      if (personalGrid) {
+        personalGrid.innerHTML = '<div class="empty" style="color: #d32f2f;">Failed to load profile data. Please try again later.</div>';
+      }
+      if (spouseList) {
+        spouseList.innerHTML = '<div class="empty" style="color: #d32f2f;">Failed to load spouse data.</div>';
+      }
+      if (childrenList) {
+        childrenList.innerHTML = '<div class="empty" style="color: #d32f2f;">Failed to load children data.</div>';
+      }
+    });
 })();
 
 // Edit Profile logic for Personal Information
