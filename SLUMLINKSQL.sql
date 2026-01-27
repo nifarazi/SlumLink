@@ -302,3 +302,5 @@ CREATE TABLE IF NOT EXISTS complaints (
   INDEX idx_complaint_status (status),
   INDEX idx_complaint_created (created_at DESC)
 );
+
+SELECT * FROM complaints;

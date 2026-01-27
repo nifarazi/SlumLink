@@ -271,65 +271,85 @@
     };
   };
 
-  // Build the Recent Complaint list for the current user only (no static fallback)
-  let complaints = [];
-  try {
+  // Build the Recent Complaint list for the current user (top 2 only)
+  (function loadRecentComplaints() {
     const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
     const current = currentRaw ? JSON.parse(currentRaw) : null;
-    const userId = current && current.id ? String(current.id) : '';
-    if (userId) {
-      const byUserRaw = sessionStorage.getItem('submittedComplaintsByUser');
-      const map = byUserRaw ? JSON.parse(byUserRaw) : {};
-      const list = Array.isArray(map[userId]) ? map[userId] : [];
-      // Newest first already; ensure at most two for the dashboard
-      complaints = list.slice(0, 2);
-    } else {
-      complaints = [];
+    
+    if (!current || !current.slum_code) {
+      return;
     }
-  } catch (err) {
-    console.warn('Failed to read per-user complaints:', err);
-    complaints = [];
-  }
 
-  const listEl = document.querySelector('.complaint-list');
-  if (listEl) {
-    listEl.innerHTML = '';
-    if (!complaints.length) {
-      const empty = document.createElement('div');
-      empty.textContent = 'No Complaint Submitted Yet';
-      empty.style.color = '#444';
-      listEl.appendChild(empty);
-    } else {
-      complaints.forEach((c) => {
-        const card = document.createElement('div');
-        card.className = 'complaint-card';
+    const listEl = document.querySelector('.complaint-list');
+    if (!listEl) return;
 
-        const title = document.createElement('div');
-        title.className = 'complaint-title';
-        title.textContent = c.title;
+    // Fetch complaints from backend
+    fetch(`/api/complaints/slum/${current.slum_code}`)
+      .then(async (r) => {
+        if (!r.ok) {
+          throw new Error('Failed to fetch complaints');
+        }
+        const response = await r.json();
+        if (response.status === 'success' && Array.isArray(response.data)) {
+          return response.data.slice(0, 2); // Get only top 2 most recent
+        }
+        throw new Error('Invalid response format');
+      })
+      .then((complaints) => {
+        listEl.innerHTML = '';
+        if (!complaints.length) {
+          const empty = document.createElement('div');
+          empty.textContent = 'No Complaint Submitted Yet';
+          empty.style.color = '#444';
+          listEl.appendChild(empty);
+        } else {
+          complaints.forEach((c) => {
+            const card = document.createElement('div');
+            card.className = 'complaint-card';
 
-        const cat = document.createElement('div');
-        cat.className = 'complaint-category';
-        cat.textContent = c.category;
+            const title = document.createElement('div');
+            title.className = 'complaint-title';
+            title.textContent = c.title;
 
-        const status = document.createElement('div');
-        const sClass = 'status-badge ' + statusClassFor(c.status);
-        status.className = sClass;
-        status.textContent = c.status;
+            const cat = document.createElement('div');
+            cat.className = 'complaint-category';
+            cat.textContent = c.category;
 
-        card.appendChild(title);
-        card.appendChild(cat);
-        card.appendChild(status);
+            const status = document.createElement('div');
+            const sClass = 'status-badge ' + statusClassFor(c.status);
+            status.className = sClass;
+            status.textContent = c.status;
 
-        card.addEventListener('click', () => {
-          populateModal(c);
-          openModal();
-        });
+            card.appendChild(title);
+            card.appendChild(cat);
+            card.appendChild(status);
 
-        listEl.appendChild(card);
+            card.addEventListener('click', () => {
+              // Fetch full complaint details with attachment
+              fetch(`/api/complaints/${c.complaint_id}`)
+                .then(async (r) => {
+                  if (!r.ok) throw new Error('Failed to fetch complaint details');
+                  const res = await r.json();
+                  if (res.status === 'success' && res.data) {
+                    populateModal(res.data);
+                    openModal();
+                  }
+                })
+                .catch((err) => {
+                  console.error('Failed to load complaint details:', err);
+                  alert('Failed to load complaint details');
+                });
+            });
+
+            listEl.appendChild(card);
+          });
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load complaints:', err);
+        listEl.innerHTML = '<div style="color: #d32f2f;">Failed to load complaints</div>';
       });
-    }
-  }
+  })();
 
   // Close when clicking outside the modal content
   modal.addEventListener('click', (e) => {
