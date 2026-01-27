@@ -69,6 +69,27 @@
     .card-header h2 {
       color: #8b6f5a;
     }
+
+    .btn-approve-primary {
+      background-color: #8b6f5a !important;
+      color: white !important;
+      border: none !important;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-approve-secondary {
+      background-color: rgba(139, 111, 90, 0.18) !important;
+      color: #6b5744 !important;
+      border: 1px solid rgba(139, 111, 90, 0.35) !important;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -107,7 +128,7 @@
       <div class="page-header">
         <div>
           <h1 id="pendingSlumLabel">Pending Resident Accounts</h1>
-          <p>Review and approve pending slum dweller registrations from the database.</p>
+          
         </div>
       </div>
 
@@ -144,8 +165,8 @@
       <div class="modal-header">Approve Account</div>
       <div class="modal-body" id="approveModalBody">Are you sure you want to approve this account?</div>
       <div class="modal-actions">
-        <button id="cancelApprove" type="button">Cancel</button>
-        <button id="confirmApprove" type="button" style="background-color: #2d7a3d; color: white;">Approve</button>
+        <button id="cancelApprove" type="button" class="btn-approve-secondary">Cancel</button>
+        <button id="confirmApprove" type="button" class="btn-approve-primary">Approve</button>
       </div>
     </div>
   </div>
@@ -154,10 +175,10 @@
   <div class="modal-overlay" id="rejectModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">Reject Account</div>
-      <div class="modal-body" id="rejectModalBody">Are you sure you want to reject this account?</div>
+      <div class="modal-body" id="rejectModalBody">Are you sure you want to reject and delete this account?</div>
       <div class="modal-actions">
-        <button id="cancelReject" type="button">Cancel</button>
-        <button id="confirmReject" type="button" style="background-color: #8b6f5a; color: white;">Reject</button>
+        <button id="cancelReject" type="button" class="btn-approve-secondary">Cancel</button>
+        <button id="confirmReject" type="button" class="btn-approve-primary">Reject</button>
       </div>
     </div>
   </div>
