@@ -404,6 +404,11 @@
         if (window.__openQrModal) window.__openQrModal();
       });
     }
+    if (title.includes('logout')) {
+      btn.addEventListener('click', () => {
+        if (window.__openLogoutModal) window.__openLogoutModal();
+      });
+    }
   });
 })();
 
