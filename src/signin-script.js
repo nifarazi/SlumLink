@@ -271,27 +271,50 @@ signinForm?.addEventListener("submit", (e) => {
 
     return; // ✅ prevent falling into other role branches
   } else if (role === "admin") {
-    // Show success toast then redirect to Admin Dashboard
-    try {
-      const toast = document.createElement('div');
-      toast.className = 'signin-toast';
-      toast.innerHTML = [
-        '<span class="icon" aria-hidden="true">',
-          '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
-            '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
-          '</svg>',
-        '</span>',
-        '<div class="toast-content">',
-          '<strong>Success</strong>',
-          '<div class="subtitle">You are signed in successfully</div>',
-        '</div>'
-      ].join('');
-      document.body.appendChild(toast);
-    } catch (err) {}
+    // Local admin authentication (static credentials)
+    // Only allow access when Email == admin@slumlink.org and password == admin123
+    const loginError = document.getElementById("loginError");
 
-    setTimeout(() => {
-      window.location.href = "/src/admin/adminSlumAnalytics.html";
-    }, 1500);
+    // Clear previous inline error
+    if (loginError) {
+      loginError.style.display = "none";
+      loginError.textContent = "";
+    }
+
+    if (identifier === "admin@slumlink.org" && password === "admin123") {
+      // success toast then redirect to Admin Dashboard
+      try {
+        const toast = document.createElement('div');
+        toast.className = 'signin-toast';
+        toast.innerHTML = [
+          '<span class="icon" aria-hidden="true">',
+            '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+              '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
+            '</svg>',
+          '</span>',
+          '<div class="toast-content">',
+            '<strong>Success</strong>',
+            '<div class="subtitle">You are signed in successfully</div>',
+          '</div>'
+        ].join('');
+        document.body.appendChild(toast);
+      } catch (err) {}
+
+      setTimeout(() => {
+        window.location.href = "/src/admin/adminSlumAnalytics.html";
+      }, 1500);
+    } else {
+      // Invalid admin credentials
+      identifierInput?.classList.add("has-error");
+      passwordInput?.classList.add("has-error");
+      showErrorNotification("Incorrect Email or  Password has been entered");
+
+      if (loginError) {
+        loginError.textContent = "Incorrect Email or  Password has been entered";
+        loginError.style.display = "block";
+      }
+    }
+
   } else if (role === "authority") {
     // Show success toast then redirect to Local Authority Dashboard
     try {
