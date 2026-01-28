@@ -30,6 +30,18 @@ const roleConfig = {
   }
 };
 
+// Local Authority credentials mapping
+const localAuthorityCredentials = {
+  "dhaka@gov.bd": "dhakaslum123",
+  "chattogram@gov.bd": "chattogramslum123",
+  "khulna@gov.bd": "khulnaslum123",
+  "rajshahi@gov.bd": "rajashaislum123",
+  "barishal@gov.bd": "barishalslum123",
+  "sylhet@gov.bd": "sylhetslum123",
+  "rangpur@gov.bd": "rangpurslum123",
+  "mymensingh@gov.bd": "mymensinghslum123"
+};
+
 const roleSelect = document.getElementById("roleSelect");
 const identifierInput = document.getElementById("identifier");
 const identifierLabel = document.getElementById("identifierLabel");
@@ -316,27 +328,51 @@ signinForm?.addEventListener("submit", (e) => {
     }
 
   } else if (role === "authority") {
-    // Show success toast then redirect to Local Authority Dashboard
-    try {
-      const toast = document.createElement('div');
-      toast.className = 'signin-toast';
-      toast.innerHTML = [
-        '<span class="icon" aria-hidden="true">',
-          '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
-            '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
-          '</svg>',
-        '</span>',
-        '<div class="toast-content">',
-          '<strong>Success</strong>',
-          '<div class="subtitle">You are signed in successfully</div>',
-        '</div>'
-      ].join('');
-      document.body.appendChild(toast);
-    } catch (err) {}
+    // Local Authority authentication with specific email-password pairs
+    const loginError = document.getElementById("loginError");
 
-    setTimeout(() => {
-      window.location.href = "/src/localauthority/local-dashboard.html";
-    }, 1500);
+    // Clear previous inline error
+    if (loginError) {
+      loginError.style.display = "none";
+      loginError.textContent = "";
+    }
+
+    // Check if email exists in the credentials map and password matches
+    const isValidAuthority = localAuthorityCredentials[identifier] === password;
+
+    if (isValidAuthority) {
+      // Success toast then redirect to Local Authority Dashboard
+      try {
+        const toast = document.createElement('div');
+        toast.className = 'signin-toast';
+        toast.innerHTML = [
+          '<span class="icon" aria-hidden="true">',
+            '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+              '<path d="M9 16.17 5.83 13l-1.42 1.41L9 19 20.59 7.41 19.17 6z"/>',
+            '</svg>',
+          '</span>',
+          '<div class="toast-content">',
+            '<strong>Success</strong>',
+            '<div class="subtitle">You are signed in successfully</div>',
+          '</div>'
+        ].join('');
+        document.body.appendChild(toast);
+      } catch (err) {}
+
+      setTimeout(() => {
+        window.location.href = "/src/localauthority/local-dashboard.html";
+      }, 1500);
+    } else {
+      // Invalid credentials
+      identifierInput?.classList.add("has-error");
+      passwordInput?.classList.add("has-error");
+      showErrorNotification("Incorrect Email or  Password has been entered");
+
+      if (loginError) {
+        loginError.textContent = "Incorrect Email or  Password has been entered";
+        loginError.style.display = "block";
+      }
+    }
   } else if (role === "dweller") {
     // Authenticate Slum Dweller using slum_code and password via backend
     const loginError = document.getElementById("loginError");
