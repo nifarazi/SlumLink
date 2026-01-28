@@ -174,49 +174,67 @@
 
     function goDashboard(){ window.location.href = getBackLink(); }
 
-    // Load campaigns from localStorage and static data
-    function loadCampaigns(){
+    // Load campaigns from backend (campaigns table) with fallback to localStorage/static data
+    async function loadCampaigns(){
       const campaignList = document.getElementById('campaignList');
+
+      // Static fallback data
       const staticCampaigns = [
         { id: 'static-1', title: 'Garbage is to be collected regularly', status: 'completed' },
         { id: 'static-2', title: 'Winter Blanket drive', status: 'pending' },
-        { id: 'static-3', title: 'Temporary shelter support for families in need', status: 'waiting' },
-        { id: 'static-4', title: 'Construction of proper footpath for walking safely', status: 'completed' },
-        { id: 'static-5', title: 'Tree plantation drive in slum areas', status: 'completed' },
-        { id: 'static-6', title: 'Clean water installation project', status: 'completed' },
-        { id: 'static-7', title: 'Road safety sign installation', status: 'completed' },
-        { id: 'static-8', title: 'Awareness campaign on child education', status: 'pending' },
-        { id: 'static-9', title: 'Medical camp for elderly residents', status: 'waiting' },
-        { id: 'static-10', title: 'Vaccination awareness drive', status: 'pending' }
+        { id: 'static-3', title: 'Temporary shelter support for families in need', status: 'waiting' }
       ];
-      
-      // Get campaigns from localStorage
+
+      // Get campaigns from localStorage (NGO fallback)
       let storedCampaigns = [];
       try {
         storedCampaigns = JSON.parse(localStorage.getItem(getCampaignStorageKey())) || [];
       } catch(e) {
         console.error("Error loading campaigns from localStorage:", e);
       }
-      
-      console.log("Stored campaigns:", storedCampaigns);
-      
-      // Combine static and stored campaigns
-      const allCampaigns = [...staticCampaigns, ...storedCampaigns];
-      
+
+      // Try fetching from backend
+      let dbCampaigns = [];
+      try{
+        const res = await fetch('/api/campaigns');
+        if(res.ok){
+          const payload = await res.json();
+          if(payload && payload.success && Array.isArray(payload.data)){
+            dbCampaigns = payload.data.map(c => ({
+              id: c.campaign_id || c.id || String(Math.random()),
+              title: c.title || 'Untitled campaign',
+              // Map DB enum/status to simplified UI statuses
+              status: mapDbStatusToUi((c.status || '').toString())
+            }));
+          } else if(Array.isArray(payload)){
+            // In case API returns raw array
+            dbCampaigns = payload.map(c => ({ id: c.campaign_id || c.id, title: c.title, status: mapDbStatusToUi(c.status) }));
+          }
+        } else {
+          console.warn('Failed to load campaigns from API, status:', res.status);
+        }
+      } catch(fetchErr){
+        console.warn('Error fetching campaigns from backend:', fetchErr.message);
+      }
+
+      // Combine sources: backend first, then stored (NGO), then static
+      const allCampaigns = [...dbCampaigns, ...storedCampaigns, ...staticCampaigns];
+
       // Clear existing campaigns
       campaignList.innerHTML = '';
-      
+
       // Display all campaigns
       allCampaigns.forEach(campaign => {
         const campaignCard = document.createElement('div');
         campaignCard.className = 'campaign-card';
-        
-        const statusClass = campaign.status === 'completed' ? 'completed' : 
-                           campaign.status === 'pending' ? 'pending' : 'waiting';
-        
+
+        const statusClass = campaign.status === 'completed' ? 'completed' :
+                            campaign.status === 'pending' ? 'pending' : 'waiting';
+
         const statusSpan = document.createElement('span');
         statusSpan.className = `campaign-status ${statusClass}`;
-        statusSpan.textContent = campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1);
+        // Capitalize label
+        statusSpan.textContent = (campaign.status || 'waiting').charAt(0).toUpperCase() + (campaign.status || 'waiting').slice(1);
         statusSpan.dataset.campaignTitle = campaign.title;
         statusSpan.dataset.campaignStatus = campaign.status;
         statusSpan.style.cursor = 'pointer';
@@ -226,14 +244,26 @@
           const status = e.target.dataset.campaignStatus;
           handleCampaignClick(title, status);
         });
-        
+
         const titleSpan = document.createElement('span');
         titleSpan.textContent = campaign.title;
-        
+
         campaignCard.appendChild(titleSpan);
         campaignCard.appendChild(statusSpan);
         campaignList.appendChild(campaignCard);
       });
+
+      // Apply current filter after render
+      filterCampaigns();
+    }
+
+    function mapDbStatusToUi(dbStatusRaw){
+      if(!dbStatusRaw) return 'waiting';
+      const s = dbStatusRaw.toString().toUpperCase();
+      if(s === 'COMPLETED') return 'completed';
+      if(s === 'PENDING' || s === 'IN_PROGRESS') return 'pending';
+      // Map other states to 'waiting'
+      return 'waiting';
     }
 
     function handleCampaignClick(campaignName, status){

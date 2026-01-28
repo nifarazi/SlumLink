@@ -820,41 +820,122 @@
     cancelConfirm.addEventListener("click", ()=> closeModal(confirmModal));
     confirmModal.addEventListener("click", (e)=> { if(e.target === confirmModal) closeModal(confirmModal); });
 
+    // Local authority email to prefix mapping
+    const authorityPrefixMap = {
+      "dhaka@gov.bd": "dha",
+      "chattogram@gov.bd": "cht",
+      "khulna@gov.bd": "khu",
+      "rajshahi@gov.bd": "raj",
+      "barishal@gov.bd": "bar",
+      "sylhet@gov.bd": "syl",
+      "rangpur@gov.bd": "ran",
+      "mymensingh@gov.bd": "mym"
+    };
+
+    function getAuthorityPrefix(){
+      // Get logged-in authority email from signin data or sessionStorage
+      let email = null;
+      try{
+        const signinData = JSON.parse(localStorage.getItem("SLUMLINK_AUTHORITY_SESSION") || "{}");
+        email = signinData.email;
+      }catch{}
+      
+      if(!email) email = sessionStorage.getItem("authorityEmail");
+      
+      return authorityPrefixMap[email] || "aut";
+    }
+
+    function generateOrgId(){
+      const prefix = getAuthorityPrefix();
+      const timestamp = Date.now();
+      return `${prefix}${timestamp}`;
+    }
+
     confirmCreate.addEventListener("click", ()=>{
       closeModal(confirmModal);
+      
+      const role = getRole();
+      
+      // If local authority, send to database
+      if(role === "localauthority"){
+        const prefix = getAuthorityPrefix();
+        const campaign = {
+          title: getValue("title"),
+          category: getValue("category"),
+          target_slum_area: getValue("slum"),
+          start_date: getValue("startDate"),
+          end_date: getValue("endDate"),
+          start_time: getValue("time"),
+          target_gender: getValue("gender"),
+          age_group: getValue("ageGroup"),
+          description: (document.getElementById("description").value || "").trim(),
+          org_id_prefix: prefix
+        };
 
-      // Store campaign in localStorage (role-based key)
-      const campaign = {
-        id: Date.now().toString(),
-        title: getValue("title"),
-        category: getValue("category"),
-        slum: getValue("slum"),
-        startDate: getValue("startDate"),
-        endDate: getValue("endDate"),
-        // Backwards compatibility for older pages expecting campaign.date
-        date: getValue("startDate"),
-        time: getValue("time"),
-        gender: getValue("gender"),
-        ageGroup: getValue("ageGroup"),
-        education: getValue("education") || "",
-        skills: getValue("skills") || "",
-        description: (document.getElementById("description").value || "").trim(),
-        status: "pending",
-        createdAt: new Date().toISOString(),
-        createdByRole: getRole() || "localauthority"
-      };
+        console.log("Sending campaign to backend:", campaign);
 
-      const key = getCampaignStorageKey();
-      let campaigns = [];
-      try{
-        campaigns = JSON.parse(localStorage.getItem(key)) || [];
-        if(!Array.isArray(campaigns)) campaigns = [];
-      }catch{ campaigns = []; }
+        // Send to backend API
+        fetch("/api/campaigns/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(campaign)
+        })
+          .then(async (r) => {
+            const data = await r.json().catch(() => null);
+            
+            console.log("Response from backend:", r.status, data);
 
-      campaigns.push(campaign);
-      localStorage.setItem(key, JSON.stringify(campaigns));
+            if(!r.ok){
+              const msg = data?.message || "Failed to create campaign. Please try again.";
+              toast(msg);
+              return;
+            }
 
-      openModal(successModal);
+            // Success: show notification
+            toast("✓ New campaign has been created");
+            
+            // Show modal and redirect after 1.5 seconds
+            setTimeout(() => {
+              openModal(successModal);
+            }, 800);
+          })
+          .catch((err) => {
+            console.error("Network error:", err);
+            toast("Network error. Please try again.");
+          });
+      } else {
+        // For NGO (fallback to localStorage)
+        const campaign = {
+          id: Date.now().toString(),
+          title: getValue("title"),
+          category: getValue("category"),
+          slum: getValue("slum"),
+          startDate: getValue("startDate"),
+          endDate: getValue("endDate"),
+          date: getValue("startDate"),
+          time: getValue("time"),
+          gender: getValue("gender"),
+          ageGroup: getValue("ageGroup"),
+          education: getValue("education") || "",
+          skills: getValue("skills") || "",
+          description: (document.getElementById("description").value || "").trim(),
+          status: "pending",
+          createdAt: new Date().toISOString(),
+          createdByRole: role || "ngo"
+        };
+
+        const key = getCampaignStorageKey();
+        let campaigns = [];
+        try{
+          campaigns = JSON.parse(localStorage.getItem(key)) || [];
+          if(!Array.isArray(campaigns)) campaigns = [];
+        }catch{ campaigns = []; }
+
+        campaigns.push(campaign);
+        localStorage.setItem(key, JSON.stringify(campaigns));
+
+        openModal(successModal);
+      }
     });
 
     goDashboard.addEventListener("click", ()=> {

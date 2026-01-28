@@ -8,6 +8,7 @@ import ngoRoutes from "./routes/ngo.routes.js";
 import slumDwellerRoutes from "./routes/slumDweller.routes.js";
 import documentRoutes from "./routes/document.routes.js";
 import complaintRoutes from "./routes/complaint.routes.js";
+import campaignRoutes from "./routes/campaign.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,6 +54,7 @@ app.use("/api/ngo", ngoRoutes);
 app.use("/api/slum-dweller", slumDwellerRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/complaints", complaintRoutes);
+app.use("/api/campaigns", campaignRoutes);
 
 // ✅ Health check
 app.get("/api/health", (req, res) => {
