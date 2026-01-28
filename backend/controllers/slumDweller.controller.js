@@ -1,5 +1,6 @@
 import pool from "../db.js";
 import bcrypt from "bcrypt";
+import { sendSMS, createVerificationMessage } from "../utils/sms.js";
 
 // Signin controller for slum dwellers using slum_code and password
 export const signinSlumDweller = async (req, res) => {
@@ -385,21 +386,21 @@ export const approveSlumDweller = async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    // Get slum_code first
+    // Get slum dweller details including mobile number and slum_code
     const [dwellerRows] = await connection.query(
-      'SELECT slum_code FROM slum_dwellers WHERE id = ?',
-      [id]
+      'SELECT slum_code, mobile, full_name FROM slum_dwellers WHERE id = ? AND status = ?',
+      [id, 'pending']
     );
 
     if (!dwellerRows || dwellerRows.length === 0) {
       await connection.rollback();
       return res.status(404).json({ 
         status: "error", 
-        message: "Resident not found." 
+        message: "Resident not found or already processed." 
       });
     }
 
-    const slumCode = dwellerRows[0].slum_code;
+    const { slum_code: slumCode, mobile, full_name: fullName } = dwellerRows[0];
 
     // Update slum_dweller status to 'accepted'
     await connection.query(
@@ -421,7 +422,24 @@ export const approveSlumDweller = async (req, res) => {
 
     await connection.commit();
 
-    console.log('✅ Approved slum dweller:', id);
+    console.log('✅ Approved slum dweller:', id, 'Slum Code:', slumCode);
+
+    // Send SMS notification (don't fail the approval if SMS fails)
+    if (mobile && slumCode) {
+      try {
+        const message = createVerificationMessage(slumCode);
+        const smsSent = await sendSMS(mobile, message);
+        if (smsSent) {
+          console.log('📱 Verification SMS sent to:', mobile);
+        } else {
+          console.warn('⚠️ Failed to send verification SMS to:', mobile);
+        }
+      } catch (smsError) {
+        console.error('❌ SMS sending error for user', fullName, ':', smsError.message);
+      }
+    } else {
+      console.warn('⚠️ No mobile number or slum code found for SMS notification');
+    }
 
     return res.json({
       status: "success",
