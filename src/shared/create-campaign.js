@@ -310,15 +310,35 @@ createBtn.addEventListener("click", ()=>{
 cancelConfirm.addEventListener("click", ()=> closeModal(confirmModal));
 confirmModal.addEventListener("click", (e)=> { if(e.target === confirmModal) closeModal(confirmModal); });
 
+function getSession(){
+  try { return JSON.parse(localStorage.getItem("SLUMLINK_SESSION") || "null"); }
+  catch { return null; }
+}
+
 confirmCreate.addEventListener("click", ()=>{
   closeModal(confirmModal);
 
-  // For now keep your existing flow idea:
-  // - localauthority => send to backend
-  // - ngo => localStorage fallback
-  const role = getRole();
+  const role = getRole(); // "ngo" | "localauthority"
+  const session = getSession();
+
+  if (!session || !session.org_id) {
+    toast("Please sign in again. Session missing.");
+    setTimeout(() => window.location.href = "/src/signin.html", 900);
+    return;
+  }
+
+  // enforce correct role match (simple, not “auth”)
+  if (role === "ngo" && session.role !== "ngo") {
+    toast("Please sign in as NGO.");
+    return;
+  }
+  if (role === "localauthority" && session.role !== "localauthority") {
+    toast("Please sign in as Local Authority.");
+    return;
+  }
 
   const payload = {
+    org_id: session.org_id,
     title: getValue("title"),
     category: getValue("category"),
     division: getValue("division"),
@@ -329,48 +349,26 @@ confirmCreate.addEventListener("click", ()=>{
     start_time: getValue("time"),
     target_gender: getValue("gender"),
     age_group: getValue("ageGroup"),
-    education_required: getValue("education") || "",
-    skills_required: getValue("skills") || "",
+    education_required: getValue("education") || null,
+    skills_required: getValue("skills") || null,
     description: ($("description").value || "").trim()
   };
 
-  if(role === "localauthority"){
-    fetch("/api/campaigns/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+  fetch("/api/campaigns/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+    .then(async (r) => {
+      const data = await r.json().catch(() => null);
+      if(!r.ok){
+        toast(data?.message || "Failed to create campaign. Please try again.");
+        return;
+      }
+      toast("✓ New campaign has been created");
+      setTimeout(() => openModal(successModal), 700);
     })
-      .then(async (r) => {
-        const data = await r.json().catch(() => null);
-        if(!r.ok){
-          toast(data?.message || "Failed to create campaign. Please try again.");
-          return;
-        }
-        toast("✓ New campaign has been created");
-        setTimeout(() => openModal(successModal), 700);
-      })
-      .catch(() => toast("Network error. Please try again."));
-  } else {
-    const key = (role === "ngo") ? "ngoCampaigns" : "localAuthorityCampaigns";
-    const record = {
-      id: Date.now().toString(),
-      ...payload,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-      createdByRole: role || "ngo"
-    };
-
-    let arr = [];
-    try{
-      arr = JSON.parse(localStorage.getItem(key)) || [];
-      if(!Array.isArray(arr)) arr = [];
-    }catch{ arr = []; }
-
-    arr.push(record);
-    localStorage.setItem(key, JSON.stringify(arr));
-
-    openModal(successModal);
-  }
+    .catch(() => toast("Network error. Please try again."));
 });
 
 $("goDashboard").addEventListener("click", ()=> {

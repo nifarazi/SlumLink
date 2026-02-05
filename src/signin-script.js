@@ -42,6 +42,22 @@ const localAuthorityCredentials = {
   "mymensingh@gov.bd": "mymensinghslum123"
 };
 
+// For FK + correct creator tracking in DB
+const localAuthorityMeta = {
+  "dhaka@gov.bd":       { org_id: 1001, org_name: "Dhaka City Corporation" },
+  "chattogram@gov.bd":  { org_id: 1002, org_name: "Chattogram City Corporation" },
+  "khulna@gov.bd":      { org_id: 1003, org_name: "Khulna City Corporation" },
+  "rajshahi@gov.bd":    { org_id: 1004, org_name: "Rajshahi City Corporation" },
+  "barishal@gov.bd":    { org_id: 1005, org_name: "Barishal City Corporation" },
+  "sylhet@gov.bd":      { org_id: 1006, org_name: "Sylhet City Corporation" },
+  "rangpur@gov.bd":     { org_id: 1007, org_name: "Rangpur City Corporation" },
+  "mymensingh@gov.bd":  { org_id: 1008, org_name: "Mymensingh City Corporation" }
+};
+
+function setSession(sessionObj){
+  try { localStorage.setItem("SLUMLINK_SESSION", JSON.stringify(sessionObj)); } catch {}
+}
+
 const roleSelect = document.getElementById("roleSelect");
 const identifierInput = document.getElementById("identifier");
 const identifierLabel = document.getElementById("identifierLabel");
@@ -255,6 +271,14 @@ signinForm?.addEventListener("submit", (e) => {
           localStorage.setItem("SLUMLINK_NGO_SESSION", JSON.stringify(data.data));
         } catch {}
 
+        setSession({
+          role: "ngo",
+          org_id: data?.data?.org_id,
+          org_type: "ngo",
+          org_name: data?.data?.org_name,
+          email: data?.data?.email
+        });
+
         // show success toast
         try {
           const toast = document.createElement("div");
@@ -294,6 +318,8 @@ signinForm?.addEventListener("submit", (e) => {
     }
 
     if (identifier === "admin@slumlink.org" && password === "admin123") {
+      setSession({ role: "admin" });
+
       // success toast then redirect to Admin Dashboard
       try {
         const toast = document.createElement('div');
@@ -341,6 +367,20 @@ signinForm?.addEventListener("submit", (e) => {
     const isValidAuthority = localAuthorityCredentials[identifier] === password;
 
     if (isValidAuthority) {
+      const meta = localAuthorityMeta[identifier];
+      if (!meta) {
+        showErrorNotification("Authority account is not mapped to an org_id.");
+        return;
+      }
+
+      setSession({
+        role: "localauthority",
+        org_id: meta.org_id,
+        org_type: "localauthority",
+        org_name: meta.org_name,
+        email: identifier
+      });
+
       // Success toast then redirect to Local Authority Dashboard
       try {
         const toast = document.createElement('div');
@@ -415,6 +455,12 @@ signinForm?.addEventListener("submit", (e) => {
             mobile: data.data.mobile
           }));
         } catch {}
+
+        setSession({
+          role: "dweller",
+          slum_code: data?.data?.slum_code,
+          id: data?.data?.id
+        });
 
         // Show success toast
         try {
