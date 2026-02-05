@@ -304,3 +304,224 @@ CREATE TABLE IF NOT EXISTS complaints (
 );
 
 SELECT * FROM complaints;
+
+-- ==================================================
+-- New table 
+-- ==================================================
+
+
+/* 1) Add org_type column (only once) */
+ALTER TABLE organizations
+  ADD COLUMN org_type ENUM('ngo','localauthority') NOT NULL DEFAULT 'ngo' AFTER org_id;
+
+/* 2) Insert Local Authorities (fixed IDs) */
+INSERT IGNORE INTO organizations (
+  org_id,
+  org_type,
+  org_name,
+  email,
+  phone,
+  org_age,
+  password,
+  status,
+  license_filename,
+  license_mimetype,
+  license_size,
+  license_file
+) VALUES
+(1001, 'localauthority', 'Dhaka Local Authority',       'dhaka@gov.bd',       '01700000001', 50, 'dhakaslum123',       'accepted', 'license.pdf', 'application/pdf', 0, ''),
+(1002, 'localauthority', 'Chattogram Local Authority',  'chattogram@gov.bd',  '01700000002', 50, 'chattogramslum123',  'accepted', 'license.pdf', 'application/pdf', 0, ''),
+(1003, 'localauthority', 'Khulna Local Authority',      'khulna@gov.bd',      '01700000003', 50, 'khulnaslum123',      'accepted', 'license.pdf', 'application/pdf', 0, ''),
+(1004, 'localauthority', 'Rajshahi Local Authority',    'rajshahi@gov.bd',    '01700000004', 50, 'rajashaislum123',    'accepted', 'license.pdf', 'application/pdf', 0, ''),
+(1005, 'localauthority', 'Barishal Local Authority',    'barishal@gov.bd',    '01700000005', 50, 'barishalslum123',    'accepted', 'license.pdf', 'application/pdf', 0, ''),
+(1006, 'localauthority', 'Sylhet Local Authority',      'sylhet@gov.bd',      '01700000006', 50, 'sylhetslum123',      'accepted', 'license.pdf', 'application/pdf', 0, ''),
+(1007, 'localauthority', 'Rangpur Local Authority',     'rangpur@gov.bd',     '01700000007', 50, 'rangpurslum123',     'accepted', 'license.pdf', 'application/pdf', 0, ''),
+(1008, 'localauthority', 'Mymensingh Local Authority',  'mymensingh@gov.bd',  '01700000008', 50, 'mymensinghslum123',  'accepted', 'license.pdf', 'application/pdf', 0, '');
+
+/* 3) Prevent NGO auto IDs from ever clashing with 1001–1008 */
+ALTER TABLE organizations AUTO_INCREMENT = 2000;
+
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP VIEW IF EXISTS vw_family_donation_history;
+
+DROP TABLE IF EXISTS distribution_entries;
+DROP TABLE IF EXISTS distribution_sessions;
+
+DROP TABLE IF EXISTS campaigns;
+DROP TABLE IF EXISTS aid_types;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+
+/* =========================================================
+   4) Re-create tables (MODIFIED to match your create-campaign.js)
+   - Stores: division, district, slum_area, target_gender, age_group,
+             education_required, skills_required
+   - Dates: DATE (YYYY-MM-DD), Time: TIME (HH:MM:SS)
+   ========================================================= */
+
+CREATE TABLE IF NOT EXISTS campaigns (
+  campaign_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  org_id BIGINT UNSIGNED NOT NULL,
+
+  title VARCHAR(180) NOT NULL,
+  category VARCHAR(120) NOT NULL,
+
+  -- EXACT fields from your JS payload:
+  division VARCHAR(150) NOT NULL,
+  district VARCHAR(150) NOT NULL,
+  slum_area VARCHAR(150) NOT NULL,
+
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  start_time TIME NULL,
+
+  -- EXACT values your HTML sends:
+  -- all | female | male | others
+  target_gender ENUM('all','female','male','others') NOT NULL DEFAULT 'all',
+
+  -- child | adult | both
+  age_group ENUM('child','adult','both') NOT NULL,
+
+  -- Your JS currently sends: none/primary/secondary/hsc/diploma/graduate or ""
+  education_required VARCHAR(50) NULL,
+
+  -- Your JS currently sends one skill key (tailoring, embroidery, ...) or ""
+  skills_required VARCHAR(50) NULL,
+
+  description TEXT NOT NULL,
+
+  status ENUM('pending','in_progress','completed','not_executed','cancelled')
+    NOT NULL DEFAULT 'pending',
+
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_campaign_org
+    FOREIGN KEY (org_id) REFERENCES organizations(org_id)
+    ON DELETE RESTRICT,
+
+  INDEX idx_campaign_org (org_id),
+  INDEX idx_campaign_area (division, district, slum_area),
+  INDEX idx_campaign_filters (target_gender, age_group, education_required, skills_required),
+  INDEX idx_campaign_dates (start_date, end_date),
+  INDEX idx_campaign_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- Aid types (same as yours)
+CREATE TABLE IF NOT EXISTS aid_types (
+  aid_type_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(80) NOT NULL UNIQUE,
+  requires_quantity TINYINT(1) NOT NULL DEFAULT 0,
+  unit_label VARCHAR(40) NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO aid_types (name, requires_quantity, unit_label) VALUES
+('Food', 1, 'pack'),
+('Clothing', 1, 'pcs'),
+('Medicine', 1, 'pcs'),
+('Cash', 1, 'BDT'),
+('Skill Training', 0, NULL),
+('Job Placement', 0, NULL);
+
+
+-- Distribution sessions
+CREATE TABLE IF NOT EXISTS distribution_sessions (
+  session_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+  campaign_id BIGINT UNSIGNED NOT NULL,
+  org_id BIGINT UNSIGNED NOT NULL,
+  aid_type_id INT UNSIGNED NOT NULL,
+
+  status ENUM('OPEN','CLOSED') NOT NULL DEFAULT 'OPEN',
+  started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  finished_at TIMESTAMP NULL,
+
+  performed_by VARCHAR(150) NULL,
+
+  CONSTRAINT fk_session_campaign
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id)
+    ON DELETE RESTRICT,
+
+  CONSTRAINT fk_session_org
+    FOREIGN KEY (org_id) REFERENCES organizations(org_id)
+    ON DELETE RESTRICT,
+
+  CONSTRAINT fk_session_aid_type
+    FOREIGN KEY (aid_type_id) REFERENCES aid_types(aid_type_id)
+    ON DELETE RESTRICT,
+
+  INDEX idx_session_campaign (campaign_id),
+  INDEX idx_session_org (org_id),
+  INDEX idx_session_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+SET FOREIGN_KEY_CHECKS=0;
+DROP TABLE IF EXISTS distribution_entries;
+SET FOREIGN_KEY_CHECKS=1;
+
+CREATE TABLE distribution_entries (
+  entry_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+  session_id BIGINT UNSIGNED NOT NULL,
+  campaign_id BIGINT UNSIGNED NOT NULL,
+  org_id BIGINT UNSIGNED NOT NULL,
+
+  family_code VARCHAR(8) NOT NULL,
+  quantity INT UNSIGNED NULL,
+  comment VARCHAR(500) NULL,
+
+  distributed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  verification_method ENUM('CODE','QR') NOT NULL DEFAULT 'CODE',
+
+  CONSTRAINT fk_entry_session
+    FOREIGN KEY (session_id) REFERENCES distribution_sessions(session_id)
+    ON DELETE CASCADE,
+
+  CONSTRAINT fk_entry_campaign
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id)
+    ON DELETE RESTRICT,
+
+  CONSTRAINT fk_entry_org
+    FOREIGN KEY (org_id) REFERENCES organizations(org_id)
+    ON DELETE RESTRICT,
+
+  CONSTRAINT fk_entry_family
+    FOREIGN KEY (family_code) REFERENCES slum_dwellers(slum_code)
+    ON DELETE RESTRICT,
+
+  UNIQUE KEY uq_session_family (session_id, family_code),
+
+  INDEX idx_family_history (family_code, distributed_at),
+  INDEX idx_org_history (org_id, distributed_at),
+  INDEX idx_campaign_history (campaign_id, distributed_at)
+) ENGINE=InnoDB;
+
+/* =========================================================
+   BONUS: Full family donation history (across ALL NGOs/Authorities)
+   - This is what your teacher is asking for.
+   ========================================================= */
+CREATE OR REPLACE VIEW vw_family_donation_history AS
+SELECT
+  de.family_code,
+  de.distributed_at,
+  o.org_name,
+  c.title AS campaign_title,
+  c.category,
+  c.division,
+  c.district,
+  c.slum_area,
+  at.name AS aid_type,
+  de.quantity,
+  de.verification_method,
+  de.comment
+FROM distribution_entries de
+JOIN distribution_sessions ds ON ds.session_id = de.session_id
+JOIN campaigns c ON c.campaign_id = ds.campaign_id
+JOIN organizations o ON o.org_id = ds.org_id
+JOIN aid_types at ON at.aid_type_id = ds.aid_type_id;
+

@@ -1,4 +1,3 @@
-<!-- ngo/ngocreate-campaign.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,408 +10,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
-  <style>
-    :root{
-      --sand:#CBB093;
-      --sand2:#DAC4AD;
-      --paper:#FFF4E6;
-      --terra:#A4624D;
-      --peach:#DFA477;
-      --ink:#613729;
-
-      --header-h:56px;
-      --radius-lg:26px;
-      --radius-md:18px;
-
-      --border: rgba(97, 55, 41, 0.18);
-      --shadowCard: 0 10px 24px rgba(97, 55, 41, 0.10);
-      --shadowHover: 0 16px 36px rgba(97, 55, 41, 0.14);
-
-      --transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-
-    *{ box-sizing:border-box; margin:0; }
-    html,body{ height:100%; }
-
-    body{
-      font-family:"Poppins", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      color: var(--ink);
-      background: linear-gradient(
-        to bottom right,
-        #CBB093 0%,
-        #CBB093 22%,
-        #DAC4AD 45%,
-        #C0E0D0 76%,
-        #C0E0D0 100%
-      );
-      background-attachment: fixed;
-      overflow-x:hidden;
-      padding-bottom: 72px;
-    }
-
-    /* ===== Header (same theme) ===== */
-    .topbar{
-      position: fixed;
-      inset: 0 0 auto 0;
-      height: var(--header-h);
-      z-index: 50;
-
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding: 0 73px 0 70px;
-
-      background: #FFF4E6;
-      border-bottom: none;
-      box-shadow: none;
-    }
-
-    .brand{
-      display:inline-flex;
-      align-items:center;
-      gap: 10px;
-      cursor:pointer;
-      transition: var(--transition);
-      user-select:none;
-    }
-    .brand:hover{ transform: translateY(-1px); }
-
-    .brand-mark{
-      width: 32px; height: 32px;
-      border-radius: 14px;
-      background: linear-gradient(143.48deg, rgba(164, 98, 77, 0.75) 38.34%, rgba(223, 164, 119, 0.75) 78.43%);
-    }
-
-    .brand-text{
-      font-weight: 500;
-      font-size: 20px;
-      color: rgba(164, 98, 77, 0.86);
-      text-transform: uppercase;
-      line-height: 1;
-      white-space: nowrap;
-      letter-spacing: 0.04em;
-    }
-
-    .pill-btn{
-      height: 34px;
-      padding: 0 14px;
-      border-radius: 14px;
-      font-weight: 700;
-      font-size: 14px;
-      cursor:pointer;
-      border: 1px solid rgba(97,55,41,0.14);
-      background: rgba(255,244,230,0.85);
-      color: rgba(97,55,41,0.78);
-      transition: var(--transition);
-      display:inline-flex;
-      align-items:center;
-      gap: 8px;
-      white-space: nowrap;
-    }
-    .pill-btn:hover{
-      transform: translateY(-1px);
-      border-color: rgba(97,55,41,0.22);
-      color: rgba(97,55,41,0.92);
-      box-shadow: 0 10px 18px rgba(97,55,41,0.10);
-    }
-    .pill-btn:active{ transform: translateY(0); }
-
-    /* ===== Layout ===== */
-    .container{
-      max-width: 1360px;
-      margin: calc(var(--header-h) + 26px) auto 52px;
-      padding: 0 28px;
-      display:flex;
-      flex-direction:column;
-      gap: 18px;
-    }
-
-    .hero{
-      background: rgba(255, 244, 230, 0.94);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadowCard);
-      padding: 26px 30px;
-    }
-
-    .hero h1{
-      font-size: 44px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: #613729;
-      margin-bottom: 8px;
-      line-height: 1.1;
-    }
-
-    .hero p{
-      font-size: 16px;
-      font-weight: 600;
-      color: rgba(97, 55, 41, 0.62);
-      max-width: 760px;
-    }
-
-    /* ===== Form panel (figma tint) ===== */
-    .panel{
-      background: linear-gradient(
-        135deg,
-        rgba(164,98,77,0.34),
-        rgba(223,164,119,0.34)
-      );
-      border: 1px solid rgba(97,55,41,0.22);
-      border-radius: 40px;
-      box-shadow: 0 18px 40px rgba(97,55,41,0.14);
-      overflow:hidden;
-    }
-
-    .panel-inner{
-      padding: 26px;
-      display:flex;
-      flex-direction:column;
-      gap: 16px;
-    }
-
-    .form-grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 18px 22px;
-      align-items:start;
-    }
-
-    .field label{
-      display:block;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 0.10em;
-      color: #613729;
-      text-transform: uppercase;
-      margin: 0 0 10px 2px;
-    }
-
-    .control{
-      position: relative;
-    }
-
-    input, select, textarea{
-      width:100%;
-      border: 1px solid rgba(97,55,41,0.18);
-      border-radius: 14px;
-      background: rgba(255,244,230,0.92);
-      color: rgba(47,34,32,0.88);
-      font-weight: 700;
-      outline:none;
-      transition: var(--transition);
-    }
-
-    input, select{
-      height: 44px;
-      padding: 0 14px;
-      font-size: 14px;
-      appearance: none;
-    }
-
-    textarea{
-      min-height: 148px;
-      padding: 14px;
-      font-size: 14px;
-      font-weight: 650;
-      resize: none;
-    }
-
-    input:focus, select:focus, textarea:focus{
-      border-color: rgba(164,98,77,0.30);
-      box-shadow: 0 12px 24px rgba(164,98,77,0.10);
-    }
-
-    .ic-right{
-      position:absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events:none;
-      color: rgba(97,55,41,0.70);
-      font-size: 16px;
-    }
-
-    /* Description should span 2 columns like your screenshot */
-    .span-2{ grid-column: span 2; }
-
-    /* Extra fields container */
-    .extra-fields{ display: contents; }
-    .hidden{ display:none !important; }
-
-    /* Action row */
-    .actions{
-      display:flex;
-      justify-content:flex-end;
-      padding: 0 6px 2px;
-    }
-
-    .create-btn{
-      height: 36px;
-      padding: 0 16px;
-      border-radius: 14px;
-      border: none;
-      cursor:pointer;
-      font-size: 16px;
-      font-weight: 800;
-      color: #fff;
-      background: linear-gradient(90deg, rgba(164,98,77,0.92), rgba(223,164,119,0.92));
-      box-shadow: 0 14px 22px rgba(164,98,77,0.18);
-      transition: var(--transition);
-    }
-    .create-btn:hover{
-      transform: translateY(-1px);
-      filter: brightness(1.02);
-      box-shadow: 0 18px 28px rgba(164,98,77,0.22);
-    }
-    .create-btn:active{ transform: translateY(0); }
-
-    /* ===== Modal (confirm + success) ===== */
-    .modal-backdrop{
-      position: fixed;
-      inset: 0;
-      background: rgba(47,34,32,0.35);
-      backdrop-filter: blur(4px);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index: 9999;
-      padding: 18px;
-    }
-    .modal-backdrop.show{ display:flex; }
-
-    .modal{
-      width: min(520px, 94vw);
-      background: rgba(255,244,230,0.96);
-      border: 1px solid rgba(97,55,41,0.16);
-      border-radius: 22px;
-      box-shadow: 0 24px 60px rgba(47,34,32,0.25);
-      overflow:hidden;
-      transform: translateY(8px);
-      animation: pop 220ms ease forwards;
-    }
-    @keyframes pop{ to{ transform: translateY(0); } }
-
-    .modal-head{
-      padding: 18px 18px 10px;
-      display:flex;
-      align-items:center;
-      gap: 12px;
-    }
-    .modal-ic{
-      width: 40px; height: 40px;
-      border-radius: 16px;
-      display:grid;
-      place-items:center;
-      background: rgba(223,164,119,0.18);
-      color: rgba(97,55,41,0.85);
-      border: 1px solid rgba(97,55,41,0.10);
-      flex: 0 0 auto;
-    }
-    .modal-title{
-      font-size: 18px;
-      font-weight: 900;
-      color: rgba(47,34,32,0.92);
-      line-height: 1.2;
-    }
-    .modal-body{
-      padding: 0 18px 16px;
-      color: rgba(97,55,41,0.70);
-      font-size: 14px;
-      font-weight: 650;
-      line-height: 1.6;
-    }
-
-    .modal-actions{
-      padding: 14px 18px 18px;
-      display:flex;
-      justify-content:flex-end;
-      gap: 10px;
-    }
-
-    .btn{
-      height: 40px;
-      padding: 0 14px;
-      border-radius: 14px;
-      font-weight: 800;
-      font-size: 14px;
-      cursor:pointer;
-      border: 1px solid rgba(97,55,41,0.14);
-      background: rgba(255,255,255,0.35);
-      color: rgba(97,55,41,0.82);
-      transition: var(--transition);
-    }
-    .btn:hover{ transform: translateY(-1px); }
-
-    .btn-primary{
-      border: none;
-      background: linear-gradient(90deg, rgba(164,98,77,0.92), rgba(223,164,119,0.92));
-      color: #fff;
-      box-shadow: 0 12px 18px rgba(164,98,77,0.16);
-    }
-    .btn-primary:hover{
-      box-shadow: 0 16px 24px rgba(164,98,77,0.20);
-      filter: brightness(1.02);
-    }
-
-    /* ===== Toast (validation) ===== */
-    .toast{
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      z-index: 9998;
-      background: rgba(97,55,41,0.94);
-      color:#fff;
-      padding: 12px 16px;
-      border-radius: 12px;
-      box-shadow: 0 18px 36px rgba(0,0,0,0.22);
-      font-size: 14px;
-      font-weight: 700;
-      opacity: 0;
-      transform: translateY(10px);
-      pointer-events:none;
-      transition: 220ms ease;
-      max-width: min(360px, 92vw);
-    }
-    .toast.show{ opacity: 1; transform: translateY(0); }
-
-    /* ===== Responsive ===== */
-    @media (max-width: 1180px){
-      .topbar{ padding: 0 16px; }
-      .hero h1{ font-size: 36px; }
-      .form-grid{ grid-template-columns: 1fr; }
-      .span-2{ grid-column: auto; }
-      textarea{ min-height: 160px; }
-    }
-
-    @media (max-width: 680px){
-      .container{ padding: 0 16px; }
-      .hero{ padding: 22px 18px; }
-      .hero h1{ font-size: 30px; }
-      .pill-btn{ height: 32px; font-size: 13px; padding: 0 12px; border-radius: 13px; }
-      .panel-inner{ padding: 18px; }
-    }
-  </style>
+  <!-- ✅ External CSS -->
+  <link rel="stylesheet" href="./create-campaign.css" />
 </head>
 
 <body>
   <header class="topbar" aria-label="Header">
-  <div class="brand" id="brandBtn" aria-label="SlumLink Home" role="button" tabindex="0">
-    <img
-      src="/src/images/slum Logo.png"
-      alt="SlumLink Logo"
-      class="brand-mark"
-    />
-    <div class="brand-text">SLUMLINK</div>
-  </div>
+    <div class="brand" id="brandBtn" aria-label="SlumLink Home" role="button" tabindex="0">
+      <img src="/src/images/slum Logo.png" alt="SlumLink Logo" class="brand-mark" />
+      <div class="brand-text">SLUMLINK</div>
+    </div>
 
-  <!-- ✅ ONLY Back button -->
-  <button class="pill-btn" id="backBtn" type="button" aria-label="Back to dashboard">
-    <i class="fas fa-arrow-left" aria-hidden="true"></i>
-    <span>Back to Dashboard</span>
-  </button>
-</header>
-
+    <button class="pill-btn" id="backBtn" type="button" aria-label="Back to dashboard">
+      <i class="fas fa-arrow-left" aria-hidden="true"></i>
+      <span>Back to Dashboard</span>
+    </button>
+  </header>
 
   <main class="container">
     <section class="hero" aria-label="Create campaign intro">
@@ -438,33 +51,56 @@
               <div class="control">
                 <select id="category" name="category" required>
                   <option value="">Select</option>
+                  <option value="food_distribution">Food Distribution</option>
                   <option value="medical_checkup">Medical Checkup</option>
-                  <option value="medicine">Medicine</option>
-                  <option value="education">Education</option>
+                  <option value="medicine_support">Medicine Support</option>
+                  <option value="education_support">Education Support</option>
+                  <option value="school_supplies">School Supplies</option>
+                  <option value="skill_training">Skill Training</option>
                   <option value="workshop">Workshop</option>
                   <option value="employment">Employment</option>
-                  <option value="food">Food Distribution</option>
-                  <option value="shelter">Shelter Support</option>
+                  <option value="winter_relief">Winter Relief</option>
+                  <option value="shelter_support">Shelter Support</option>
                   <option value="water_sanitation">Water & Sanitation</option>
+                  <option value="hygiene_kits">Hygiene Kits</option>
+                  <option value="nutrition_program">Nutrition Program</option>
+                  <option value="women_empowerment">Women Empowerment</option>
+                  <option value="child_protection">Child Protection</option>
+                  <option value="disaster_relief">Disaster Relief</option>
+                  <option value="community_awareness">Community Awareness</option>
                 </select>
                 <i class="fas fa-chevron-down ic-right" aria-hidden="true"></i>
               </div>
             </div>
 
-            <!-- TARGET SLUM -->
+            <!-- DIVISION -->
             <div class="field">
-              <label for="slum">Target Slum Area</label>
+              <label for="division">Division</label>
               <div class="control">
-                <select id="slum" name="slum" required>
+                <select id="division" name="division" required>
                   <option value="">Select</option>
-                  <option value="korail">Korail</option>
-                  <option value="mirpur">Mirpur (Pallabi)</option>
-                  <option value="rampura">Rampura</option>
-                  <option value="kamrangirchar">Kamrangirchar</option>
-                  <option value="kallyanpur">Kallyanpur</option>
-                  <option value="sattola">Sattola (Mohakhali)</option>
-                  <option value="mohammadpur">Mohammadpur</option>
-                  <option value="agargaon">Agargaon</option>
+                </select>
+                <i class="fas fa-chevron-down ic-right" aria-hidden="true"></i>
+              </div>
+            </div>
+
+            <!-- DISTRICT -->
+            <div class="field">
+              <label for="district">District</label>
+              <div class="control">
+                <select id="district" name="district" required disabled>
+                  <option value="">Select</option>
+                </select>
+                <i class="fas fa-chevron-down ic-right" aria-hidden="true"></i>
+              </div>
+            </div>
+
+            <!-- SLUM AREA -->
+            <div class="field">
+              <label for="slumArea">Slum Area</label>
+              <div class="control">
+                <select id="slumArea" name="slumArea" required disabled>
+                  <option value="">Select</option>
                 </select>
                 <i class="fas fa-chevron-down ic-right" aria-hidden="true"></i>
               </div>
@@ -500,7 +136,7 @@
               <div class="control">
                 <select id="gender" name="gender" required>
                   <option value="">Select</option>
-                  <option value="both">Both</option>
+                  <option value="all">All</option>
                   <option value="female">Female</option>
                   <option value="male">Male</option>
                   <option value="others">Others</option>
@@ -533,6 +169,7 @@
                   <option value="primary">Primary</option>
                   <option value="secondary">Secondary</option>
                   <option value="hsc">Higher Secondary</option>
+                  <option value="diploma">Diploma / Vocational</option>
                   <option value="graduate">Graduate</option>
                 </select>
                 <i class="fas fa-chevron-down ic-right" aria-hidden="true"></i>
@@ -549,17 +186,28 @@
                   <option value="embroidery">Embroidery / Handicraft</option>
                   <option value="housekeeping">Housekeeping / Cleaning</option>
                   <option value="cooking">Cooking / Kitchen Assistant</option>
-                  <option value="caregiving">Basic Caregiving</option>
+                  <option value="caregiving">Caregiving / Childcare</option>
                   <option value="delivery">Delivery (Bicycle/Motorbike)</option>
+                  <option value="driver">Driving (Car/Van)</option>
                   <option value="rickshaw">Rickshaw / Van Driving</option>
                   <option value="electric_helper">Electrical Helper (Basic Wiring)</option>
+                  <option value="electrician">Electrician (Experienced)</option>
                   <option value="plumbing_helper">Plumbing Helper</option>
+                  <option value="plumber">Plumber (Experienced)</option>
                   <option value="masonry_helper">Masonry / Construction Helper</option>
                   <option value="welding_helper">Welding Helper</option>
+                  <option value="welding">Welding (Experienced)</option>
+                  <option value="carpentry">Carpentry</option>
                   <option value="barbering">Barbering</option>
+                  <option value="beauty_parlor">Beauty Parlor / Salon</option>
                   <option value="mobile_servicing">Mobile Servicing (Basic)</option>
+                  <option value="electronics_repair">Electronics Repair</option>
                   <option value="sales">Sales / Customer Handling</option>
                   <option value="typing">Basic Computer / Typing</option>
+                  <option value="ms_office">MS Office</option>
+                  <option value="data_entry">Data Entry</option>
+                  <option value="tutoring">Tutoring (Basic)</option>
+                  <option value="security_guard">Security Guard</option>
                 </select>
                 <i class="fas fa-chevron-down ic-right" aria-hidden="true"></i>
               </div>
@@ -589,9 +237,7 @@
         <div class="modal-ic"><i class="fas fa-circle-check"></i></div>
         <div class="modal-title" id="confirmTitle">Confirm campaign creation</div>
       </div>
-      <div class="modal-body" id="confirmBody">
-        Are you sure you want to create this campaign?
-      </div>
+      <div class="modal-body" id="confirmBody">Are you sure you want to create this campaign?</div>
       <div class="modal-actions">
         <button class="btn" id="cancelConfirm" type="button">Cancel</button>
         <button class="btn btn-primary" id="confirmCreate" type="button">Confirm</button>
@@ -606,9 +252,7 @@
         <div class="modal-ic"><i class="fas fa-hands-holding-heart"></i></div>
         <div class="modal-title" id="successTitle">Campaign created</div>
       </div>
-      <div class="modal-body">
-        Thank you for helping others. You'll be taken back to the dashboard.
-      </div>
+      <div class="modal-body">Thank you for helping others. You'll be taken back to the dashboard.</div>
       <div class="modal-actions">
         <button class="btn btn-primary" id="goDashboard" type="button">Back to Dashboard</button>
       </div>
@@ -617,337 +261,7 @@
 
   <div class="toast" id="toast"></div>
 
-  <script>
-    // ===== Header actions =====
-    const brandBtn = document.getElementById("brandBtn");
-    const backBtn  = document.getElementById("backBtn");
-
-    function getRole(){
-      const params = new URLSearchParams(window.location.search);
-      return (params.get("role") || "").toLowerCase();
-    }
-
-    function getCampaignStorageKey(){
-      const role = getRole();
-      if(role === "ngo") return "ngoCampaigns";
-      // default: local authority
-      return "localAuthorityCampaigns";
-    }
-
-    function getBackLink(){
-      const params = new URLSearchParams(window.location.search);
-      const explicit = params.get("back");
-      if(explicit) return explicit;
-
-      const role = getRole();
-      if(role === "ngo") return "../ngo/ngo-dashboard.html";
-      return "../localauthority/local-dashboard.html";
-    }
-
-    function goHome(){ window.location.href = "/"; }
-    brandBtn.addEventListener("click", goHome);
-    brandBtn.addEventListener("keydown", (e)=> {
-      if(e.key==="Enter" || e.key===" "){ e.preventDefault(); goHome(); }
-    });
-
-    backBtn.addEventListener("click", ()=> {
-      window.location.href = getBackLink();
-    });
-
-    // ===== Toast =====
-    const toastEl = document.getElementById("toast");
-    let toastTimer;
-    function toast(msg){
-      clearTimeout(toastTimer);
-      toastEl.textContent = msg;
-      toastEl.classList.add("show");
-      toastTimer = setTimeout(()=> toastEl.classList.remove("show"), 2200);
-    }
-
-    // ===== Conditional fields =====
-    const categoryEl = document.getElementById("category");
-    const eduField   = document.getElementById("eduField");
-    const skillsField= document.getElementById("skillsField");
-    const eduEl      = document.getElementById("education");
-    const skillsEl   = document.getElementById("skills");
-
-    function toggleExtraFields(){
-      const v = categoryEl.value;
-      const show = (v === "workshop" || v === "employment");
-
-      eduField.classList.toggle("hidden", !show);
-      skillsField.classList.toggle("hidden", !show);
-
-      if(!show){
-        eduEl.value = "";
-        skillsEl.value = "";
-      }
-    }
-    categoryEl.addEventListener("change", toggleExtraFields);
-    toggleExtraFields();
-
-    // ===== Create flow =====
-    const form = document.getElementById("campaignForm");
-    const createBtn = document.getElementById("createBtn");
-
-    const confirmModal = document.getElementById("confirmModal");
-    const successModal = document.getElementById("successModal");
-    const cancelConfirm = document.getElementById("cancelConfirm");
-    const confirmCreate = document.getElementById("confirmCreate");
-    const goDashboard = document.getElementById("goDashboard");
-    const confirmBody = document.getElementById("confirmBody");
-
-    function openModal(el){
-      el.classList.add("show");
-      el.setAttribute("aria-hidden","false");
-    }
-    function closeModal(el){
-      el.classList.remove("show");
-      el.setAttribute("aria-hidden","true");
-    }
-
-    function getValue(id){ return (document.getElementById(id).value || "").trim(); }
-
-    function isValid(){
-      const title = getValue("title");
-      const category = getValue("category");
-      const slum = getValue("slum");
-      const startDate = getValue("startDate");
-      const endDate = getValue("endDate");
-      const time = getValue("time");
-      const gender = getValue("gender");
-      const ageGroup = getValue("ageGroup");
-      const desc = (document.getElementById("description").value || "").trim();
-
-      // Clear custom validity for all fields first
-      document.getElementById("title").setCustomValidity("");
-      document.getElementById("category").setCustomValidity("");
-      document.getElementById("slum").setCustomValidity("");
-      document.getElementById("startDate").setCustomValidity("");
-      document.getElementById("endDate").setCustomValidity("");
-      document.getElementById("time").setCustomValidity("");
-      document.getElementById("gender").setCustomValidity("");
-      document.getElementById("ageGroup").setCustomValidity("");
-      document.getElementById("description").setCustomValidity("");
-      document.getElementById("education").setCustomValidity("");
-      document.getElementById("skills").setCustomValidity("");
-
-      if(!title) {
-        document.getElementById("title").setCustomValidity("Please fill out this field.");
-        return false;
-      }
-      if(!category) {
-        document.getElementById("category").setCustomValidity("Please fill out this field.");
-        return false;
-      }
-      if(!slum) {
-        document.getElementById("slum").setCustomValidity("Please fill out this field.");
-        return false;
-      }
-      if(!startDate) {
-        document.getElementById("startDate").setCustomValidity("Please fill out this field.");
-        return false;
-      }
-      if(!endDate) {
-        document.getElementById("endDate").setCustomValidity("Please fill out this field.");
-        return false;
-      }
-      if(endDate < startDate) {
-        document.getElementById("endDate").setCustomValidity("To Date must be on or after From Date.");
-        return false;
-      }
-      if(!time) {
-        document.getElementById("time").setCustomValidity("Please fill out this field.");
-        return false;
-      }
-      if(!gender) {
-        document.getElementById("gender").setCustomValidity("Please fill out this field.");
-        return false;
-      }
-      if(!ageGroup) {
-        document.getElementById("ageGroup").setCustomValidity("Please fill out this field.");
-        return false;
-      }
-      if(!desc) {
-        document.getElementById("description").setCustomValidity("Please fill out this field.");
-        return false;
-      }
-
-      if(category === "workshop" || category === "employment"){
-        const edu = getValue("education");
-        const skill = getValue("skills");
-        if(!edu) {
-          document.getElementById("education").setCustomValidity("Please fill out this field.");
-          return false;
-        }
-        if(!skill) {
-          document.getElementById("skills").setCustomValidity("Please fill out this field.");
-          return false;
-        }
-      }
-      return true;
-    }
-
-    createBtn.addEventListener("click", ()=>{
-      const isFormValid = isValid();
-      
-      // Report validity to show native browser messages
-      if (!form.reportValidity()) {
-        return;
-      }
-
-      if(!isFormValid){
-        return;
-      }
-
-      // Fill confirm summary (simple, not too much)
-      const title = getValue("title");
-      const categoryText = categoryEl.options[categoryEl.selectedIndex].text;
-      const slumText = document.getElementById("slum").options[document.getElementById("slum").selectedIndex].text;
-      const startDate = getValue("startDate");
-      const endDate = getValue("endDate");
-
-      confirmBody.innerHTML = `
-        You're about to create <b>${title}</b> in <b>${categoryText}</b> for <b>${slumText}</b>.<br/>
-        Dates: <b>${startDate}</b> → <b>${endDate}</b>.<br/>
-        Do you want to continue?
-      `;
-
-      openModal(confirmModal);
-      cancelConfirm.focus();
-    });
-
-    cancelConfirm.addEventListener("click", ()=> closeModal(confirmModal));
-    confirmModal.addEventListener("click", (e)=> { if(e.target === confirmModal) closeModal(confirmModal); });
-
-    // Local authority email to prefix mapping
-    const authorityPrefixMap = {
-      "dhaka@gov.bd": "dha",
-      "chattogram@gov.bd": "cht",
-      "khulna@gov.bd": "khu",
-      "rajshahi@gov.bd": "raj",
-      "barishal@gov.bd": "bar",
-      "sylhet@gov.bd": "syl",
-      "rangpur@gov.bd": "ran",
-      "mymensingh@gov.bd": "mym"
-    };
-
-    function getAuthorityPrefix(){
-      // Get logged-in authority email from signin data or sessionStorage
-      let email = null;
-      try{
-        const signinData = JSON.parse(localStorage.getItem("SLUMLINK_AUTHORITY_SESSION") || "{}");
-        email = signinData.email;
-      }catch{}
-      
-      if(!email) email = sessionStorage.getItem("authorityEmail");
-      
-      return authorityPrefixMap[email] || "aut";
-    }
-
-    function generateOrgId(){
-      const prefix = getAuthorityPrefix();
-      const timestamp = Date.now();
-      return `${prefix}${timestamp}`;
-    }
-
-    confirmCreate.addEventListener("click", ()=>{
-      closeModal(confirmModal);
-      
-      const role = getRole();
-      
-      // If local authority, send to database
-      if(role === "localauthority"){
-        const prefix = getAuthorityPrefix();
-        const campaign = {
-          title: getValue("title"),
-          category: getValue("category"),
-          target_slum_area: getValue("slum"),
-          start_date: getValue("startDate"),
-          end_date: getValue("endDate"),
-          start_time: getValue("time"),
-          target_gender: getValue("gender"),
-          age_group: getValue("ageGroup"),
-          description: (document.getElementById("description").value || "").trim(),
-          org_id_prefix: prefix
-        };
-
-        console.log("Sending campaign to backend:", campaign);
-
-        // Send to backend API
-        fetch("/api/campaigns/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(campaign)
-        })
-          .then(async (r) => {
-            const data = await r.json().catch(() => null);
-            
-            console.log("Response from backend:", r.status, data);
-
-            if(!r.ok){
-              const msg = data?.message || "Failed to create campaign. Please try again.";
-              toast(msg);
-              return;
-            }
-
-            // Success: show notification
-            toast("✓ New campaign has been created");
-            
-            // Show modal and redirect after 1.5 seconds
-            setTimeout(() => {
-              openModal(successModal);
-            }, 800);
-          })
-          .catch((err) => {
-            console.error("Network error:", err);
-            toast("Network error. Please try again.");
-          });
-      } else {
-        // For NGO (fallback to localStorage)
-        const campaign = {
-          id: Date.now().toString(),
-          title: getValue("title"),
-          category: getValue("category"),
-          slum: getValue("slum"),
-          startDate: getValue("startDate"),
-          endDate: getValue("endDate"),
-          date: getValue("startDate"),
-          time: getValue("time"),
-          gender: getValue("gender"),
-          ageGroup: getValue("ageGroup"),
-          education: getValue("education") || "",
-          skills: getValue("skills") || "",
-          description: (document.getElementById("description").value || "").trim(),
-          status: "pending",
-          createdAt: new Date().toISOString(),
-          createdByRole: role || "ngo"
-        };
-
-        const key = getCampaignStorageKey();
-        let campaigns = [];
-        try{
-          campaigns = JSON.parse(localStorage.getItem(key)) || [];
-          if(!Array.isArray(campaigns)) campaigns = [];
-        }catch{ campaigns = []; }
-
-        campaigns.push(campaign);
-        localStorage.setItem(key, JSON.stringify(campaigns));
-
-        openModal(successModal);
-      }
-    });
-
-    goDashboard.addEventListener("click", ()=> {
-      window.location.href = getBackLink();
-    });
-
-    document.addEventListener("keydown", (e)=>{
-      if(e.key === "Escape"){
-        if(confirmModal.classList.contains("show")) closeModal(confirmModal);
-        if(successModal.classList.contains("show")) closeModal(successModal);
-      }
-    });
-  </script>
+  <!-- ✅ External JS -->
+  <script src="./create-campaign.js"></script>
 </body>
 </html>
