@@ -1,8 +1,172 @@
+// backend/controllers/campaign.controller.js
 import db from "../db.js";
+
+/* ----------------------------- helpers ----------------------------- */
+
+function cleanStr(v) {
+  return String(v ?? "").trim();
+}
+
+function cleanDate(v) {
+  return cleanStr(v).slice(0, 10); // YYYY-MM-DD
+}
+
+function cleanTimeHHMM(v) {
+  return cleanStr(v).slice(0, 5); // HH:MM
+}
+
+function toSqlTime(vHHMM) {
+  const t = cleanTimeHHMM(vHHMM);
+  return t ? `${t}:00` : null; // TIME column
+}
+
+function mapCampaignGenderToDwellerGender(target_gender) {
+  const g = cleanStr(target_gender).toLowerCase();
+  if (g === "female") return "Female";
+  if (g === "male") return "Male";
+  if (g === "others") return "Others";
+  return null; // "all" => no filter
+}
+
+function campaignSummaryText(c) {
+  // This is what you wanted as “whole text”
+  const parts = [
+    `Title: ${c.title}`,
+    `Category: ${c.category}`,
+    `Location: ${c.division}, ${c.district}, ${c.slum_area}`,
+    `Start: ${String(c.start_date).slice(0, 10)}`,
+    `End: ${String(c.end_date).slice(0, 10)}`,
+    `Time: ${c.start_time ? String(c.start_time).slice(0, 5) : "—"}`,
+    `Target Gender: ${c.target_gender}`,
+    `Age Group: ${c.age_group}`,
+    `Education Required: ${c.education_required || "—"}`,
+    `Skill Required: ${c.skills_required || "—"}`,
+    `Description: ${c.description}`,
+  ];
+  return parts.join("\n");
+}
+
+function diffText(oldC, newC) {
+  const changed = [];
+
+  const oldStart = oldC.start_date ? String(oldC.start_date).slice(0, 10) : "";
+  const oldEnd = oldC.end_date ? String(oldC.end_date).slice(0, 10) : "";
+  const oldTime = oldC.start_time ? String(oldC.start_time).slice(0, 5) : "";
+
+  const newStart = newC.start_date ? String(newC.start_date).slice(0, 10) : "";
+  const newEnd = newC.end_date ? String(newC.end_date).slice(0, 10) : "";
+  const newTime = newC.start_time ? String(newC.start_time).slice(0, 5) : "";
+
+  if (oldStart !== newStart) changed.push(`Start Date: ${oldStart || "—"} → ${newStart || "—"}`);
+  if (oldEnd !== newEnd) changed.push(`End Date: ${oldEnd || "—"} → ${newEnd || "—"}`);
+  if (oldTime !== newTime) changed.push(`Time: ${oldTime || "—"} → ${newTime || "—"}`);
+
+  return changed.length ? changed.join("\n") : "No visible field changed.";
+}
+
+/**
+ * Recipient selection rule (backend only):
+ * - Only slum_dwellers.status = 'accepted'
+ * - Match division/district/area
+ * - Match target_gender (mapped to dweller gender)
+ * - Age group:
+ *    child => must have at least 1 ACTIVE child
+ *    adult => must have NO ACTIVE child  (so it doesn't go to child families)
+ *    both  => no child filter
+ * - education_required:
+ *    null/""/"none" => ignore
+ *    else => compare to slum_dwellers.education (case-insensitive exact)
+ * - skills_required:
+ *    ⚠️ You currently do NOT store “skills” for dwellers in DB.
+ *    So we cannot filter by skill accurately without a new table/column.
+ *    We still include it in the notification text.
+ */
+async function getEligibleSlumCodes(connection, campaignRow) {
+  const where = [];
+  const params = [];
+
+  where.push(`sd.status = 'accepted'`);
+
+  where.push(`sd.division = ?`);
+  params.push(campaignRow.division);
+
+  where.push(`sd.district = ?`);
+  params.push(campaignRow.district);
+
+  // Your slum_dwellers has "area" (not slum_area). Match campaign.slum_area to sd.area.
+  where.push(`sd.area = ?`);
+  params.push(campaignRow.slum_area);
+
+  const dwellerGender = mapCampaignGenderToDwellerGender(campaignRow.target_gender);
+  if (dwellerGender) {
+    where.push(`sd.gender = ?`);
+    params.push(dwellerGender);
+  }
+
+  const age = String(campaignRow.age_group || "").toLowerCase();
+  if (age === "child") {
+    where.push(`
+      EXISTS (
+        SELECT 1
+        FROM children ch
+        WHERE ch.slum_id = sd.slum_code
+          AND ch.status = 'active'
+      )
+    `);
+  } else if (age === "adult") {
+    where.push(`
+      NOT EXISTS (
+        SELECT 1
+        FROM children ch
+        WHERE ch.slum_id = sd.slum_code
+          AND ch.status = 'active'
+      )
+    `);
+  } // both => no filter
+
+  const edu = String(campaignRow.education_required || "").trim();
+  if (edu && edu.toLowerCase() !== "none") {
+    where.push(`LOWER(sd.education) = LOWER(?)`);
+    params.push(edu);
+  }
+
+  const sql = `
+    SELECT sd.slum_code
+    FROM slum_dwellers sd
+    WHERE ${where.join(" AND ")}
+  `;
+
+  const [rows] = await connection.execute(sql, params);
+  return rows.map((r) => r.slum_code);
+}
+
+async function insertNotificationsBulk(connection, rows) {
+  if (!rows.length) return 0;
+
+  // mysql2 supports bulk insert with VALUES ?
+  const values = rows.map((r) => [
+    r.slum_code,
+    r.campaign_id,
+    r.org_id,
+    r.type,
+    r.title,
+    r.message,
+  ]);
+
+  const sql = `
+    INSERT INTO notifications
+      (slum_code, campaign_id, org_id, type, title, message)
+    VALUES ?
+  `;
+
+  const [result] = await connection.query(sql, [values]);
+  return result.affectedRows || 0;
+}
+
+/* ----------------------------- controllers ----------------------------- */
 
 /**
  * POST /api/campaigns/create
- * Payload MUST match table columns.
  */
 export async function createCampaign(req, res) {
   let connection;
@@ -21,99 +185,95 @@ export async function createCampaign(req, res) {
       age_group,
       education_required,
       skills_required,
-      description
+      description,
     } = req.body || {};
 
     const orgIdNum = Number(org_id);
-    const cleanTitle = String(title ?? "").trim();
-    const cleanCategory = String(category ?? "").trim();
-    const cleanDivision = String(division ?? "").trim();
-    const cleanDistrict = String(district ?? "").trim();
-    const cleanSlumArea = String(slum_area ?? "").trim();
-    const cleanStartDate = String(start_date ?? "").trim();
-    const cleanEndDate = String(end_date ?? "").trim();
-    const cleanStartTime = String(start_time ?? "").trim();
-    const cleanGender = String(target_gender ?? "").trim().toLowerCase();
-    const cleanAgeGroup = String(age_group ?? "").trim().toLowerCase();
-    const cleanDescription = String(description ?? "").trim();
-    const cleanEducation = String(education_required ?? "").trim();
-    const cleanSkills = String(skills_required ?? "").trim();
 
-    // Basic validation
+    const cleanTitle = cleanStr(title);
+    const cleanCategory = cleanStr(category);
+    const cleanDivision = cleanStr(division);
+    const cleanDistrict = cleanStr(district);
+    const cleanSlumArea = cleanStr(slum_area);
+
+    const cleanStartDate = cleanDate(start_date);
+    const cleanEndDate = cleanDate(end_date);
+    const cleanStartTime = cleanTimeHHMM(start_time);
+
+    const cleanGender = cleanStr(target_gender).toLowerCase();
+    const cleanAge = cleanStr(age_group).toLowerCase();
+
+    const cleanDesc = cleanStr(description);
+    const cleanEdu = cleanStr(education_required);
+    const cleanSkills = cleanStr(skills_required);
+
     if (
-      !Number.isInteger(orgIdNum) || orgIdNum <= 0 ||
-      !cleanTitle || !cleanCategory ||
-      !cleanDivision || !cleanDistrict || !cleanSlumArea ||
-      !cleanStartDate || !cleanEndDate ||
-      !cleanGender || !cleanAgeGroup || !cleanDescription
+      !Number.isInteger(orgIdNum) ||
+      orgIdNum <= 0 ||
+      !cleanTitle ||
+      !cleanCategory ||
+      !cleanDivision ||
+      !cleanDistrict ||
+      !cleanSlumArea ||
+      !cleanStartDate ||
+      !cleanEndDate ||
+      !cleanGender ||
+      !cleanAge ||
+      !cleanDesc
     ) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing required fields."
-      });
+      return res.status(400).json({ success: false, message: "Missing required fields." });
     }
 
-    // Validate enums (match your SQL)
     const allowedGender = new Set(["all", "female", "male", "others"]);
     const allowedAge = new Set(["child", "adult", "both"]);
 
     if (!allowedGender.has(cleanGender)) {
       return res.status(400).json({ success: false, message: "Invalid target_gender." });
     }
-    if (!allowedAge.has(cleanAgeGroup)) {
+    if (!allowedAge.has(cleanAge)) {
       return res.status(400).json({ success: false, message: "Invalid age_group." });
     }
-
     if (cleanEndDate < cleanStartDate) {
       return res.status(400).json({ success: false, message: "End date cannot be before start date." });
     }
 
     connection = await db.getConnection();
+    await connection.beginTransaction();
 
-    // FK safety: ensure org exists
+    // ensure org exists + accepted
     const [orgRows] = await connection.execute(
-      `SELECT org_id, org_type, status FROM organizations WHERE org_id = ? LIMIT 1`,
+      `SELECT org_id, status FROM organizations WHERE org_id = ? LIMIT 1`,
       [orgIdNum]
     );
-
-    if (!orgRows || orgRows.length === 0) {
+    if (!orgRows.length) {
+      await connection.rollback();
       return res.status(400).json({
         success: false,
-        message: `Referenced organization (org_id=${org_id}) not found. Insert the organization row first.`
+        message: `Referenced organization (org_id=${orgIdNum}) not found.`,
       });
     }
-
-    // Optional: require accepted orgs only (recommended)
-    const org = orgRows[0];
-    if (org.status && org.status !== "accepted") {
+    if (orgRows[0].status !== "accepted") {
+      await connection.rollback();
       return res.status(403).json({
         success: false,
-        message: "Organization is not accepted yet. Campaign creation is not allowed."
+        message: "Organization is not accepted yet. Campaign creation is not allowed.",
       });
     }
 
+    // insert campaign
     const insertSql = `
       INSERT INTO campaigns (
-        org_id,
-        title,
-        category,
-        division,
-        district,
-        slum_area,
-        start_date,
-        end_date,
-        start_time,
-        target_gender,
-        age_group,
-        education_required,
-        skills_required,
+        org_id, title, category,
+        division, district, slum_area,
+        start_date, end_date, start_time,
+        target_gender, age_group,
+        education_required, skills_required,
         description,
-        status,
-        created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
+        status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     `;
 
-    const [result] = await connection.execute(insertSql, [
+    const [ins] = await connection.execute(insertSql, [
       orgIdNum,
       cleanTitle,
       cleanCategory,
@@ -122,35 +282,56 @@ export async function createCampaign(req, res) {
       cleanSlumArea,
       cleanStartDate,
       cleanEndDate,
-      cleanStartTime || null,
+      toSqlTime(cleanStartTime),
       cleanGender,
-      cleanAgeGroup,
-      cleanEducation || null,
+      cleanAge,
+      cleanEdu || null,
       cleanSkills || null,
-      cleanDescription
+      cleanDesc,
     ]);
+
+    const campaignId = ins.insertId;
+
+    // load inserted campaign row for consistent message + recipient selection
+    const [cRows] = await connection.execute(
+      `SELECT * FROM campaigns WHERE campaign_id = ? LIMIT 1`,
+      [campaignId]
+    );
+    const c = cRows[0];
+
+    const eligibleSlumCodes = await getEligibleSlumCodes(connection, c);
+
+    const titleText = `New Campaign: ${c.title}`;
+    const msgText = campaignSummaryText(c);
+
+    const inserted = await insertNotificationsBulk(
+      connection,
+      eligibleSlumCodes.map((slum_code) => ({
+        slum_code,
+        campaign_id: c.campaign_id,
+        org_id: c.org_id,
+        type: "campaign_created",
+        title: titleText,
+        message: msgText,
+      }))
+    );
+
+    await connection.commit();
 
     return res.status(201).json({
       success: true,
       message: "New campaign has been created",
-      data: { campaign_id: result.insertId }
+      data: { campaign_id: campaignId, notifications_created: inserted },
     });
-
   } catch (error) {
     console.error("Error creating campaign:", error);
-
-    if (error && (error.code === "ER_NO_REFERENCED_ROW_2" || error.errno === 1452)) {
-      return res.status(400).json({
-        success: false,
-        message: "Foreign key failed: org_id does not exist in organizations table.",
-        error: error.message
-      });
-    }
-
+    try {
+      if (connection) await connection.rollback();
+    } catch {}
     return res.status(500).json({
       success: false,
       message: "Failed to create campaign",
-      error: error.message
+      error: error.message,
     });
   } finally {
     if (connection) connection.release();
@@ -158,14 +339,12 @@ export async function createCampaign(req, res) {
 }
 
 /**
- * GET /api/campaigns
- * Optional: /api/campaigns?org_id=1001 to filter “my campaigns”
+ * GET /api/campaigns?org_id=...
  */
 export async function getAllCampaigns(req, res) {
   let connection;
   try {
     const { org_id } = req.query;
-
     connection = await db.getConnection();
 
     let sql = `
@@ -182,7 +361,6 @@ export async function getAllCampaigns(req, res) {
     }
 
     sql += ` ORDER BY created_at DESC `;
-
     const [rows] = await connection.execute(sql, params);
 
     return res.status(200).json({ success: true, data: rows });
@@ -191,22 +369,28 @@ export async function getAllCampaigns(req, res) {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve campaigns",
-      error: error.message
+      error: error.message,
     });
   } finally {
     if (connection) connection.release();
   }
 }
 
+/**
+ * GET /api/campaigns/:campaignId
+ */
 export async function getCampaignById(req, res) {
   let connection;
   try {
-    const { campaignId } = req.params;
-    connection = await db.getConnection();
+    const idNum = Number(req.params.campaignId);
+    if (!Number.isInteger(idNum) || idNum <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid campaignId" });
+    }
 
+    connection = await db.getConnection();
     const [rows] = await connection.execute(
       `SELECT * FROM campaigns WHERE campaign_id = ? LIMIT 1`,
-      [Number(campaignId)]
+      [idNum]
     );
 
     if (!rows.length) {
@@ -219,176 +403,270 @@ export async function getCampaignById(req, res) {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve campaign",
-      error: error.message
+      error: error.message,
     });
   } finally {
     if (connection) connection.release();
   }
 }
 
+/**
+ * PUT /api/campaigns/:campaignId
+ * ✅ Allowed:
+ *   - start_date, end_date, start_time (edit)
+ *   - status = 'cancelled' (cancel)
+ * ❌ Any other field -> rejected
+ *
+ * Also inserts notifications:
+ *  - campaign_updated when date/time edited
+ *  - campaign_cancelled when cancelled
+ */
 export async function updateCampaign(req, res) {
   let connection;
   try {
-    const { campaignId } = req.params;
+    const idNum = Number(req.params.campaignId);
     const payload = req.body || {};
-    const idNum = Number(campaignId);
 
     if (!Number.isInteger(idNum) || idNum <= 0) {
       return res.status(400).json({ success: false, message: "Invalid campaignId" });
     }
 
-    connection = await db.getConnection();
+    // hard allow-list
+    const allowedKeys = new Set(["start_date", "end_date", "start_time", "status", "org_id"]);
+    for (const k of Object.keys(payload)) {
+      if (!allowedKeys.has(k)) {
+        return res.status(400).json({
+          success: false,
+          message: `Only start_date, end_date, start_time can be edited (or status=cancelled). Invalid field: ${k}`,
+        });
+      }
+    }
 
-    const [existingRows] = await connection.execute(
-      `SELECT campaign_id, status FROM campaigns WHERE campaign_id = ? LIMIT 1`,
+    const nextStart = payload.start_date !== undefined ? cleanDate(payload.start_date) : null;
+    const nextEnd = payload.end_date !== undefined ? cleanDate(payload.end_date) : null;
+    const nextTime = payload.start_time !== undefined ? cleanTimeHHMM(payload.start_time) : null;
+
+    const nextStatusRaw = payload.status !== undefined ? cleanStr(payload.status).toLowerCase() : null;
+    const allowedStatus = new Set(["cancelled"]); // you said you only use cancelled
+    if (nextStatusRaw && !allowedStatus.has(nextStatusRaw)) {
+      return res.status(400).json({ success: false, message: "Only status='cancelled' is allowed." });
+    }
+
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    // load current campaign
+    const [rows] = await connection.execute(
+      `SELECT * FROM campaigns WHERE campaign_id = ? LIMIT 1`,
       [idNum]
     );
-
-    if (!existingRows.length) {
+    if (!rows.length) {
+      await connection.rollback();
       return res.status(404).json({ success: false, message: "Campaign not found" });
     }
 
-    const currentStatus = String(existingRows[0].status || "").toLowerCase();
+    const cur = rows[0];
+    const curStatus = String(cur.status || "").toLowerCase();
 
-    const hasNonStatusEdits = [
-      "title",
-      "category",
-      "division",
-      "district",
-      "slum_area",
-      "start_date",
-      "end_date",
-      "start_time",
-      "target_gender",
-      "age_group",
-      "education_required",
-      "skills_required",
-      "description"
-    ].some((k) => payload[k] !== undefined);
-
-    // Completed/cancelled campaigns are read-only (UI should enforce this too)
-    if (hasNonStatusEdits && (currentStatus === "completed" || currentStatus === "cancelled" || currentStatus === "canceled")) {
-      return res.status(403).json({ success: false, message: "Completed/cancelled campaigns cannot be edited" });
+    if (curStatus === "cancelled") {
+      await connection.rollback();
+      return res.status(403).json({ success: false, message: "Campaign already cancelled." });
     }
 
-    const allowedGender = new Set(["all", "female", "male", "others"]);
-    const allowedAge = new Set(["child", "adult", "both"]);
-    const allowedStatus = new Set(["pending", "waiting", "in_progress", "completed", "cancelled", "canceled"]);
+    // compute final values
+    const finalStart = nextStart ?? (cur.start_date ? String(cur.start_date).slice(0, 10) : "");
+    const finalEnd = nextEnd ?? (cur.end_date ? String(cur.end_date).slice(0, 10) : "");
+    const finalTime = payload.start_time !== undefined ? toSqlTime(nextTime) : cur.start_time;
 
-    const updates = [];
-    const values = [];
-
-    const setIfProvided = (col, val) => {
-      updates.push(`${col} = ?`);
-      values.push(val);
-    };
-
-    if (payload.title !== undefined) setIfProvided("title", String(payload.title ?? "").trim());
-    if (payload.category !== undefined) setIfProvided("category", String(payload.category ?? "").trim());
-    if (payload.division !== undefined) setIfProvided("division", String(payload.division ?? "").trim());
-    if (payload.district !== undefined) setIfProvided("district", String(payload.district ?? "").trim());
-    if (payload.slum_area !== undefined) setIfProvided("slum_area", String(payload.slum_area ?? "").trim());
-    if (payload.start_date !== undefined) setIfProvided("start_date", String(payload.start_date ?? "").trim());
-    if (payload.end_date !== undefined) setIfProvided("end_date", String(payload.end_date ?? "").trim());
-    if (payload.start_time !== undefined) {
-      const t = String(payload.start_time ?? "").trim();
-      setIfProvided("start_time", t || null);
+    if (!finalStart || !finalEnd) {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: "start_date and end_date are required." });
     }
-    if (payload.education_required !== undefined) {
-      const v = String(payload.education_required ?? "").trim();
-      setIfProvided("education_required", v || null);
+    if (finalEnd < finalStart) {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: "End date cannot be before start date." });
     }
-    if (payload.skills_required !== undefined) {
-      const v = String(payload.skills_required ?? "").trim();
-      setIfProvided("skills_required", v || null);
-    }
-    if (payload.description !== undefined) setIfProvided("description", String(payload.description ?? "").trim());
 
-    if (payload.target_gender !== undefined) {
-      const g = String(payload.target_gender ?? "").trim().toLowerCase();
-      if (g && !allowedGender.has(g)) {
-        return res.status(400).json({ success: false, message: "Invalid target_gender" });
+    // build update
+    const sets = [];
+    const vals = [];
+
+    let isCancel = false;
+    let isEdit = false;
+
+    if (nextStatusRaw === "cancelled") {
+      isCancel = true;
+      sets.push(`status = 'cancelled'`);
+    } else {
+      if (payload.start_date !== undefined) {
+        sets.push(`start_date = ?`);
+        vals.push(finalStart);
+        isEdit = true;
       }
-      setIfProvided("target_gender", g);
+      if (payload.end_date !== undefined) {
+        sets.push(`end_date = ?`);
+        vals.push(finalEnd);
+        isEdit = true;
+      }
+      if (payload.start_time !== undefined) {
+        sets.push(`start_time = ?`);
+        vals.push(finalTime);
+        isEdit = true;
+      }
     }
 
-    if (payload.age_group !== undefined) {
-      const a = String(payload.age_group ?? "").trim().toLowerCase();
-      if (a && !allowedAge.has(a)) {
-        return res.status(400).json({ success: false, message: "Invalid age_group" });
-      }
-      setIfProvided("age_group", a);
-    }
-
-    if (payload.status !== undefined) {
-      const s = String(payload.status ?? "").trim().toLowerCase();
-      if (!s || !allowedStatus.has(s)) {
-        return res.status(400).json({ success: false, message: "Invalid status" });
-      }
-
-      // Basic guardrails for cancelling
-      if ((s === "cancelled" || s === "canceled") && currentStatus === "completed") {
-        return res.status(403).json({ success: false, message: "Completed campaigns cannot be cancelled" });
-      }
-
-      setIfProvided("status", s);
-    }
-
-    if (!updates.length) {
+    if (!sets.length) {
+      await connection.rollback();
       return res.status(400).json({ success: false, message: "No fields to update" });
     }
 
-    // Validate date range if provided
-    const nextStart = payload.start_date !== undefined ? String(payload.start_date ?? "").trim() : null;
-    const nextEnd = payload.end_date !== undefined ? String(payload.end_date ?? "").trim() : null;
-    if (nextStart && nextEnd && nextEnd < nextStart) {
-      return res.status(400).json({ success: false, message: "End date cannot be before start date" });
+    const updSql = `
+      UPDATE campaigns
+      SET ${sets.join(", ")}, updated_at = NOW()
+      WHERE campaign_id = ?
+    `;
+    vals.push(idNum);
+
+    await connection.execute(updSql, vals);
+
+    // reload updated campaign for messages
+    const [afterRows] = await connection.execute(
+      `SELECT * FROM campaigns WHERE campaign_id = ? LIMIT 1`,
+      [idNum]
+    );
+    const after = afterRows[0];
+
+    // recipients based on campaign criteria
+    const eligibleSlumCodes = await getEligibleSlumCodes(connection, after);
+
+    let createdNotifs = 0;
+
+    if (isCancel) {
+      const titleText = `Campaign Cancelled: ${after.title}`;
+      const msgText = `This campaign has been cancelled.\n\n${campaignSummaryText(after)}`;
+
+      createdNotifs = await insertNotificationsBulk(
+        connection,
+        eligibleSlumCodes.map((slum_code) => ({
+          slum_code,
+          campaign_id: after.campaign_id,
+          org_id: after.org_id,
+          type: "campaign_cancelled",
+          title: titleText,
+          message: msgText,
+        }))
+      );
+    } else if (isEdit) {
+      const titleText = `Campaign Updated: ${after.title}`;
+      const msgText =
+        `This campaign was edited.\n\nChanged:\n${diffText(cur, after)}\n\nUpdated Details:\n${campaignSummaryText(after)}`;
+
+      createdNotifs = await insertNotificationsBulk(
+        connection,
+        eligibleSlumCodes.map((slum_code) => ({
+          slum_code,
+          campaign_id: after.campaign_id,
+          org_id: after.org_id,
+          type: "campaign_updated",
+          title: titleText,
+          message: msgText,
+        }))
+      );
     }
 
-    const sql = `UPDATE campaigns SET ${updates.join(", ")}, updated_at = NOW() WHERE campaign_id = ?`;
-    values.push(idNum);
+    await connection.commit();
 
-    const [result] = await connection.execute(sql, values);
-
-    if (!result.affectedRows) {
-      return res.status(404).json({ success: false, message: "Campaign not found" });
-    }
-
-    return res.status(200).json({ success: true, message: "Campaign updated successfully" });
+    return res.status(200).json({
+      success: true,
+      message: isCancel ? "Campaign cancelled successfully" : "Campaign updated successfully",
+      data: { campaign_id: idNum, notifications_created: createdNotifs },
+    });
   } catch (error) {
     console.error("Error updating campaign:", error);
+    try {
+      if (connection) await connection.rollback();
+    } catch {}
     return res.status(500).json({
       success: false,
       message: "Failed to update campaign",
-      error: error.message
+      error: error.message,
     });
   } finally {
     if (connection) connection.release();
   }
 }
 
+/**
+ * DELETE /api/campaigns/:campaignId
+ * You said you mainly use status='cancelled', but keeping delete safe:
+ * - creates a campaign_cancelled notification first (best-effort)
+ * - then deletes the campaign
+ */
 export async function deleteCampaign(req, res) {
   let connection;
   try {
-    const { campaignId } = req.params;
+    const idNum = Number(req.params.campaignId);
+    if (!Number.isInteger(idNum) || idNum <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid campaignId" });
+    }
+
     connection = await db.getConnection();
+    await connection.beginTransaction();
 
-    const [result] = await connection.execute(
-      `DELETE FROM campaigns WHERE campaign_id = ?`,
-      [Number(campaignId)]
+    const [rows] = await connection.execute(
+      `SELECT * FROM campaigns WHERE campaign_id = ? LIMIT 1`,
+      [idNum]
     );
-
-    if (!result.affectedRows) {
+    if (!rows.length) {
+      await connection.rollback();
       return res.status(404).json({ success: false, message: "Campaign not found" });
     }
 
-    return res.status(200).json({ success: true, message: "Campaign deleted successfully" });
+    const c = rows[0];
+    const eligibleSlumCodes = await getEligibleSlumCodes(connection, c);
+
+    // best-effort notify as "cancelled" (since deleted)
+    const titleText = `Campaign Removed: ${c.title}`;
+    const msgText = `This campaign was removed by the organization.\n\n${campaignSummaryText(c)}`;
+
+    const createdNotifs = await insertNotificationsBulk(
+      connection,
+      eligibleSlumCodes.map((slum_code) => ({
+        slum_code,
+        campaign_id: c.campaign_id,
+        org_id: c.org_id,
+        type: "campaign_cancelled",
+        title: titleText,
+        message: msgText,
+      }))
+    );
+
+    const [del] = await connection.execute(
+      `DELETE FROM campaigns WHERE campaign_id = ?`,
+      [idNum]
+    );
+
+    if (!del.affectedRows) {
+      await connection.rollback();
+      return res.status(404).json({ success: false, message: "Campaign not found" });
+    }
+
+    await connection.commit();
+
+    return res.status(200).json({
+      success: true,
+      message: "Campaign deleted successfully",
+      data: { campaign_id: idNum, notifications_created: createdNotifs },
+    });
   } catch (error) {
     console.error("Error deleting campaign:", error);
+    try {
+      if (connection) await connection.rollback();
+    } catch {}
     return res.status(500).json({
       success: false,
       message: "Failed to delete campaign",
-      error: error.message
+      error: error.message,
     });
   } finally {
     if (connection) connection.release();

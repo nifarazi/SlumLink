@@ -621,3 +621,155 @@ INSERT INTO campaigns (
  'all', 'both', 'none', '',
  'Local authority health camp with a medicine booth for common treatments and referrals.',
  'pending');
+ 
+DROP TABLE IF EXISTS notifications;
+
+CREATE TABLE notifications (
+  notification_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+  slum_code VARCHAR(8)
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_0900_ai_ci
+    NOT NULL,
+
+  campaign_id BIGINT UNSIGNED NOT NULL,
+  org_id BIGINT UNSIGNED NOT NULL,
+
+  type ENUM('campaign_created','campaign_updated','campaign_cancelled') NOT NULL,
+  title VARCHAR(200) NOT NULL,
+  message TEXT NOT NULL,
+
+  is_read TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_notif_slum
+    FOREIGN KEY (slum_code) REFERENCES slum_dwellers(slum_code) ON DELETE CASCADE,
+
+  CONSTRAINT fk_notif_campaign
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id) ON DELETE CASCADE,
+
+  CONSTRAINT fk_notif_org
+    FOREIGN KEY (org_id) REFERENCES organizations(org_id) ON DELETE CASCADE,
+
+  INDEX idx_notifications_user (slum_code, is_read, created_at),
+  INDEX idx_notifications_campaign (campaign_id, created_at)
+);
+
+DROP TABLE IF EXISTS campaign_targets;
+
+CREATE TABLE campaign_targets (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  campaign_id BIGINT UNSIGNED NOT NULL,
+
+  slum_code VARCHAR(8)
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_0900_ai_ci
+    NOT NULL,
+
+  matched_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id) ON DELETE CASCADE,
+  FOREIGN KEY (slum_code) REFERENCES slum_dwellers(slum_code) ON DELETE CASCADE,
+
+  UNIQUE KEY uq_campaign_target (campaign_id, slum_code),
+  INDEX idx_target_user (slum_code),
+  INDEX idx_target_campaign (campaign_id)
+);
+
+USE slumlink;
+
+INSERT INTO slum_dwellers
+(password_hash, full_name, mobile, nid, dob, gender, education, occupation, income, area, district, division, family_members, status)
+VALUES
+('hash1','Rahim Uddin','01711111111','NID-1001','1995-04-12','Male','primary','rickshaw puller','12000','Korail','Dhaka','Dhaka',5,'accepted'),
+('hash2','Ayesha Akter','01722222222','NID-1002','1998-09-20','Female','secondary','housewife','0','Korail','Dhaka','Dhaka',3,'accepted'),
+('hash3','Karim Mia','01733333333','NID-1003','1990-01-05','Male','none','day labor','10000','Mirpur','Dhaka','Dhaka',2,'accepted'),
+('hash4','Jannat Ara','01744444444','NID-1004','1992-06-11','Female','hsc','tailor','15000','Rampura','Dhaka','Dhaka',4,'accepted'),
+('hash5','Selim Hossain','01755555555','NID-1005','1987-12-25','Male','primary','vendor','9000','Kamrangirchar','Dhaka','Dhaka',6,'accepted'),
+('hash6','Mitu Sultana','01766666666','NID-1006','2000-03-03','Female','graduate','tutor','8000','Mirpur','Dhaka','Dhaka',1,'accepted'),
+('hash7','Babu Sheikh','01777777777','NID-1007','1996-08-18','Male','secondary','electric helper','13000','Rampura','Dhaka','Dhaka',2,'accepted'),
+('hash8','Rupa Khatun','01788888888','NID-1008','1999-02-02','Female','primary','garments worker','14000','Korail','Dhaka','Dhaka',4,'accepted');
+
+INSERT INTO spouses
+(slum_id, name, dob, gender, nid, education, job, income, mobile, status)
+VALUES
+('SR000001','Salma Rahim','1997-05-10','Female','SPN-2001','primary','housewife','0','01811111111','active'),
+('SR000003','Fatema Karim','1993-03-21','Female','SPN-2003','secondary','home','0','01833333333','active'),
+('SR000005','Nusrat Selim','1990-10-15','Female','SPN-2005','none','home','0','01855555555','active');
+
+INSERT INTO children
+(slum_id, name, dob, gender, education, job, income, preferred_job, status)
+VALUES
+('SR000001','Rafi','2016-01-10','Male','Class 3',NULL,NULL,'student','active'),
+('SR000001','Mim','2019-07-25','Female','Playgroup',NULL,NULL,'student','active'),
+
+('SR000002','Samiha','2014-04-09','Female','Class 5',NULL,NULL,'student','active'),
+
+('SR000004','Tuhin','2013-11-11','Male','Class 6',NULL,NULL,'student','active'),
+('SR000004','Raisa','2018-02-20','Female','KG',NULL,NULL,'student','active'),
+
+('SR000005','Shuvo','2012-09-01','Male','Class 7',NULL,NULL,'student','active'),
+
+('SR000008','Nabila','2015-05-05','Female','Class 4',NULL,NULL,'student','active');
+
+
+USE slumlink;
+
+-- -----------------------------
+-- SLUM DWELLERS (ACCEPTED USERS)
+-- -----------------------------
+INSERT INTO slum_dwellers
+(password_hash, full_name, mobile, nid, dob, gender, education, occupation, income, area, district, division, family_members, status)
+VALUES
+-- KORAIL (has children)  -> should receive child campaigns
+('hash1','Korail Family A','01711111111','1111111111','1992-05-12','Female','primary','tailoring','8000','Korail','Dhaka','Dhaka',4,'accepted'),
+
+-- KORAIL (no children)   -> should NOT receive child campaigns
+('hash2','Korail Family B','01711111112','1111111112','1988-08-20','Male','secondary','day_labor','9000','Korail','Dhaka','Dhaka',3,'accepted'),
+
+-- MIRPUR (has child)
+('hash3','Mirpur Family C','01711111113','1111111113','1990-02-10','Female','primary','embroidery','7000','Mirpur','Dhaka','Dhaka',5,'accepted'),
+
+-- MIRPUR (no child)
+('hash4','Mirpur Family D','01711111114','1111111114','1995-11-01','Male','hsc','driver','12000','Mirpur','Dhaka','Dhaka',2,'accepted'),
+
+-- RAMPURA (has child)
+('hash5','Rampura Family E','01711111115','1111111115','1993-07-07','Female','secondary','tailoring','8500','Rampura','Dhaka','Dhaka',4,'accepted'),
+
+-- KAMRANGIRCHAR (no child)
+('hash6','Kamrangirchar Family F','01711111116','1111111116','1987-03-03','Male','none','rickshaw_pull','6000','Kamrangirchar','Dhaka','Dhaka',3,'accepted');
+
+-- -----------------------------------------
+-- FIND THEIR GENERATED slum_codes (SR######)
+-- -----------------------------------------
+SELECT slum_code, full_name, area, district, division, education, occupation, status
+FROM slum_dwellers
+ORDER BY id DESC
+LIMIT 20;
+
+-- -----------------------------
+-- CHILDREN (for "child" filters)
+-- Use slum_code from above output.
+-- -----------------------------
+-- Replace SR0000XX with your real values from SELECT.
+-- Example assumes the latest 6 inserted codes are SR000001..SR000006 (your DB may differ).
+INSERT INTO children (slum_id, name, dob, gender, education, job, income, preferred_job, status)
+VALUES
+('SR000001','Child A1','2015-06-01','Male','primary',NULL,NULL,'student','active'),
+('SR000003','Child C1','2012-04-15','Female','primary',NULL,NULL,'student','active'),
+('SR000005','Child E1','2016-09-09','Male','none',NULL,NULL,'student','active');
+
+-- -----------------------------
+-- SPOUSES (optional)
+-- -----------------------------
+INSERT INTO spouses (slum_id, name, dob, gender, nid, education, job, income, mobile, status)
+VALUES
+('SR000001','Spouse A','1991-01-01','Male','2222222222','secondary','day_labor','9000','01722222221','active'),
+('SR000003','Spouse C','1989-02-02','Male','2222222223','primary','tailoring','8000','01722222223','active');
+
+
+SELECT notification_id, slum_code, campaign_id, type, title, created_at
+FROM notifications
+ORDER BY notification_id DESC
+LIMIT 50;
+
