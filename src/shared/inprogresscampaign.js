@@ -24,6 +24,27 @@ function toast(msg){
   toastEl.__t = window.setTimeout(()=>toastEl.classList.remove("show"), 2200);
 }
 
+/**
+ * ✅ FIXED date normalizer (same as other files)
+ */
+function extractDateOnly(dbDateString){
+  if(!dbDateString) return "";
+
+  if(typeof dbDateString === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dbDateString.trim())){
+    return dbDateString.trim();
+  }
+
+  const d = new Date(dbDateString);
+  if(!isNaN(d.getTime())){
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  return String(dbDateString).trim().slice(0, 10);
+}
+
 function normalizeDateInput(v){
   return (v || "").slice(0, 10);
 }
@@ -157,8 +178,9 @@ async function load(){
     if(elDistrict) elDistrict.value = c?.district || "";
     if(elSlumArea) elSlumArea.value = c?.slum_area || "";
 
-    if(elStartDate) elStartDate.value = (c?.start_date || "").slice(0,10);
-    if(elEndDate) elEndDate.value = (c?.end_date || "").slice(0,10);
+    // ✅ fixed date handling
+    if(elStartDate) elStartDate.value = extractDateOnly(c?.start_date);
+    if(elEndDate) elEndDate.value = extractDateOnly(c?.end_date);
     if(elTime) elTime.value = (c?.start_time || "").slice(0,5);
 
     if(elGender) elGender.value = c?.target_gender || "";
@@ -212,7 +234,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const brandBtn = document.getElementById("brandBtn");
   brandBtn?.addEventListener("click", goBack);
-  brandBtn?.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); goBack(); } });
+  brandBtn?.addEventListener("keydown", (e)=>{ 
+    if(e.key==="Enter"||e.key===" "){ e.preventDefault(); goBack(); } 
+  });
 
   document.getElementById("saveBtn")?.addEventListener("click", save);
 

@@ -28,6 +28,33 @@ function toast(msg){
   toastEl.__t = window.setTimeout(() => toastEl.classList.remove("show"), 2200);
 }
 
+/**
+ * ✅ FIXED:
+ * - If backend sends "YYYY-MM-DD" -> keep it (perfect for <input type="date">)
+ * - If backend sends ISO datetime like "2026-02-08T18:00:00.000Z"
+ *   -> convert to LOCAL date string (Bangladesh: +6) and return YYYY-MM-DD
+ */
+function extractDateOnly(dbDateString){
+  if(!dbDateString) return "";
+
+  // already correct format
+  if(typeof dbDateString === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dbDateString.trim())){
+    return dbDateString.trim();
+  }
+
+  // ISO datetime -> local date
+  const d = new Date(dbDateString);
+  if(!isNaN(d.getTime())){
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  // fallback
+  return String(dbDateString).trim().slice(0, 10);
+}
+
 function showReq(category){
   const c = (category || "").toLowerCase();
   const show = (c === "employment" || c === "workshop");
@@ -77,8 +104,10 @@ async function load(){
     if(elDistrict) elDistrict.value = c?.district || "";
     if(elSlumArea) elSlumArea.value = c?.slum_area || "";
 
-    if(elStartDate) elStartDate.value = (c?.start_date || "").slice(0, 10);
-    if(elEndDate) elEndDate.value = (c?.end_date || "").slice(0, 10);
+    // ✅ fixed date handling
+    if(elStartDate) elStartDate.value = extractDateOnly(c?.start_date);
+    if(elEndDate) elEndDate.value = extractDateOnly(c?.end_date);
+
     if(elTime) elTime.value = (c?.start_time || "").slice(0, 5);
 
     if(elGender) elGender.value = c?.target_gender || "";

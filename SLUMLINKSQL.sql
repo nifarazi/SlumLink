@@ -525,3 +525,99 @@ JOIN campaigns c ON c.campaign_id = ds.campaign_id
 JOIN organizations o ON o.org_id = ds.org_id
 JOIN aid_types at ON at.aid_type_id = ds.aid_type_id;
 
+
+
+USE slumlink;
+
+-- ---------------------------------------------------
+
+
+-- ---------------------------------------------------
+-- 1) Dummy campaigns for org_id=3 (NGO)
+-- ---------------------------------------------------
+INSERT INTO campaigns (
+  org_id, title, category,
+  division, district, slum_area,
+  start_date, end_date, start_time,
+  target_gender, age_group, education_required, skills_required,
+  description, status
+) VALUES
+(3, 'Korail Winter Clothing Drive', 'Clothing',
+ 'Dhaka', 'Dhaka', 'Korail',
+ '2026-02-10', '2026-02-12', '10:00:00',
+ 'all', 'both', 'none', '',
+ 'Distribution of winter clothing packages for families in Korail. Priority to elderly, children, and working adults.',
+ 'pending'),
+
+(3, 'Basic First-Aid Awareness Session', 'Skill Training',
+ 'Dhaka', 'Dhaka', 'Korail',
+ '2026-02-15', '2026-02-15', '15:30:00',
+ 'all', 'adult', 'primary', '',
+ 'Hands-on session on first-aid basics (wound care, fever response, emergency steps).',
+ 'in_progress'),
+
+(3, 'Tailoring Starter Training Batch-1', 'Skill Training',
+ 'Dhaka', 'Dhaka', 'Mirpur',
+ '2026-03-01', '2026-03-30', '09:30:00',
+ 'female', 'adult', 'primary', 'tailoring',
+ '4-week practical tailoring training with basic tools orientation and practice modules.',
+ 'pending'),
+
+(3, 'School Kit Support for Children', 'Food',
+ 'Dhaka', 'Dhaka', 'Kamrangirchar',
+ '2026-02-20', '2026-02-22', '11:00:00',
+ 'all', 'child', 'none', '',
+ 'School-support kits + nutrition packs for children to reduce dropout risk.',
+ 'pending'),
+
+(3, 'Medicine Support Desk', 'Medicine',
+ 'Dhaka', 'Dhaka', 'Rampura',
+ '2026-02-18', '2026-02-18', '13:00:00',
+ 'all', 'both', 'none', '',
+ 'Basic medicine distribution for common illnesses with quick screening and referral guidance.',
+ 'pending');
+
+-- ---------------------------------------------------
+-- 2) Dummy campaigns for org_id=1001 (Local Authority)
+-- ---------------------------------------------------
+INSERT INTO campaigns (
+  org_id, title, category,
+  division, district, slum_area,
+  start_date, end_date, start_time,
+  target_gender, age_group, education_required, skills_required,
+  description, status
+) VALUES
+(1001, 'Korail Sanitation & Hygiene Supplies', 'Food',
+ 'Dhaka', 'Dhaka', 'Korail',
+ '2026-02-09', '2026-02-11', '09:00:00',
+ 'all', 'both', 'none', '',
+ 'Hygiene and sanitation supplies distribution with awareness messaging and follow-up checks.',
+ 'in_progress'),
+
+(1001, 'Community Clean-up & Waste Segregation', 'Job Placement',
+ 'Dhaka', 'Dhaka', 'Mirpur',
+ '2026-02-14', '2026-02-14', '08:30:00',
+ 'all', 'adult', 'secondary', '',
+ 'Community clean-up drive; residents are registered for short-term paid work opportunities linked to cleanup effort.',
+ 'pending'),
+
+(1001, 'Emergency Cash Support (Verified Households)', 'Cash',
+ 'Dhaka', 'Dhaka', 'Kamrangirchar',
+ '2026-02-16', '2026-02-16', '12:00:00',
+ 'all', 'both', 'none', '',
+ 'One-time emergency cash support for verified households facing immediate hardship.',
+ 'pending'),
+
+(1001, 'Women Skill Uplift: Embroidery Batch', 'Skill Training',
+ 'Dhaka', 'Dhaka', 'Rampura',
+ '2026-03-05', '2026-03-28', '10:30:00',
+ 'female', 'adult', 'primary', 'embroidery',
+ 'Skill uplift program focusing on embroidery for income generation, with attendance tracking and evaluation.',
+ 'pending'),
+
+(1001, 'Health Camp + Medicine Booth', 'Medicine',
+ 'Dhaka', 'Dhaka', 'Korail',
+ '2026-02-22', '2026-02-22', '10:00:00',
+ 'all', 'both', 'none', '',
+ 'Local authority health camp with a medicine booth for common treatments and referrals.',
+ 'pending');
