@@ -230,18 +230,125 @@ export async function updateCampaign(req, res) {
   let connection;
   try {
     const { campaignId } = req.params;
-    const { status } = req.body || {};
+    const payload = req.body || {};
+    const idNum = Number(campaignId);
 
-    if (!status) {
-      return res.status(400).json({ success: false, message: "Status is required" });
+    if (!Number.isInteger(idNum) || idNum <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid campaignId" });
     }
 
     connection = await db.getConnection();
 
-    const [result] = await connection.execute(
-      `UPDATE campaigns SET status = ?, updated_at = NOW() WHERE campaign_id = ?`,
-      [status, Number(campaignId)]
+    const [existingRows] = await connection.execute(
+      `SELECT campaign_id, status FROM campaigns WHERE campaign_id = ? LIMIT 1`,
+      [idNum]
     );
+
+    if (!existingRows.length) {
+      return res.status(404).json({ success: false, message: "Campaign not found" });
+    }
+
+    const currentStatus = String(existingRows[0].status || "").toLowerCase();
+
+    const hasNonStatusEdits = [
+      "title",
+      "category",
+      "division",
+      "district",
+      "slum_area",
+      "start_date",
+      "end_date",
+      "start_time",
+      "target_gender",
+      "age_group",
+      "education_required",
+      "skills_required",
+      "description"
+    ].some((k) => payload[k] !== undefined);
+
+    // Completed/cancelled campaigns are read-only (UI should enforce this too)
+    if (hasNonStatusEdits && (currentStatus === "completed" || currentStatus === "cancelled" || currentStatus === "canceled")) {
+      return res.status(403).json({ success: false, message: "Completed/cancelled campaigns cannot be edited" });
+    }
+
+    const allowedGender = new Set(["all", "female", "male", "others"]);
+    const allowedAge = new Set(["child", "adult", "both"]);
+    const allowedStatus = new Set(["pending", "waiting", "in_progress", "completed", "cancelled", "canceled"]);
+
+    const updates = [];
+    const values = [];
+
+    const setIfProvided = (col, val) => {
+      updates.push(`${col} = ?`);
+      values.push(val);
+    };
+
+    if (payload.title !== undefined) setIfProvided("title", String(payload.title ?? "").trim());
+    if (payload.category !== undefined) setIfProvided("category", String(payload.category ?? "").trim());
+    if (payload.division !== undefined) setIfProvided("division", String(payload.division ?? "").trim());
+    if (payload.district !== undefined) setIfProvided("district", String(payload.district ?? "").trim());
+    if (payload.slum_area !== undefined) setIfProvided("slum_area", String(payload.slum_area ?? "").trim());
+    if (payload.start_date !== undefined) setIfProvided("start_date", String(payload.start_date ?? "").trim());
+    if (payload.end_date !== undefined) setIfProvided("end_date", String(payload.end_date ?? "").trim());
+    if (payload.start_time !== undefined) {
+      const t = String(payload.start_time ?? "").trim();
+      setIfProvided("start_time", t || null);
+    }
+    if (payload.education_required !== undefined) {
+      const v = String(payload.education_required ?? "").trim();
+      setIfProvided("education_required", v || null);
+    }
+    if (payload.skills_required !== undefined) {
+      const v = String(payload.skills_required ?? "").trim();
+      setIfProvided("skills_required", v || null);
+    }
+    if (payload.description !== undefined) setIfProvided("description", String(payload.description ?? "").trim());
+
+    if (payload.target_gender !== undefined) {
+      const g = String(payload.target_gender ?? "").trim().toLowerCase();
+      if (g && !allowedGender.has(g)) {
+        return res.status(400).json({ success: false, message: "Invalid target_gender" });
+      }
+      setIfProvided("target_gender", g);
+    }
+
+    if (payload.age_group !== undefined) {
+      const a = String(payload.age_group ?? "").trim().toLowerCase();
+      if (a && !allowedAge.has(a)) {
+        return res.status(400).json({ success: false, message: "Invalid age_group" });
+      }
+      setIfProvided("age_group", a);
+    }
+
+    if (payload.status !== undefined) {
+      const s = String(payload.status ?? "").trim().toLowerCase();
+      if (!s || !allowedStatus.has(s)) {
+        return res.status(400).json({ success: false, message: "Invalid status" });
+      }
+
+      // Basic guardrails for cancelling
+      if ((s === "cancelled" || s === "canceled") && currentStatus === "completed") {
+        return res.status(403).json({ success: false, message: "Completed campaigns cannot be cancelled" });
+      }
+
+      setIfProvided("status", s);
+    }
+
+    if (!updates.length) {
+      return res.status(400).json({ success: false, message: "No fields to update" });
+    }
+
+    // Validate date range if provided
+    const nextStart = payload.start_date !== undefined ? String(payload.start_date ?? "").trim() : null;
+    const nextEnd = payload.end_date !== undefined ? String(payload.end_date ?? "").trim() : null;
+    if (nextStart && nextEnd && nextEnd < nextStart) {
+      return res.status(400).json({ success: false, message: "End date cannot be before start date" });
+    }
+
+    const sql = `UPDATE campaigns SET ${updates.join(", ")}, updated_at = NOW() WHERE campaign_id = ?`;
+    values.push(idNum);
+
+    const [result] = await connection.execute(sql, values);
 
     if (!result.affectedRows) {
       return res.status(404).json({ success: false, message: "Campaign not found" });
