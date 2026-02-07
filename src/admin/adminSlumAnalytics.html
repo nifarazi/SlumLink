@@ -12,7 +12,7 @@
  <header class="topbar" aria-label="Header">
   <!-- Brand / Logo -->
   <div class="brand clickable" id="brandBtn" aria-label="SlumLink Home" role="button" tabindex="0">
-    <span class="brand-mark" aria-hidden="true"></span>
+    <img src="/src/images/slum Logo.png" alt="SlumLink Logo" class="logo-mark" />
     <div class="brand-text">SLUMLINK</div>
   </div>
 
@@ -38,7 +38,7 @@
         <ul>
           <li class="active"><a href="adminSlumAnalytics.html">📊 Slum Analytics</a></li>
           <li><a href="adminNgoAnalytics.html">📈 NGO Analytics</a></li>
-          <li><a href="adminSlumResidents.html">🏠 Slum Residents</a></li>
+          <li><a href="adminslumdivision.html">🏠 Slum Residents</a></li>
           <li><a href="adminFieldAgents.html">🧑‍💼 Field Agents</a></li>
           <li><a href="adminactivengo.html">✅ Active NGOs</a></li>
           <li><a href="adminVerifyNgo.html">✔ Verify NGOs</a></li>
@@ -47,22 +47,149 @@
 
     <!-- Main Content -->
     <main class="content">
-      <div class="card-grid">
-        <button class="card" type="button">Molla</button>
-        <button class="card" type="button">Korail</button>
-        <button class="card" type="button">Begun Bari</button>
+      <div class="page-header">
+        <div>
 
-        <button class="card" type="button">DuariPara</button>
-        <button class="card" type="button">Kallyanpur</button>
-        <button class="card" type="button">Pora Basti</button>
+        </div>
+      </div>
 
-        <button class="card" type="button">Pura</button>
-        <button class="card" type="button">Nubur</button>
-        <button class="card" type="button">Mannan</button>
+      <div class="card-grid" id="divisionGrid">
+        <div class="card-container">
+          <button class="card division-card" type="button">Dhaka Division</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-district="Dhaka">Dhaka</a>
+            <a href="#" class="dropdown-item" data-district="Faridpur">Faridpur</a>
+            <a href="#" class="dropdown-item" data-district="Gazipur">Gazipur</a>
+            <a href="#" class="dropdown-item" data-district="Gopalganj">Gopalganj</a>
+            <a href="#" class="dropdown-item" data-district="Kishoreganj">Kishoreganj</a>
+            <a href="#" class="dropdown-item" data-district="Madaripur">Madaripur</a>
+            <a href="#" class="dropdown-item" data-district="Manikganj">Manikganj</a>
+            <a href="#" class="dropdown-item" data-district="Munshiganj">Munshiganj</a>
+            <a href="#" class="dropdown-item" data-district="Narayanganj">Narayanganj</a>
+            <a href="#" class="dropdown-item" data-district="Narsingdi">Narsingdi</a>
+            <a href="#" class="dropdown-item" data-district="Rajbari">Rajbari</a>
+            <a href="#" class="dropdown-item" data-district="Shariatpur">Shariatpur</a>
+            <a href="#" class="dropdown-item" data-district="Tangail">Tangail</a>
+          </div>
+        </div>
 
-        <button class="card" type="button">Basbari</button>
-        <button class="card" type="button">Chalantika</button>
-        <button class="card" type="button">Nama Para</button>
+        <div class="card-container">
+          <button class="card division-card" type="button">Chattogram Division</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-district="Chattogram">Chattogram</a>
+            <a href="#" class="dropdown-item" data-district="Cox's Bazar">Cox's Bazar</a>
+            <a href="#" class="dropdown-item" data-district="Cumilla">Cumilla</a>
+            <a href="#" class="dropdown-item" data-district="Brahmanbaria">Brahmanbaria</a>
+            <a href="#" class="dropdown-item" data-district="Chandpur">Chandpur</a>
+            <a href="#" class="dropdown-item" data-district="Feni">Feni</a>
+            <a href="#" class="dropdown-item" data-district="Lakshmipur">Lakshmipur</a>
+            <a href="#" class="dropdown-item" data-district="Noakhali">Noakhali</a>
+            <a href="#" class="dropdown-item" data-district="Khagrachhari">Khagrachhari</a>
+            <a href="#" class="dropdown-item" data-district="Rangamati">Rangamati</a>
+            <a href="#" class="dropdown-item" data-district="Bandarban">Bandarban</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card division-card" type="button">Rajshahi Division</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-district="Rajshahi">Rajshahi</a>
+            <a href="#" class="dropdown-item" data-district="Bogura">Bogura</a>
+            <a href="#" class="dropdown-item" data-district="Joypurhat">Joypurhat</a>
+            <a href="#" class="dropdown-item" data-district="Naogaon">Naogaon</a>
+            <a href="#" class="dropdown-item" data-district="Natore">Natore</a>
+            <a href="#" class="dropdown-item" data-district="Chapainawabganj">Chapainawabganj</a>
+            <a href="#" class="dropdown-item" data-district="Pabna">Pabna</a>
+            <a href="#" class="dropdown-item" data-district="Sirajganj">Sirajganj</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card division-card" type="button">Khulna Division</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-district="Khulna">Khulna</a>
+            <a href="#" class="dropdown-item" data-district="Bagerhat">Bagerhat</a>
+            <a href="#" class="dropdown-item" data-district="Satkhira">Satkhira</a>
+            <a href="#" class="dropdown-item" data-district="Jashore">Jashore</a>
+            <a href="#" class="dropdown-item" data-district="Jhenaidah">Jhenaidah</a>
+            <a href="#" class="dropdown-item" data-district="Magura">Magura</a>
+            <a href="#" class="dropdown-item" data-district="Narail">Narail</a>
+            <a href="#" class="dropdown-item" data-district="Kushtia">Kushtia</a>
+            <a href="#" class="dropdown-item" data-district="Chuadanga">Chuadanga</a>
+            <a href="#" class="dropdown-item" data-district="Meherpur">Meherpur</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card division-card" type="button">Barishal Division</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-district="Barishal">Barishal</a>
+            <a href="#" class="dropdown-item" data-district="Bhola">Bhola</a>
+            <a href="#" class="dropdown-item" data-district="Jhalokathi">Jhalokathi</a>
+            <a href="#" class="dropdown-item" data-district="Patuakhali">Patuakhali</a>
+            <a href="#" class="dropdown-item" data-district="Pirojpur">Pirojpur</a>
+            <a href="#" class="dropdown-item" data-district="Barguna">Barguna</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card division-card" type="button">Sylhet Division</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-district="Sylhet">Sylhet</a>
+            <a href="#" class="dropdown-item" data-district="Moulvibazar">Moulvibazar</a>
+            <a href="#" class="dropdown-item" data-district="Habiganj">Habiganj</a>
+            <a href="#" class="dropdown-item" data-district="Sunamganj">Sunamganj</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card division-card" type="button">Rangpur Division</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-district="Rangpur">Rangpur</a>
+            <a href="#" class="dropdown-item" data-district="Dinajpur">Dinajpur</a>
+            <a href="#" class="dropdown-item" data-district="Thakurgaon">Thakurgaon</a>
+            <a href="#" class="dropdown-item" data-district="Panchagarh">Panchagarh</a>
+            <a href="#" class="dropdown-item" data-district="Nilphamari">Nilphamari</a>
+            <a href="#" class="dropdown-item" data-district="Lalmonirhat">Lalmonirhat</a>
+            <a href="#" class="dropdown-item" data-district="Kurigram">Kurigram</a>
+            <a href="#" class="dropdown-item" data-district="Gaibandha">Gaibandha</a>
+          </div>
+        </div>
+
+        <div class="card-container">
+          <button class="card division-card" type="button">Mymensingh Division</button>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" data-district="Mymensingh">Mymensingh</a>
+            <a href="#" class="dropdown-item" data-district="Jamalpur">Jamalpur</a>
+            <a href="#" class="dropdown-item" data-district="Netrokona">Netrokona</a>
+            <a href="#" class="dropdown-item" data-district="Sherpur">Sherpur</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="slumSection" style="display: none; margin-top: 30px;">
+        <div class="page-header">
+          <div>
+            <h2 id="selectedDistrictTitle">Slum Areas</h2>
+          </div>
+        </div>
+        <div class="card-grid" id="slumGrid">
+          <button class="card slum-card" type="button">Molla</button>
+          <button class="card slum-card" type="button">Korail</button>
+          <button class="card slum-card" type="button">Begun Bari</button>
+
+          <button class="card slum-card" type="button">DuariPara</button>
+          <button class="card slum-card" type="button">Kallyanpur</button>
+          <button class="card slum-card" type="button">Pora Basti</button>
+
+          <button class="card slum-card" type="button">Pura</button>
+          <button class="card slum-card" type="button">Nubur</button>
+          <button class="card slum-card" type="button">Mannan</button>
+
+          <button class="card slum-card" type="button">Basbari</button>
+          <button class="card slum-card" type="button">Chalantika</button>
+          <button class="card slum-card" type="button">Nama Para</button>
+        </div>
       </div>
     </main>
   </div>
@@ -80,11 +207,47 @@
 
   <script src="adminSlumAnalytics.js"></script>
   <script>
-    // Make each .card button navigate to the show page for that slum.
-    // Adds ?slum=Name so the show page can read which slum to display.
     document.addEventListener('DOMContentLoaded', function () {
-      var cards = document.querySelectorAll('.card');
-      cards.forEach(function (card) {
+      var slumSection = document.getElementById('slumSection');
+      var selectedDistrictTitle = document.getElementById('selectedDistrictTitle');
+      var divisionGrid = document.getElementById('divisionGrid');
+
+      function wireDivision(container) {
+        var card = container.querySelector('.division-card');
+        var dropdown = container.querySelector('.dropdown-menu');
+        var items = dropdown.querySelectorAll('.dropdown-item');
+
+        card.addEventListener('click', function (e) {
+          e.stopPropagation();
+          document.querySelectorAll('.dropdown-menu').forEach(function (menu) {
+            if (menu !== dropdown) { menu.classList.remove('show'); }
+          });
+          dropdown.classList.toggle('show');
+        });
+
+        items.forEach(function (item) {
+          item.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropdown.classList.remove('show');
+            var district = item.getAttribute('data-district') || item.textContent || 'Selected District';
+            if (selectedDistrictTitle) {
+              selectedDistrictTitle.textContent = 'Slum Areas in ' + district + ' District';
+            }
+            if (divisionGrid) divisionGrid.style.display = 'none';
+            if (slumSection) slumSection.style.display = 'block';
+          });
+        });
+
+        card.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+        });
+      }
+
+      document.querySelectorAll('.card-container').forEach(wireDivision);
+
+      // Make each slum card navigate to the show page for that slum.
+      document.querySelectorAll('.slum-card').forEach(function (card) {
         card.addEventListener('click', function () {
           var name = (card.textContent || '').trim();
           var target = 'adminShowSlumAnalytics.html';
@@ -99,6 +262,10 @@
             card.click();
           }
         });
+      });
+
+      document.addEventListener('click', function () {
+        document.querySelectorAll('.dropdown-menu').forEach(function (menu) { menu.classList.remove('show'); });
       });
     });
   </script>
