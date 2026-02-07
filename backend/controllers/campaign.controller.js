@@ -81,63 +81,64 @@ function diffText(oldC, newC) {
  *    So we cannot filter by skill accurately without a new table/column.
  *    We still include it in the notification text.
  */
-async function getEligibleSlumCodes(connection, campaignRow) {
-  const where = [];
+async function getRecipientSlumCodes(connection, campaignRow) {
   const params = [];
 
-  where.push(`sd.status = 'accepted'`);
-
-  where.push(`sd.division = ?`);
-  params.push(campaignRow.division);
-
-  where.push(`sd.district = ?`);
-  params.push(campaignRow.district);
-
-  // Your slum_dwellers has "area" (not slum_area). Match campaign.slum_area to sd.area.
-  where.push(`sd.area = ?`);
-  params.push(campaignRow.slum_area);
-
-  const dwellerGender = mapCampaignGenderToDwellerGender(campaignRow.target_gender);
-  if (dwellerGender) {
-    where.push(`sd.gender = ?`);
-    params.push(dwellerGender);
-  }
-
-  const age = String(campaignRow.age_group || "").toLowerCase();
-  if (age === "child") {
-    where.push(`
-      EXISTS (
-        SELECT 1
-        FROM children ch
-        WHERE ch.slum_id = sd.slum_code
-          AND ch.status = 'active'
-      )
-    `);
-  } else if (age === "adult") {
-    where.push(`
-      NOT EXISTS (
-        SELECT 1
-        FROM children ch
-        WHERE ch.slum_id = sd.slum_code
-          AND ch.status = 'active'
-      )
-    `);
-  } // both => no filter
-
-  const edu = String(campaignRow.education_required || "").trim();
-  if (edu && edu.toLowerCase() !== "none") {
-    where.push(`LOWER(sd.education) = LOWER(?)`);
-    params.push(edu);
-  }
-
-  const sql = `
+  let sql = `
     SELECT sd.slum_code
     FROM slum_dwellers sd
-    WHERE ${where.join(" AND ")}
+    WHERE sd.slum_code IS NOT NULL
+      AND sd.status = 'accepted'
+      AND sd.division = ?
   `;
+  params.push(String(campaignRow.division));
+
+  // gender filter (campaign: all|female|male|others)
+  const tg = String(campaignRow.target_gender || "all").toLowerCase();
+  if (tg !== "all") {
+    sql += ` AND LOWER(sd.gender) = ? `;
+    params.push(tg); // slum_dwellers.gender: Male/Female/Others
+  }
+
+  // age_group filter (child|adult|both)
+  const ag = String(campaignRow.age_group || "").toLowerCase();
+  if (ag === "child") {
+    sql += `
+      AND EXISTS (
+        SELECT 1
+        FROM children ch
+        WHERE ch.slum_id = sd.slum_code
+          AND ch.status = 'active'
+      )
+    `;
+  }
+
+  // education_required filter (ignore null/empty/none)
+  const edu = String(campaignRow.education_required || "").trim();
+  if (edu && edu.toLowerCase() !== "none") {
+    sql += ` AND (sd.education = ? OR sd.education LIKE ?) `;
+    params.push(edu, `%${edu}%`);
+  }
+
+  // skills_required filter (ignore null/empty)
+  const skill = String(campaignRow.skills_required || "").trim();
+  if (skill) {
+    sql += `
+      AND (
+        sd.occupation LIKE ?
+        OR EXISTS (
+          SELECT 1
+          FROM children ch2
+          WHERE ch2.slum_id = sd.slum_code
+            AND ch2.preferred_job LIKE ?
+        )
+      )
+    `;
+    params.push(`%${skill}%`, `%${skill}%`);
+  }
 
   const [rows] = await connection.execute(sql, params);
-  return rows.map((r) => r.slum_code);
+  return rows.map(r => r.slum_code).filter(Boolean);
 }
 
 async function insertNotificationsBulk(connection, rows) {
@@ -299,7 +300,7 @@ export async function createCampaign(req, res) {
     );
     const c = cRows[0];
 
-    const eligibleSlumCodes = await getEligibleSlumCodes(connection, c);
+    const eligibleSlumCodes = await getRecipientSlumCodes(connection, c);
 
     const titleText = `New Campaign: ${c.title}`;
     const msgText = campaignSummaryText(c);
@@ -537,7 +538,7 @@ export async function updateCampaign(req, res) {
     const after = afterRows[0];
 
     // recipients based on campaign criteria
-    const eligibleSlumCodes = await getEligibleSlumCodes(connection, after);
+    const eligibleSlumCodes = await getRecipientSlumCodes(connection, after);
 
     let createdNotifs = 0;
 
@@ -623,7 +624,7 @@ export async function deleteCampaign(req, res) {
     }
 
     const c = rows[0];
-    const eligibleSlumCodes = await getEligibleSlumCodes(connection, c);
+    const eligibleSlumCodes = await getRecipientSlumCodes(connection, c);
 
     // best-effort notify as "cancelled" (since deleted)
     const titleText = `Campaign Removed: ${c.title}`;
