@@ -97,7 +97,7 @@ export const getActiveNGOs = async (req, res) => {
     const sql = `
       SELECT org_id, org_name, email, phone, org_age, status, license_filename
       FROM organizations
-      WHERE status = 'accepted'
+      WHERE status = 'accepted' AND org_type = 'ngo'
       ORDER BY org_id DESC
     `;
 
