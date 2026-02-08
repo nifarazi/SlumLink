@@ -771,3 +771,146 @@ CREATE TABLE campaign_targets (
   INDEX idx_target_user (slum_code),
   INDEX idx_target_campaign (campaign_id)
 );
+
+
+DROP VIEW IF EXISTS vw_family_donation_history;
+DROP TABLE IF EXISTS distribution_entries;
+DROP TABLE IF EXISTS distribution_sessions;
+DROP TABLE IF EXISTS aid_types;
+
+
+CREATE TABLE IF NOT EXISTS aid_types (
+  aid_type_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(80) NOT NULL UNIQUE,
+  requires_quantity TINYINT(1) NOT NULL DEFAULT 0,
+  unit_label VARCHAR(40) NULL
+);
+
+INSERT IGNORE INTO aid_types (name, requires_quantity, unit_label) VALUES
+('Food', 1, 'pack'),
+('Clothing', 1, 'pcs'),
+('Medicine', 1, 'pcs'),
+('Cash', 1, 'BDT'),
+('Skill Training', 0, NULL),
+('Job Placement', 0, NULL);
+
+CREATE TABLE IF NOT EXISTS distribution_sessions (
+  session_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+  campaign_id BIGINT UNSIGNED NOT NULL,
+  org_id BIGINT UNSIGNED NOT NULL,
+  aid_type_id INT UNSIGNED NOT NULL,
+
+  status ENUM('OPEN','CLOSED') NOT NULL DEFAULT 'OPEN',
+  started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  finished_at TIMESTAMP NULL,
+
+  performed_by VARCHAR(150) NULL,
+
+  CONSTRAINT fk_session_campaign
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id)
+    ON DELETE RESTRICT,
+
+  CONSTRAINT fk_session_org
+    FOREIGN KEY (org_id) REFERENCES organizations(org_id)
+    ON DELETE RESTRICT,
+
+  CONSTRAINT fk_session_aid_type
+    FOREIGN KEY (aid_type_id) REFERENCES aid_types(aid_type_id)
+    ON DELETE RESTRICT,
+
+  INDEX idx_session_campaign (campaign_id),
+  INDEX idx_session_org (org_id),
+  INDEX idx_session_status (status)
+);
+
+CREATE TABLE IF NOT EXISTS distribution_entries (
+  entry_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+  session_id BIGINT UNSIGNED NOT NULL,
+  campaign_id BIGINT UNSIGNED NOT NULL,
+  org_id BIGINT UNSIGNED NOT NULL,
+
+  family_code VARCHAR(8) NOT NULL,
+
+  -- ✅ allow multiple gives per session+family using rounds
+  round_no INT UNSIGNED NOT NULL DEFAULT 1,
+
+  quantity INT UNSIGNED NULL,
+  comment VARCHAR(500) NULL,
+
+  distributed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  verification_method ENUM('CODE','QR') NOT NULL DEFAULT 'CODE',
+
+  CONSTRAINT fk_entry_session
+    FOREIGN KEY (session_id) REFERENCES distribution_sessions(session_id)
+    ON DELETE CASCADE,
+
+  CONSTRAINT fk_entry_campaign
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id)
+    ON DELETE RESTRICT,
+
+  CONSTRAINT fk_entry_org
+    FOREIGN KEY (org_id) REFERENCES organizations(org_id)
+    ON DELETE RESTRICT,
+
+  CONSTRAINT fk_entry_family
+    FOREIGN KEY (family_code) REFERENCES slum_dwellers(slum_code)
+    ON DELETE RESTRICT,
+
+  -- ❌ no unique per (session,family) anymore
+  -- ✅ unique per (session,family,round_no) so round numbers don’t duplicate
+  UNIQUE KEY uq_session_family_round (session_id, family_code, round_no),
+
+  INDEX idx_session_family (session_id, family_code),
+  INDEX idx_family_history (family_code, distributed_at),
+  INDEX idx_org_history (org_id, distributed_at),
+  INDEX idx_campaign_history (campaign_id, distributed_at)
+);
+
+-- Auto-assign next round_no when inserting another entry for same session+family
+DROP TRIGGER IF EXISTS trg_distribution_entries_round_no;
+
+DELIMITER $$
+CREATE TRIGGER trg_distribution_entries_round_no
+BEFORE INSERT ON distribution_entries
+FOR EACH ROW
+BEGIN
+  DECLARE next_round INT UNSIGNED;
+
+  IF NEW.round_no IS NULL OR NEW.round_no <= 0 THEN
+    SELECT IFNULL(MAX(round_no), 0) + 1
+      INTO next_round
+    FROM distribution_entries
+    WHERE session_id = NEW.session_id
+      AND family_code = NEW.family_code;
+
+    SET NEW.round_no = next_round;
+  END IF;
+END$$
+DELIMITER ;
+
+-- -----------------------------
+-- Recreate the view
+-- -----------------------------
+CREATE OR REPLACE VIEW vw_family_donation_history AS
+SELECT
+  de.family_code,
+  de.distributed_at,
+  o.org_name,
+  c.title AS campaign_title,
+  c.category,
+  c.division,
+  c.district,
+  c.slum_area,
+  at.name AS aid_type,
+  de.quantity,
+  de.verification_method,
+  de.comment,
+  de.round_no,
+  de.session_id
+FROM distribution_entries de
+JOIN distribution_sessions ds ON ds.session_id = de.session_id
+JOIN campaigns c ON c.campaign_id = ds.campaign_id
+JOIN organizations o ON o.org_id = ds.org_id
+JOIN aid_types at ON at.aid_type_id = ds.aid_type_id;
