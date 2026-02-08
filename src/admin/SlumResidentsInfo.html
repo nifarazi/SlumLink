@@ -403,6 +403,10 @@
                   <span class="info-value">${child.name || '-'}</span>
                 </div>
                 <div class="info-item">
+                  <span class="info-label">Birth Certificate No.</span>
+                  <span class="info-value">${child.birth_certificate_number || '-'}</span>
+                </div>
+                <div class="info-item">
                   <span class="info-label">Date of Birth</span>
                   <span class="info-value">${formatDate(child.dob)}</span>
                 </div>
@@ -682,6 +686,7 @@
         children.forEach((child, idx) => {
           addLine(`Child ${idx + 1}:`, 12, true);
           addLine(`  Name: ${child.name || '-'}`);
+          addLine(`  Birth Certificate No.: ${child.birth_certificate_number || '-'}`);
           addLine(`  Date of Birth: ${formatDate(child.dob)}`);
           addLine(`  Gender: ${child.gender || '-'}`);
           addLine(`  Education: ${child.education || '-'}`);
