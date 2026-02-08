@@ -70,7 +70,15 @@
               <!-- Two columns: Education + Occupation -->
               <label class="field">
                 <span>Education</span>
-                <input type="text" name="education" placeholder="e.g., Primary" />
+                <select name="education" required>
+                  <option value="" disabled selected>Select education</option>
+                  <option value="none">None</option>
+                  <option value="primary">Primary</option>
+                  <option value="secondary">Secondary</option>
+                  <option value="hsc">HSC</option>
+                  <option value="diploma">Diploma</option>
+                  <option value="graduate">Graduate</option>
+                </select>
               </label>
               <label class="field">
                 <span>Occupation</span>
@@ -90,20 +98,26 @@
                 </select>
               </label>
 
-              <!-- Two columns: Area + District -->
-              <label class="field">
-                <span>Area</span>
-                <input type="text" name="area" placeholder="e.g., Korail" />
-              </label>
-              <label class="field">
-                <span>District</span>
-                <input type="text" name="district" placeholder="e.g., Dhaka" />
-              </label>
-
               <!-- Single column: Division -->
               <label class="field span-2">
                 <span>Division</span>
-                <input type="text" name="division" placeholder="e.g., Dhaka Division" />
+                <select name="division" id="division" required>
+                  <option value="" disabled selected>Select division</option>
+                </select>
+              </label>
+
+              <!-- Two columns: District + Area -->
+              <label class="field">
+                <span>District</span>
+                <select name="district" id="district" required disabled>
+                  <option value="" disabled selected>Select district</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Area</span>
+                <select name="area" id="slumArea" required disabled>
+                  <option value="" disabled selected>Select area</option>
+                </select>
               </label>
 
               <!-- Two columns: Mobile + Family Members -->
