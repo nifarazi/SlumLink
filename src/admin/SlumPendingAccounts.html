@@ -126,10 +126,7 @@
 
     <main class="content">
       <div class="page-header">
-        <div>
-          <h1 id="pendingSlumLabel">Pending Resident Accounts</h1>
-          
-        </div>
+        
       </div>
 
       <div class="table-card">
@@ -143,12 +140,15 @@
               <th>Slum Code</th>
               <th>NID</th>
               <th>Mobile</th>
+              <th>Area</th>
+              <th>District</th>
+              <th>Division</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody id="pendingTableBody">
-            <tr><td colspan="6" style="text-align: center; color: #999;">Loading...</td></tr>
+            <tr><td colspan="9" style="text-align: center; color: #999;">Loading...</td></tr>
           </tbody>
         </table>
         <div class="footer">
@@ -214,6 +214,14 @@
 
     document.addEventListener('DOMContentLoaded', async function () {
       const tableBody = document.getElementById('pendingTableBody');
+      const params = new URLSearchParams(window.location.search);
+      const slumParam = (params.get('slum') || '').trim();
+      const districtParam = (params.get('district') || '').trim();
+      const divisionParam = (params.get('division') || '').trim();
+
+      function normalize(value) {
+        return String(value || '').trim().toLowerCase();
+      }
 
       // Fetch pending accounts from database
       async function fetchPendingAccounts() {
@@ -224,21 +232,29 @@
             pendingAccounts = result.data || [];
             renderRows();
           } else {
-            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Failed to load accounts: ' + result.message + '</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: red;">Failed to load accounts: ' + result.message + '</td></tr>';
           }
         } catch (error) {
           console.error('Error fetching pending accounts:', error);
-          tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Error loading accounts. Please try again.</td></tr>';
+          tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: red;">Error loading accounts. Please try again.</td></tr>';
         }
       }
 
       function renderRows() {
         tableBody.innerHTML = '';
 
-        if (pendingAccounts.length === 0) {
+        const filtered = (pendingAccounts || []).filter((account) => {
+          if (account.status && normalize(account.status) !== 'pending') return false;
+          if (slumParam && normalize(account.area) !== normalize(slumParam)) return false;
+          if (districtParam && normalize(account.district) !== normalize(districtParam)) return false;
+          if (divisionParam && normalize(account.division) !== normalize(divisionParam)) return false;
+          return true;
+        });
+
+        if (filtered.length === 0) {
           const emptyRow = document.createElement('tr');
           const emptyCell = document.createElement('td');
-          emptyCell.colSpan = 6;
+          emptyCell.colSpan = 9;
           emptyCell.style.textAlign = 'center';
           emptyCell.style.color = '#8b6f5a';
           emptyCell.textContent = 'No pending accounts.';
@@ -247,7 +263,7 @@
           return;
         }
 
-        pendingAccounts.forEach(function (account) {
+        filtered.forEach(function (account) {
           const row = document.createElement('tr');
 
           // Name
@@ -269,6 +285,21 @@
           const mobileCell = document.createElement('td');
           mobileCell.textContent = account.mobile || '—';
           row.appendChild(mobileCell);
+
+          // Area
+          const areaCell = document.createElement('td');
+          areaCell.textContent = account.area || '—';
+          row.appendChild(areaCell);
+
+          // District
+          const districtCell = document.createElement('td');
+          districtCell.textContent = account.district || '—';
+          row.appendChild(districtCell);
+
+          // Division
+          const divisionCell = document.createElement('td');
+          divisionCell.textContent = account.division || '—';
+          row.appendChild(divisionCell);
 
           // Status
           const statusCell = document.createElement('td');

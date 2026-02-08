@@ -48,12 +48,12 @@
         <div class="card-container">
           <button class="card" type="button">Dhaka Division</button>
           <div class="dropdown-menu">
-            <a href="adminSlumResidents.html" class="dropdown-item">Dhaka (North)</a>
-            <a href="adminSlumResidents.html" class="dropdown-item">Dhaka(South)</a>
+            <a href="adminSlumResidents.html" class="dropdown-item" data-district="Dhaka (North)">Dhaka (North)</a>
+            <a href="adminSlumResidents.html" class="dropdown-item" data-district="Dhaka (South)">Dhaka(South)</a>
             
-            <a href="adminSlumResidents.html" class="dropdown-item">Gazipur</a>
+            <a href="adminSlumResidents.html" class="dropdown-item" data-district="Gazipur">Gazipur</a>
            
-            <a href="adminSlumResidents.html" class="dropdown-item">Narayanganj</a>
+            <a href="adminSlumResidents.html" class="dropdown-item" data-district="Narayanganj">Narayanganj</a>
             
           </div>
         </div>
@@ -61,8 +61,8 @@
         <div class="card-container">
           <button class="card" type="button">Chattogram Division</button>
           <div class="dropdown-menu">
-            <a href="adminSlumResidents.html" class="dropdown-item">Chattogram (City) </a>
-            <a href="adminSlumResidents.html" class="dropdown-item">Cox's Bazar</a>
+            <a href="adminSlumResidents.html" class="dropdown-item" data-district="Chattogram (City)">Chattogram (City) </a>
+            <a href="adminSlumResidents.html" class="dropdown-item" data-district="Cox's Bazar">Cox's Bazar</a>
            
           </div>
         </div>
@@ -70,7 +70,7 @@
         <div class="card-container">
           <button class="card" type="button">Rajshahi Division</button>
           <div class="dropdown-menu">
-            <a href="adminSlumResidents.html" class="dropdown-item">Rajshahi</a>
+            <a href="adminSlumResidents.html" class="dropdown-item" data-district="Rajshahi">Rajshahi</a>
             
           </div>
         </div>
@@ -78,7 +78,7 @@
         <div class="card-container">
           <button class="card" type="button">Khulna Division</button>
           <div class="dropdown-menu">
-            <a href="adminSlumResidents.html" class="dropdown-item">Khulna</a>
+            <a href="adminSlumResidents.html" class="dropdown-item" data-district="Khulna">Khulna</a>
             
           </div>
         </div>
@@ -86,15 +86,7 @@
         <div class="card-container">
           <button class="card" type="button">Barishal Division</button>
           <div class="dropdown-menu">
-            <a href="adminSlumResidents.html" class="dropdown-item">Barishal</a>
-            
-          </div>
-        </div>
-
-        <div class="card-container">
-          <button class="card" type="button">Barishal Division</button>
-          <div class="dropdown-menu">
-            <a href="adminSlumResidents.html" class="dropdown-item">Barishal</a>
+            <a href="adminSlumResidents.html" class="dropdown-item" data-district="Barishal">Barishal</a>
             
           </div>
         </div>
@@ -102,7 +94,7 @@
         <div class="card-container">
           <button class="card" type="button">Sylhet Division</button>
           <div class="dropdown-menu">
-            <a href="adminSlumResidents.html" class="dropdown-item">Sylhet</a>
+            <a href="adminSlumResidents.html" class="dropdown-item" data-district="Sylhet">Sylhet</a>
            
           </div>
         </div>
@@ -110,7 +102,7 @@
         <div class="card-container">
           <button class="card" type="button">Rangpur Division</button>
           <div class="dropdown-menu">
-            <a href="adminSlumResidents.html" class="dropdown-item">Rangpur</a>
+            <a href="adminSlumResidents.html" class="dropdown-item" data-district="Rangpur">Rangpur</a>
             
           </div>
         </div>
@@ -118,11 +110,12 @@
         <div class="card-container">
           <button class="card" type="button">Mymensingh Division</button>
           <div class="dropdown-menu">
-            <a href="adminSlumResidents.html" class="dropdown-item">Mymensingh</a>
+            <a href="adminSlumResidents.html" class="dropdown-item" data-district="Mymensingh">Mymensingh</a>
            
           </div>
         </div>
       </div>
+
     </main>
   </div>
 
@@ -158,8 +151,10 @@
             e.preventDefault();
             e.stopPropagation();
             dropdown.classList.remove('show');
-            var target = item.getAttribute('href');
-            if (target) window.location.href = target;
+            var district = item.getAttribute('data-district') || item.textContent || '';
+            var target = item.getAttribute('href') || 'adminSlumResidents.html';
+            if (district) target += '?district=' + encodeURIComponent(district.trim());
+            window.location.href = target;
           });
         });
 
