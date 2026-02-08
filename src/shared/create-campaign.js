@@ -55,10 +55,9 @@ function toISODate(d){
 
 (function initDateMins(){
   const now = new Date();
-  const tomorrow = new Date(now);
-  tomorrow.setDate(now.getDate() + 1);
+  now.setHours(0,0,0,0);
 
-  const minStart = toISODate(tomorrow);
+  const minStart = toISODate(now);
   startDateEl.min = minStart;
 
   // End date cannot be before start date; initially min = start min
@@ -73,11 +72,10 @@ startDateEl.addEventListener("change", () => {
   const v = (startDateEl.value || "").trim();
 
   if(!v){
-    // reset end min to tomorrow
+    // reset end min to today
     const now = new Date();
-    const t = new Date(now);
-    t.setDate(now.getDate() + 1);
-    endDateEl.min = toISODate(t);
+    now.setHours(0,0,0,0);
+    endDateEl.min = toISODate(now);
     return;
   }
 

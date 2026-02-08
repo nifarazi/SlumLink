@@ -79,8 +79,8 @@ function applyDateConstraints(){
   const elEndDate = document.getElementById("endDate");
   if(!elStartDate || !elEndDate) return;
 
-  // Requirement: start date must be at least tomorrow
-  const minStart = todayPlusDaysIso(1);
+  // Requirement: start date can be today or later
+  const minStart = todayPlusDaysIso(0);
   elStartDate.min = minStart;
 
   // Ensure end date cannot be before start date (or before minStart if start is blank)
@@ -101,7 +101,7 @@ function validateDatesForSave(){
   const elEndDate = document.getElementById("endDate");
   if(!elStartDate || !elEndDate) return { ok: true };
 
-  const minStart = todayPlusDaysIso(1);
+  const minStart = todayPlusDaysIso(0);
   const start = normalizeDateInput(elStartDate.value);
   const end = normalizeDateInput(elEndDate.value);
 

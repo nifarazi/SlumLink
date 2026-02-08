@@ -3,33 +3,15 @@ import db from "../db.js";
 
 /* ----------------------------- helpers ----------------------------- */
 
-function cleanStr(v) {
-  return String(v ?? "").trim();
-}
-
-function cleanDate(v) {
-  return cleanStr(v).slice(0, 10); // YYYY-MM-DD
-}
-
-function cleanTimeHHMM(v) {
-  return cleanStr(v).slice(0, 5); // HH:MM
-}
-
+function cleanStr(v) { return String(v ?? "").trim(); }
+function cleanDate(v) { return cleanStr(v).slice(0, 10); } // YYYY-MM-DD
+function cleanTimeHHMM(v) { return cleanStr(v).slice(0, 5); } // HH:MM
 function toSqlTime(vHHMM) {
   const t = cleanTimeHHMM(vHHMM);
-  return t ? `${t}:00` : null; // TIME column
-}
-
-function mapCampaignGenderToDwellerGender(target_gender) {
-  const g = cleanStr(target_gender).toLowerCase();
-  if (g === "female") return "Female";
-  if (g === "male") return "Male";
-  if (g === "others") return "Others";
-  return null; // "all" => no filter
+  return t ? `${t}:00` : null;
 }
 
 function campaignSummaryText(c) {
-  // This is what you wanted as “whole text”
   const parts = [
     `Title: ${c.title}`,
     `Category: ${c.category}`,
@@ -48,7 +30,6 @@ function campaignSummaryText(c) {
 
 function diffText(oldC, newC) {
   const changed = [];
-
   const oldStart = oldC.start_date ? String(oldC.start_date).slice(0, 10) : "";
   const oldEnd = oldC.end_date ? String(oldC.end_date).slice(0, 10) : "";
   const oldTime = oldC.start_time ? String(oldC.start_time).slice(0, 5) : "";
@@ -65,86 +46,129 @@ function diffText(oldC, newC) {
 }
 
 /**
- * Recipient selection rule (backend only):
- * - Only slum_dwellers.status = 'accepted'
- * - Match division/district/area
- * - Match target_gender (mapped to dweller gender)
- * - Age group:
- *    child => must have at least 1 ACTIVE child
- *    adult => must have NO ACTIVE child  (so it doesn't go to child families)
- *    both  => no child filter
- * - education_required:
- *    null/""/"none" => ignore
- *    else => compare to slum_dwellers.education (case-insensitive exact)
- * - skills_required:
- *    ⚠️ You currently do NOT store “skills” for dwellers in DB.
- *    So we cannot filter by skill accurately without a new table/column.
- *    We still include it in the notification text.
+ * Recipient selection with member-level filtering (returns {slum_code, full_name, eligible_names}):
+ * - Checks dwellers + spouses + children for matching criteria
+ * - Returns one row per family, with eligible_names = comma-separated matching member names
+ * - Filters:
+ *    gender: target dweller/spouse/child gender matches
+ *    age_group: DOB-based (< 18 = child, >= 18 = adult)
+ *    education: member education matches
+ *    skills: member skills_1 or skills_2 matches
  */
-async function getRecipientSlumCodes(connection, campaignRow) {
+async function getRecipients(connection, campaignRow) {
   const params = [];
-
   let sql = `
-    SELECT sd.slum_code
+    SELECT
+      sd.slum_code,
+      sd.full_name AS family_head_name,
+      GROUP_CONCAT(DISTINCT eligible.person_name) AS eligible_names
     FROM slum_dwellers sd
+    INNER JOIN (
+      SELECT
+        sd2.slum_code,
+        sd2.full_name AS person_name,
+        sd2.dob AS dob,
+        sd2.gender AS gender,
+        sd2.education AS education,
+        sd2.skills_1 AS skills_1,
+        sd2.skills_2 AS skills_2
+      FROM slum_dwellers sd2
+      WHERE sd2.status = 'accepted'
+
+
+      UNION ALL
+
+
+      SELECT
+        sp.slum_id AS slum_code,
+        sp.name AS person_name,
+        sp.dob AS dob,
+        sp.gender AS gender,
+        sp.education AS education,
+        sp.skills_1 AS skills_1,
+        sp.skills_2 AS skills_2
+      FROM spouses sp
+      WHERE sp.status = 'active'
+
+
+      UNION ALL
+
+
+      SELECT
+        ch.slum_id AS slum_code,
+        ch.name AS person_name,
+        ch.dob AS dob,
+        ch.gender AS gender,
+        ch.education AS education,
+        ch.skills_1 AS skills_1,
+        ch.skills_2 AS skills_2
+      FROM children ch
+      WHERE ch.status = 'active'
+    ) eligible ON eligible.slum_code = sd.slum_code
+
+
     WHERE sd.slum_code IS NOT NULL
       AND sd.status = 'accepted'
       AND sd.division = ?
+      AND sd.area = ?
   `;
-  params.push(String(campaignRow.division));
 
-  // gender filter (campaign: all|female|male|others)
+
+  params.push(String(campaignRow.division), String(campaignRow.slum_area));
+
+
+  // Member-based filters
   const tg = String(campaignRow.target_gender || "all").toLowerCase();
   if (tg !== "all") {
-    sql += ` AND LOWER(sd.gender) = ? `;
-    params.push(tg); // slum_dwellers.gender: Male/Female/Others
+    sql += ` AND LOWER(eligible.gender) = ? `;
+    params.push(tg);
   }
 
-  // age_group filter (child|adult|both)
-  const ag = String(campaignRow.age_group || "").toLowerCase();
+
+  const ag = String(campaignRow.age_group || "both").toLowerCase();
   if (ag === "child") {
-    sql += `
-      AND EXISTS (
-        SELECT 1
-        FROM children ch
-        WHERE ch.slum_id = sd.slum_code
-          AND ch.status = 'active'
-      )
-    `;
+    sql += ` AND eligible.dob IS NOT NULL AND TIMESTAMPDIFF(YEAR, eligible.dob, CURDATE()) < 18 `;
+  } else if (ag === "adult") {
+    sql += ` AND eligible.dob IS NOT NULL AND TIMESTAMPDIFF(YEAR, eligible.dob, CURDATE()) >= 18 `;
   }
 
-  // education_required filter (ignore null/empty/none)
+
   const edu = String(campaignRow.education_required || "").trim();
   if (edu && edu.toLowerCase() !== "none") {
-    sql += ` AND (sd.education = ? OR sd.education LIKE ?) `;
+    sql += ` AND (eligible.education = ? OR eligible.education LIKE ?) `;
     params.push(edu, `%${edu}%`);
   }
 
-  // skills_required filter (ignore null/empty)
+
   const skill = String(campaignRow.skills_required || "").trim();
   if (skill) {
-    sql += `
-      AND (
-        sd.occupation LIKE ?
-        OR EXISTS (
-          SELECT 1
-          FROM children ch2
-          WHERE ch2.slum_id = sd.slum_code
-            AND ch2.preferred_job LIKE ?
-        )
-      )
-    `;
-    params.push(`%${skill}%`, `%${skill}%`);
+    const like = `%${skill}%`;
+    sql += ` AND (eligible.skills_1 LIKE ? OR eligible.skills_2 LIKE ?) `;
+    params.push(like, like);
   }
 
+
+  sql += `
+    GROUP BY sd.slum_code, sd.full_name
+    HAVING COUNT(*) > 0
+  `;
+
+
   const [rows] = await connection.execute(sql, params);
-  return rows.map(r => r.slum_code).filter(Boolean);
+
+
+  return rows
+    .filter(r => r.slum_code)
+    .map(r => ({
+      slum_code: r.slum_code,
+      full_name: r.family_head_name,
+      eligible_names: r.eligible_names || ""
+    }));
 }
 
 async function insertNotificationsBulk(connection, rows) {
   if (!rows.length) return 0;
 
-  // mysql2 supports bulk insert with VALUES ?
   const values = rows.map((r) => [
     r.slum_code,
     r.campaign_id,
@@ -164,11 +188,23 @@ async function insertNotificationsBulk(connection, rows) {
   return result.affectedRows || 0;
 }
 
+async function insertTargetsBulk(connection, campaign_id, slumCodes) {
+  if (!slumCodes.length) return 0;
+
+  const values = slumCodes.map((code) => [campaign_id, code]);
+  const sql = `INSERT IGNORE INTO campaign_targets (campaign_id, slum_code) VALUES ?`;
+
+  const [result] = await connection.query(sql, [values]);
+  return result.affectedRows || 0;
+}
+
+async function replaceCampaignTargets(connection, campaign_id, slumCodes) {
+  await connection.execute(`DELETE FROM campaign_targets WHERE campaign_id = ?`, [campaign_id]);
+  return insertTargetsBulk(connection, campaign_id, slumCodes);
+}
+
 /* ----------------------------- controllers ----------------------------- */
 
-/**
- * POST /api/campaigns/create
- */
 export async function createCampaign(req, res) {
   let connection;
   try {
@@ -241,7 +277,6 @@ export async function createCampaign(req, res) {
     connection = await db.getConnection();
     await connection.beginTransaction();
 
-    // ensure org exists + accepted
     const [orgRows] = await connection.execute(
       `SELECT org_id, status FROM organizations WHERE org_id = ? LIMIT 1`,
       [orgIdNum]
@@ -261,7 +296,6 @@ export async function createCampaign(req, res) {
       });
     }
 
-    // insert campaign
     const insertSql = `
       INSERT INTO campaigns (
         org_id, title, category,
@@ -293,27 +327,31 @@ export async function createCampaign(req, res) {
 
     const campaignId = ins.insertId;
 
-    // load inserted campaign row for consistent message + recipient selection
     const [cRows] = await connection.execute(
       `SELECT * FROM campaigns WHERE campaign_id = ? LIMIT 1`,
       [campaignId]
     );
     const c = cRows[0];
 
-    const eligibleSlumCodes = await getRecipientSlumCodes(connection, c);
+    const recipients = await getRecipients(connection, c); // [{slum_code, full_name}]
+    const slumCodes = recipients.map(r => r.slum_code);
+
+    const targetsCreated = await insertTargetsBulk(connection, c.campaign_id, slumCodes);
 
     const titleText = `New Campaign: ${c.title}`;
-    const msgText = campaignSummaryText(c);
 
-    const inserted = await insertNotificationsBulk(
+    const notifsCreated = await insertNotificationsBulk(
       connection,
-      eligibleSlumCodes.map((slum_code) => ({
-        slum_code,
+      recipients.map((r) => ({
+        slum_code: r.slum_code,
         campaign_id: c.campaign_id,
         org_id: c.org_id,
         type: "campaign_created",
         title: titleText,
-        message: msgText,
+        message:
+          `Hello ${r.full_name} (${r.slum_code}),\n` +
+          `Eligible member(s): ${r.eligible_names || r.full_name}\n\n` +
+          campaignSummaryText(c),
       }))
     );
 
@@ -322,13 +360,15 @@ export async function createCampaign(req, res) {
     return res.status(201).json({
       success: true,
       message: "New campaign has been created",
-      data: { campaign_id: campaignId, notifications_created: inserted },
+      data: {
+        campaign_id: campaignId,
+        notifications_created: notifsCreated,
+        targets_created: targetsCreated,
+      },
     });
   } catch (error) {
     console.error("Error creating campaign:", error);
-    try {
-      if (connection) await connection.rollback();
-    } catch {}
+    try { if (connection) await connection.rollback(); } catch {}
     return res.status(500).json({
       success: false,
       message: "Failed to create campaign",
@@ -339,9 +379,6 @@ export async function createCampaign(req, res) {
   }
 }
 
-/**
- * GET /api/campaigns?org_id=...
- */
 export async function getAllCampaigns(req, res) {
   let connection;
   try {
@@ -377,9 +414,6 @@ export async function getAllCampaigns(req, res) {
   }
 }
 
-/**
- * GET /api/campaigns/:campaignId
- */
 export async function getCampaignById(req, res) {
   let connection;
   try {
@@ -411,17 +445,6 @@ export async function getCampaignById(req, res) {
   }
 }
 
-/**
- * PUT /api/campaigns/:campaignId
- * ✅ Allowed:
- *   - start_date, end_date, start_time (edit)
- *   - status = 'cancelled' (cancel)
- * ❌ Any other field -> rejected
- *
- * Also inserts notifications:
- *  - campaign_updated when date/time edited
- *  - campaign_cancelled when cancelled
- */
 export async function updateCampaign(req, res) {
   let connection;
   try {
@@ -432,7 +455,6 @@ export async function updateCampaign(req, res) {
       return res.status(400).json({ success: false, message: "Invalid campaignId" });
     }
 
-    // hard allow-list
     const allowedKeys = new Set(["start_date", "end_date", "start_time", "status", "org_id"]);
     for (const k of Object.keys(payload)) {
       if (!allowedKeys.has(k)) {
@@ -448,7 +470,7 @@ export async function updateCampaign(req, res) {
     const nextTime = payload.start_time !== undefined ? cleanTimeHHMM(payload.start_time) : null;
 
     const nextStatusRaw = payload.status !== undefined ? cleanStr(payload.status).toLowerCase() : null;
-    const allowedStatus = new Set(["cancelled"]); // you said you only use cancelled
+    const allowedStatus = new Set(["cancelled"]);
     if (nextStatusRaw && !allowedStatus.has(nextStatusRaw)) {
       return res.status(400).json({ success: false, message: "Only status='cancelled' is allowed." });
     }
@@ -456,7 +478,6 @@ export async function updateCampaign(req, res) {
     connection = await db.getConnection();
     await connection.beginTransaction();
 
-    // load current campaign
     const [rows] = await connection.execute(
       `SELECT * FROM campaigns WHERE campaign_id = ? LIMIT 1`,
       [idNum]
@@ -474,7 +495,6 @@ export async function updateCampaign(req, res) {
       return res.status(403).json({ success: false, message: "Campaign already cancelled." });
     }
 
-    // compute final values
     const finalStart = nextStart ?? (cur.start_date ? String(cur.start_date).slice(0, 10) : "");
     const finalEnd = nextEnd ?? (cur.end_date ? String(cur.end_date).slice(0, 10) : "");
     const finalTime = payload.start_time !== undefined ? toSqlTime(nextTime) : cur.start_time;
@@ -488,7 +508,6 @@ export async function updateCampaign(req, res) {
       return res.status(400).json({ success: false, message: "End date cannot be before start date." });
     }
 
-    // build update
     const sets = [];
     const vals = [];
 
@@ -499,21 +518,9 @@ export async function updateCampaign(req, res) {
       isCancel = true;
       sets.push(`status = 'cancelled'`);
     } else {
-      if (payload.start_date !== undefined) {
-        sets.push(`start_date = ?`);
-        vals.push(finalStart);
-        isEdit = true;
-      }
-      if (payload.end_date !== undefined) {
-        sets.push(`end_date = ?`);
-        vals.push(finalEnd);
-        isEdit = true;
-      }
-      if (payload.start_time !== undefined) {
-        sets.push(`start_time = ?`);
-        vals.push(finalTime);
-        isEdit = true;
-      }
+      if (payload.start_date !== undefined) { sets.push(`start_date = ?`); vals.push(finalStart); isEdit = true; }
+      if (payload.end_date !== undefined) { sets.push(`end_date = ?`); vals.push(finalEnd); isEdit = true; }
+      if (payload.start_time !== undefined) { sets.push(`start_time = ?`); vals.push(finalTime); isEdit = true; }
     }
 
     if (!sets.length) {
@@ -521,56 +528,60 @@ export async function updateCampaign(req, res) {
       return res.status(400).json({ success: false, message: "No fields to update" });
     }
 
-    const updSql = `
-      UPDATE campaigns
-      SET ${sets.join(", ")}, updated_at = NOW()
-      WHERE campaign_id = ?
-    `;
-    vals.push(idNum);
+    await connection.execute(
+      `UPDATE campaigns SET ${sets.join(", ")}, updated_at = NOW() WHERE campaign_id = ?`,
+      [...vals, idNum]
+    );
 
-    await connection.execute(updSql, vals);
-
-    // reload updated campaign for messages
     const [afterRows] = await connection.execute(
       `SELECT * FROM campaigns WHERE campaign_id = ? LIMIT 1`,
       [idNum]
     );
     const after = afterRows[0];
 
-    // recipients based on campaign criteria
-    const eligibleSlumCodes = await getRecipientSlumCodes(connection, after);
+    // always notify existing targets only (targets never change on update)
+    const [targetRows] = await connection.execute(
+      `SELECT ct.slum_code, sd.full_name
+       FROM campaign_targets ct
+       JOIN slum_dwellers sd ON sd.slum_code = ct.slum_code
+       WHERE ct.campaign_id = ?`,
+      [idNum]
+    );
+
+    const targets = targetRows.map(r => ({ slum_code: r.slum_code, full_name: r.full_name }));
 
     let createdNotifs = 0;
+    let targetsNow = targets.length;
 
     if (isCancel) {
       const titleText = `Campaign Cancelled: ${after.title}`;
-      const msgText = `This campaign has been cancelled.\n\n${campaignSummaryText(after)}`;
 
       createdNotifs = await insertNotificationsBulk(
         connection,
-        eligibleSlumCodes.map((slum_code) => ({
-          slum_code,
+        targets.map((t) => ({
+          slum_code: t.slum_code,
           campaign_id: after.campaign_id,
           org_id: after.org_id,
           type: "campaign_cancelled",
           title: titleText,
-          message: msgText,
+          message: `Hello ${t.full_name} (${t.slum_code}), this campaign has been cancelled.`,
         }))
       );
     } else if (isEdit) {
       const titleText = `Campaign Updated: ${after.title}`;
-      const msgText =
-        `This campaign was edited.\n\nChanged:\n${diffText(cur, after)}\n\nUpdated Details:\n${campaignSummaryText(after)}`;
+      const msgTextBase =
+        `This campaign schedule was updated.\n\nPrevious:\n${campaignSummaryText(cur)}\n\n` +
+        `Changed:\n${diffText(cur, after)}\n\nNow:\n${campaignSummaryText(after)}`;
 
       createdNotifs = await insertNotificationsBulk(
         connection,
-        eligibleSlumCodes.map((slum_code) => ({
-          slum_code,
+        targets.map((t) => ({
+          slum_code: t.slum_code,
           campaign_id: after.campaign_id,
           org_id: after.org_id,
           type: "campaign_updated",
           title: titleText,
-          message: msgText,
+          message: `Hello ${t.full_name} (${t.slum_code}),\n\n${msgTextBase}`,
         }))
       );
     }
@@ -580,13 +591,15 @@ export async function updateCampaign(req, res) {
     return res.status(200).json({
       success: true,
       message: isCancel ? "Campaign cancelled successfully" : "Campaign updated successfully",
-      data: { campaign_id: idNum, notifications_created: createdNotifs },
+      data: {
+        campaign_id: idNum,
+        notifications_created: createdNotifs,
+        targets_now: targetsNow,
+      },
     });
   } catch (error) {
     console.error("Error updating campaign:", error);
-    try {
-      if (connection) await connection.rollback();
-    } catch {}
+    try { if (connection) await connection.rollback(); } catch {}
     return res.status(500).json({
       success: false,
       message: "Failed to update campaign",
@@ -597,12 +610,6 @@ export async function updateCampaign(req, res) {
   }
 }
 
-/**
- * DELETE /api/campaigns/:campaignId
- * You said you mainly use status='cancelled', but keeping delete safe:
- * - creates a campaign_cancelled notification first (best-effort)
- * - then deletes the campaign
- */
 export async function deleteCampaign(req, res) {
   let connection;
   try {
@@ -624,23 +631,34 @@ export async function deleteCampaign(req, res) {
     }
 
     const c = rows[0];
-    const eligibleSlumCodes = await getRecipientSlumCodes(connection, c);
 
-    // best-effort notify as "cancelled" (since deleted)
-    const titleText = `Campaign Removed: ${c.title}`;
-    const msgText = `This campaign was removed by the organization.\n\n${campaignSummaryText(c)}`;
-
-    const createdNotifs = await insertNotificationsBulk(
-      connection,
-      eligibleSlumCodes.map((slum_code) => ({
-        slum_code,
-        campaign_id: c.campaign_id,
-        org_id: c.org_id,
-        type: "campaign_cancelled",
-        title: titleText,
-        message: msgText,
-      }))
+    // fetch target names for notifications
+    const [targetRows] = await connection.execute(
+      `SELECT ct.slum_code, sd.full_name
+       FROM campaign_targets ct
+       JOIN slum_dwellers sd ON sd.slum_code = ct.slum_code
+       WHERE ct.campaign_id = ?`,
+      [idNum]
     );
+    const targets = targetRows.map(r => ({ slum_code: r.slum_code, full_name: r.full_name }));
+
+    const titleText = `Campaign Removed: ${c.title}`;
+
+    const createdNotifs = targets.length
+      ? await insertNotificationsBulk(
+          connection,
+          targets.map((t) => ({
+            slum_code: t.slum_code,
+            campaign_id: c.campaign_id,
+            org_id: c.org_id,
+            type: "campaign_cancelled",
+            title: titleText,
+            message: `Hello ${t.full_name} (${t.slum_code}), this campaign was deleted by the organization.`,
+          }))
+        )
+      : 0;
+
+    await connection.execute(`DELETE FROM campaign_targets WHERE campaign_id = ?`, [idNum]);
 
     const [del] = await connection.execute(
       `DELETE FROM campaigns WHERE campaign_id = ?`,
@@ -661,12 +679,47 @@ export async function deleteCampaign(req, res) {
     });
   } catch (error) {
     console.error("Error deleting campaign:", error);
-    try {
-      if (connection) await connection.rollback();
-    } catch {}
+    try { if (connection) await connection.rollback(); } catch {}
     return res.status(500).json({
       success: false,
       message: "Failed to delete campaign",
+      error: error.message,
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+}
+
+// ✅ GET /api/campaigns/mine-active?org_id=...
+export async function getMyActiveCampaignsToday(req, res) {
+  let connection;
+  try {
+    const orgIdNum = Number(req.query.org_id);
+    if (!Number.isInteger(orgIdNum) || orgIdNum <= 0) {
+      return res.status(400).json({ success: false, message: "org_id is required and must be a positive integer." });
+    }
+
+    connection = await db.getConnection();
+
+    const [rows] = await connection.execute(
+      `SELECT campaign_id, org_id, title, category, division, district, slum_area,
+              start_date, end_date, start_time, target_gender, age_group,
+              education_required, skills_required, description, status, created_at, updated_at
+       FROM campaigns
+       WHERE org_id = ?
+         AND status <> 'cancelled'
+         AND start_date <= CURDATE()
+         AND end_date >= CURDATE()
+       ORDER BY start_date ASC, created_at DESC`,
+      [orgIdNum]
+    );
+
+    return res.status(200).json({ success: true, data: rows });
+  } catch (error) {
+    console.error("Error retrieving active campaigns:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve active campaigns",
       error: error.message,
     });
   } finally {
