@@ -914,3 +914,30 @@ JOIN distribution_sessions ds ON ds.session_id = de.session_id
 JOIN campaigns c ON c.campaign_id = ds.campaign_id
 JOIN organizations o ON o.org_id = ds.org_id
 JOIN aid_types at ON at.aid_type_id = ds.aid_type_id;
+
+-- ==============================================
+-- Add skills columns to slum dwellers, spouses and children tables
+-- ==============================================
+
+-- Add skills columns to slum_dwellers table
+ALTER TABLE slum_dwellers 
+ADD COLUMN skills_1 VARCHAR(100) DEFAULT 'None',
+ADD COLUMN skills_2 VARCHAR(100) DEFAULT 'None';
+
+-- Add skills columns to spouses table
+ALTER TABLE spouses 
+ADD COLUMN skills_1 VARCHAR(100) DEFAULT 'None',
+ADD COLUMN skills_2 VARCHAR(100) DEFAULT 'None';
+
+-- Add skills columns to children table
+ALTER TABLE children 
+ADD COLUMN skills_1 VARCHAR(100) DEFAULT 'None',
+ADD COLUMN skills_2 VARCHAR(100) DEFAULT 'None',
+ADD COLUMN age_group ENUM('child', 'adult') DEFAULT 'child',
+ADD COLUMN birth_certificate_number VARCHAR(50) UNIQUE;
+
+-- Add location columns to complaints table
+ALTER TABLE complaints
+ADD COLUMN division VARCHAR(150),
+ADD COLUMN district VARCHAR(150),
+ADD COLUMN area VARCHAR(150);

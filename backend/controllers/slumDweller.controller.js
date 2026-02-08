@@ -69,6 +69,45 @@ export const signinSlumDweller = async (req, res) => {
   }
 };
 
+// Check NID duplicate
+export const checkNidDuplicate = async (req, res) => {
+  try {
+    const { nid } = req.body;
+
+    // Validate NID input
+    if (!nid) {
+      return res.status(400).json({
+        status: "error",
+        message: "NID number is required."
+      });
+    }
+
+    // Remove any spaces from NID for consistent checking
+    const cleanNid = String(nid).replace(/\s+/g, '');
+
+    // Check if NID already exists in database
+    const [existingRows] = await pool.query(
+      'SELECT COUNT(*) as count FROM slum_dwellers WHERE nid = ?',
+      [cleanNid]
+    );
+
+    const isDuplicate = existingRows[0].count > 0;
+
+    return res.json({
+      status: "success",
+      isDuplicate: isDuplicate,
+      message: isDuplicate ? "NID already exists in the system" : "NID is available"
+    });
+
+  } catch (error) {
+    console.error("NID Check Error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while checking NID."
+    });
+  }
+};
+
 // Helper function to convert Data URL to Buffer for BLOB storage
 function dataUrlToBuffer(dataUrl) {
   if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) {
