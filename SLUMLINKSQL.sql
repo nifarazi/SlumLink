@@ -622,53 +622,7 @@ INSERT INTO campaigns (
  'Local authority health camp with a medicine booth for common treatments and referrals.',
  'pending');
  
-DROP TABLE IF EXISTS notifications;
 
-CREATE TABLE notifications (
-  notification_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-
-  slum_code VARCHAR(8) NOT NULL,
-
-  campaign_id BIGINT UNSIGNED NOT NULL,
-  org_id BIGINT UNSIGNED NOT NULL,
-
-  type ENUM('campaign_created','campaign_updated','campaign_cancelled') NOT NULL,
-  title VARCHAR(200) NOT NULL,
-  message TEXT NOT NULL,
-
-  is_read TINYINT(1) NOT NULL DEFAULT 0,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-  CONSTRAINT fk_notif_slum
-    FOREIGN KEY (slum_code) REFERENCES slum_dwellers(slum_code) ON DELETE CASCADE,
-
-  CONSTRAINT fk_notif_campaign
-    FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id) ON DELETE CASCADE,
-
-  CONSTRAINT fk_notif_org
-    FOREIGN KEY (org_id) REFERENCES organizations(org_id) ON DELETE CASCADE,
-
-  INDEX idx_notifications_user (slum_code, is_read, created_at),
-  INDEX idx_notifications_campaign (campaign_id, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-DROP TABLE IF EXISTS campaign_targets;
-
-CREATE TABLE campaign_targets (
-  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  campaign_id BIGINT UNSIGNED NOT NULL,
-
-  slum_code VARCHAR(8) NOT NULL,
-
-  matched_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-  FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id) ON DELETE CASCADE,
-  FOREIGN KEY (slum_code) REFERENCES slum_dwellers(slum_code) ON DELETE CASCADE,
-
-  UNIQUE KEY uq_campaign_target (campaign_id, slum_code),
-  INDEX idx_target_user (slum_code),
-  INDEX idx_target_campaign (campaign_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 USE slumlink;
 
@@ -767,3 +721,53 @@ FROM notifications
 ORDER BY notification_id DESC
 LIMIT 50;
 
+
+
+---- New Table ----
+
+DROP TABLE IF EXISTS notifications;
+
+CREATE TABLE notifications (
+  notification_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  slum_code VARCHAR(8) NOT NULL,
+  campaign_id BIGINT UNSIGNED NOT NULL,
+  org_id BIGINT UNSIGNED NOT NULL,
+
+  type ENUM('campaign_created','campaign_updated','campaign_cancelled') NOT NULL,
+  title VARCHAR(200) NOT NULL,
+  message TEXT NOT NULL,
+
+  is_read TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_notif_slum
+    FOREIGN KEY (slum_code) REFERENCES slum_dwellers(slum_code) ON DELETE CASCADE,
+
+  CONSTRAINT fk_notif_campaign
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id) ON DELETE CASCADE,
+
+  CONSTRAINT fk_notif_org
+    FOREIGN KEY (org_id) REFERENCES organizations(org_id) ON DELETE CASCADE,
+
+  INDEX idx_notifications_user (slum_code, is_read, created_at),
+  INDEX idx_notifications_campaign (campaign_id, created_at)
+);
+
+DROP TABLE IF EXISTS campaign_targets;
+
+CREATE TABLE campaign_targets (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  campaign_id BIGINT UNSIGNED NOT NULL,
+  slum_code VARCHAR(8) NOT NULL,
+  matched_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_target_campaign
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id) ON DELETE CASCADE,
+
+  CONSTRAINT fk_target_slum
+    FOREIGN KEY (slum_code) REFERENCES slum_dwellers(slum_code) ON DELETE CASCADE,
+
+  UNIQUE KEY uq_campaign_target (campaign_id, slum_code),
+  INDEX idx_target_user (slum_code),
+  INDEX idx_target_campaign (campaign_id)
+);
