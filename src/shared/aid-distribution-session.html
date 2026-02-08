@@ -29,16 +29,16 @@
       <div class="row">
         <div>
           <h1>Enter Family</h1>
-          <p class="muted">Record one family at a time. Family snapshot is optional.</p>
+          <p class="muted">Record one family at a time. Only targeted families will be allowed for this campaign.</p>
         </div>
         <div class="pill" id="aidTypePill">—</div>
       </div>
 
       <div class="form-grid">
         <div class="field">
-          <label for="familyCode">SlumLink Family Code</label>
-          <input id="familyCode" placeholder="e.g., SLF-2A91K" autocomplete="off" />
-          <small class="hint" id="familyHint">Enter a valid code, then confirm.</small>
+          <label for="familyCode">Slum Code</label>
+          <input id="familyCode" placeholder="e.g., SR000123" autocomplete="off" />
+          <small class="hint" id="familyHint">Enter a valid slum code, then confirm.</small>
         </div>
 
         <div class="field hidden" id="qtyFieldWrap">
@@ -63,7 +63,7 @@
             </div>
 
             <div class="snap-card">
-              <div class="snap-title">My Org History</div>
+              <div class="snap-title">All Aid History</div>
               <div class="snap-body" id="orgHistory">
                 <span class="muted">No data yet.</span>
               </div>
@@ -105,7 +105,6 @@
     </section>
   </main>
 
-  <!-- Finish confirmation modal -->
   <div class="modal-backdrop" id="finishModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="finishTitle">
       <div class="modal-title" id="finishTitle">Finish distribution?</div>

@@ -4,24 +4,28 @@ import {
   getAllCampaigns,
   getCampaignById,
   updateCampaign,
-  deleteCampaign
+  deleteCampaign,
+  getMyActiveCampaignsToday // ✅ NEW
 } from "../controllers/campaign.controller.js";
 
 const router = express.Router();
 
-// POST /api/campaigns/create - Create a new campaign
+// ✅ NEW: GET /api/campaigns/mine-active?org_id=1001
+router.get("/mine-active", getMyActiveCampaignsToday);
+
+// POST /api/campaigns/create
 router.post("/create", createCampaign);
 
-// GET /api/campaigns - Get all campaigns
+// GET /api/campaigns?org_id=...
 router.get("/", getAllCampaigns);
 
-// GET /api/campaigns/:campaignId - Get campaign by ID
+// GET /api/campaigns/:campaignId
 router.get("/:campaignId", getCampaignById);
 
-// PUT /api/campaigns/:campaignId - Update campaign
+// PUT /api/campaigns/:campaignId
 router.put("/:campaignId", updateCampaign);
 
-// DELETE /api/campaigns/:campaignId - Delete campaign
+// DELETE /api/campaigns/:campaignId
 router.delete("/:campaignId", deleteCampaign);
 
 export default router;

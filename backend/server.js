@@ -1,3 +1,4 @@
+// backend/server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -10,6 +11,10 @@ import documentRoutes from "./routes/document.routes.js";
 import complaintRoutes from "./routes/complaint.routes.js";
 import campaignRoutes from "./routes/campaign.routes.js";
 
+// ✅ NEW
+import distributionRoutes from "./routes/distribution.routes.js";
+import aidTypeRoutes from "./routes/aidType.routes.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -19,17 +24,13 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 const app = express();
 const PREFERRED_PORT = Number(process.env.SERVER_PORT) || 5001;
 
-// ✅ CORS (not required in Option B but okay)
 app.use(cors());
 
-// ✅ JSON body parsing - increase limit for document uploads (base64 encoded)
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// ✅ Serve frontend files from ROOT project
 const rootDir = path.resolve(__dirname, "..");
 
-// ✅ Block exposing backend folder + node_modules
 app.use((req, res, next) => {
   if (req.path.startsWith("/backend") || req.path.startsWith("/node_modules")) {
     return res.status(404).send("Not Found");
@@ -37,52 +38,31 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Backward-compatible redirects (create-campaign moved to /src/shared)
+// Backward-compatible redirects
 app.get("/src/localauthority/create-campaign.html", (req, res) => {
   res.redirect(302, "/src/shared/create-campaign.html?role=localauthority");
 });
-
 app.get("/src/ngo/ngocreate-campaign.html", (req, res) => {
   res.redirect(302, "/src/shared/create-campaign.html?role=ngo");
 });
 
-// ✅ Serve your front-end
 app.use(express.static(rootDir));
 
-// ✅ API Routes
+// API Routes
 app.use("/api/ngo", ngoRoutes);
 app.use("/api/slum-dweller", slumDwellerRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/campaigns", campaignRoutes);
 
-// ✅ Health check
+// ✅ NEW API Routes
+app.use("/api", distributionRoutes); // contains /distribution-sessions + /distribution/families/:code/snapshot
+app.use("/api", aidTypeRoutes);      // contains /aid-types
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Server is running" });
 });
 
-// ✅ Debug endpoint - Show all documents
-app.get("/api/debug/documents", async (req, res) => {
-  try {
-    const [docs] = await (await import("mysql2/promise")).createConnection({
-      host: process.env.DB_HOST || "localhost",
-      port: Number(process.env.DB_PORT || 3306),
-      user: process.env.DB_USER || "root",
-      password: process.env.DB_PASSWORD || "nanjiba@282002",
-      database: process.env.DB_NAME || "slumlink",
-    }).then(conn => {
-      return Promise.all([
-        conn.query('SELECT id, slum_id, document_type, status FROM documents LIMIT 20'),
-        conn.end()
-      ]);
-    });
-    res.json({ documents: docs[0] });
-  } catch (error) {
-    res.json({ error: error.message });
-  }
-});
-
-// ✅ Default home
 app.get("/", (req, res) => {
   res.sendFile(path.join(rootDir, "index.html"));
 });
