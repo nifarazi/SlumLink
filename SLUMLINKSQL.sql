@@ -402,7 +402,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
   CONSTRAINT fk_campaign_org
     FOREIGN KEY (org_id) REFERENCES organizations(org_id)
     ON DELETE RESTRICT,
-
+    
   INDEX idx_campaign_org (org_id),
   INDEX idx_campaign_area (division, district, slum_area),
   INDEX idx_campaign_filters (target_gender, age_group, education_required, skills_required),
@@ -533,7 +533,7 @@ USE slumlink;
 
 
 -- ---------------------------------------------------
--- 1) Dummy campaigns for org_id=3 (NGO)
+-- 1) Dummy campaigns for org_id=3 (NGO) - First create the NGO
 -- ---------------------------------------------------
 INSERT INTO campaigns (
   org_id, title, category,
@@ -627,10 +627,7 @@ DROP TABLE IF EXISTS notifications;
 CREATE TABLE notifications (
   notification_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
-  slum_code VARCHAR(8)
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_0900_ai_ci
-    NOT NULL,
+  slum_code VARCHAR(8) NOT NULL,
 
   campaign_id BIGINT UNSIGNED NOT NULL,
   org_id BIGINT UNSIGNED NOT NULL,
@@ -653,7 +650,7 @@ CREATE TABLE notifications (
 
   INDEX idx_notifications_user (slum_code, is_read, created_at),
   INDEX idx_notifications_campaign (campaign_id, created_at)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS campaign_targets;
 
@@ -661,10 +658,7 @@ CREATE TABLE campaign_targets (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   campaign_id BIGINT UNSIGNED NOT NULL,
 
-  slum_code VARCHAR(8)
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_0900_ai_ci
-    NOT NULL,
+  slum_code VARCHAR(8) NOT NULL,
 
   matched_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -674,7 +668,7 @@ CREATE TABLE campaign_targets (
   UNIQUE KEY uq_campaign_target (campaign_id, slum_code),
   INDEX idx_target_user (slum_code),
   INDEX idx_target_campaign (campaign_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 USE slumlink;
 
