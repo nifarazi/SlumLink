@@ -149,6 +149,13 @@ body {
   padding: 40px;
 }
 
+#selectedDistrictTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #8b6f5a;
+  margin-top: -6px;
+}
+
 /* Cards */
 .card-grid {
   display: grid;

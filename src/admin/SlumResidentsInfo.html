@@ -217,6 +217,14 @@
       return d.toISOString().split('T')[0];
     }
 
+    function formatSkills(entity) {
+      if (!entity) return '-';
+      const skills = [entity.skills_1, entity.skills_2]
+        .map((s) => (s || '').trim())
+        .filter((s) => s);
+      return skills.length ? skills.join(', ') : '-';
+    }
+
     document.addEventListener('DOMContentLoaded', async function () {
       const mainContent = document.getElementById('mainContent');
       const params = new URLSearchParams(window.location.search);
@@ -297,6 +305,10 @@
               <span class="info-value">${resident.occupation || '-'}</span>
             </div>
             <div class="info-item">
+              <span class="info-label">Skills</span>
+              <span class="info-value">${formatSkills(resident)}</span>
+            </div>
+            <div class="info-item">
               <span class="info-label">Income Range</span>
               <span class="info-value">${resident.income || '-'}</span>
             </div>
@@ -360,6 +372,10 @@
                   <span class="info-value">${spouse.job || '-'}</span>
                 </div>
                 <div class="info-item">
+                  <span class="info-label">Skills</span>
+                  <span class="info-value">${formatSkills(spouse)}</span>
+                </div>
+                <div class="info-item">
                   <span class="info-label">Income Range</span>
                   <span class="info-value">${spouse.income || '-'}</span>
                 </div>
@@ -401,6 +417,10 @@
                 <div class="info-item">
                   <span class="info-label">Job</span>
                   <span class="info-value">${child.job || '-'}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Skills</span>
+                  <span class="info-value">${formatSkills(child)}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Income Range</span>
@@ -627,6 +647,7 @@
       addLine(`Mobile: ${resident.mobile || '-'}`);
       addLine(`Education: ${resident.education || '-'}`);
       addLine(`Occupation: ${resident.occupation || '-'}`);
+      addLine(`Skills: ${formatSkills(resident)}`);
       addLine(`Income: ${resident.income || '-'}`);
       addLine(`Status: ${resident.status}`);
 
@@ -648,6 +669,7 @@
           addLine(`  NID: ${spouse.nid || '-'}`);
           addLine(`  Education: ${spouse.education || '-'}`);
           addLine(`  Job: ${spouse.job || '-'}`);
+          addLine(`  Skills: ${formatSkills(spouse)}`);
           addLine(`  Income: ${spouse.income || '-'}`);
           addLine(`  Mobile: ${spouse.mobile || '-'}`);
           yPosition += 5;
@@ -664,6 +686,7 @@
           addLine(`  Gender: ${child.gender || '-'}`);
           addLine(`  Education: ${child.education || '-'}`);
           addLine(`  Job: ${child.job || '-'}`);
+          addLine(`  Skills: ${formatSkills(child)}`);
           addLine(`  Income: ${child.income || '-'}`);
           addLine(`  Preferred Job: ${child.preferred_job || '-'}`);
           yPosition += 5;
