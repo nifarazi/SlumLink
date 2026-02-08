@@ -45,11 +45,85 @@
         </label>
         <label class="field">
           <span>Education</span>
-          <input type="text" name="spouse_${index}_education" placeholder="e.g., Secondary" />
+          <select name="spouse_${index}_education">
+            <option value="" disabled selected>Select education</option>
+            <option value="none">None</option>
+            <option value="primary">Primary</option>
+            <option value="secondary">Secondary</option>
+            <option value="hsc">HSC</option>
+            <option value="diploma">Diploma</option>
+            <option value="graduate">Graduate</option>
+          </select>
         </label>
         <label class="field">
           <span>Job</span>
           <input type="text" name="spouse_${index}_job" placeholder="e.g., Day laborer" />
+        </label>
+        <label class="field">
+          <span>Skill 1</span>
+          <select name="spouse_${index}_skills_1" class="spouse-skill-1">
+            <option value="" disabled selected>Select skill</option>
+            <option value="None">None</option>
+            <option value="tailoring">Tailoring</option>
+            <option value="embroidery">Embroidery</option>
+            <option value="housekeeping">Housekeeping</option>
+            <option value="cooking">Cooking</option>
+            <option value="caregiving">Caregiving</option>
+            <option value="delivery">Delivery</option>
+            <option value="driver">Driver</option>
+            <option value="rickshaw">Rickshaw</option>
+            <option value="electric helper">Electric Helper</option>
+            <option value="electrician">Electrician</option>
+            <option value="plumbing helper">Plumbing Helper</option>
+            <option value="plumber">Plumber</option>
+            <option value="masonry helper">Masonry Helper</option>
+            <option value="welding helper">Welding Helper</option>
+            <option value="welding">Welding</option>
+            <option value="carpentry">Carpentry</option>
+            <option value="barbering">Barbering</option>
+            <option value="beauty parlor">Beauty Parlor</option>
+            <option value="mobile servicing">Mobile Servicing</option>
+            <option value="electronics repair">Electronics Repair</option>
+            <option value="sales">Sales</option>
+            <option value="typing">Typing</option>
+            <option value="ms office">MS Office</option>
+            <option value="data entry">Data Entry</option>
+            <option value="tutoring">Tutoring</option>
+            <option value="security guard">Security Guard</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Skill 2</span>
+          <select name="spouse_${index}_skills_2" class="spouse-skill-2">
+            <option value="" disabled selected>Select skill</option>
+            <option value="None">None</option>
+            <option value="tailoring">Tailoring</option>
+            <option value="embroidery">Embroidery</option>
+            <option value="housekeeping">Housekeeping</option>
+            <option value="cooking">Cooking</option>
+            <option value="caregiving">Caregiving</option>
+            <option value="delivery">Delivery</option>
+            <option value="driver">Driver</option>
+            <option value="rickshaw">Rickshaw</option>
+            <option value="electric helper">Electric Helper</option>
+            <option value="electrician">Electrician</option>
+            <option value="plumbing helper">Plumbing Helper</option>
+            <option value="plumber">Plumber</option>
+            <option value="masonry helper">Masonry Helper</option>
+            <option value="welding helper">Welding Helper</option>
+            <option value="welding">Welding</option>
+            <option value="carpentry">Carpentry</option>
+            <option value="barbering">Barbering</option>
+            <option value="beauty parlor">Beauty Parlor</option>
+            <option value="mobile servicing">Mobile Servicing</option>
+            <option value="electronics repair">Electronics Repair</option>
+            <option value="sales">Sales</option>
+            <option value="typing">Typing</option>
+            <option value="ms office">MS Office</option>
+            <option value="data entry">Data Entry</option>
+            <option value="tutoring">Tutoring</option>
+            <option value="security guard">Security Guard</option>
+          </select>
         </label>
         <label class="field span-2">
           <span>Income Range</span>
@@ -64,7 +138,7 @@
         </label>
         <label class="field span-2">
           <span>Mobile Number</span>
-          <input type="tel" name="spouse_${index}_mobile" placeholder="e.g., 017XXXXXXXX" />
+          <input type="tel" name="spouse_${index}_mobile" placeholder="e.g., 017XXXXXXXX" inputmode="numeric" pattern="[0-9]{11}" maxlength="11" />
         </label>
         <label class="field span-2">
           <span>Marriage Certificate (Upload)</span>
@@ -78,6 +152,179 @@
     clearSegments();
     const count = Math.max(1, Math.min(Number(n) || 0, 10));
     for(let i=1;i<=count;i++) segments.appendChild(makeSpouseSegment(i));
+    
+    // Setup mobile input constraints for all newly created mobile fields
+    setupMobileInputConstraints();
+    // Setup skill validation for newly created skill fields
+    setupSkillValidation();
+    // Setup NID constraints for newly created NID fields
+    setupNidConstraints();
+  }
+
+  function setupSkillValidation() {
+    const skillSegments = segments.querySelectorAll('.spouse-segment');
+    skillSegments.forEach(segment => {
+      const skill1 = segment.querySelector('.spouse-skill-1');
+      const skill2 = segment.querySelector('.spouse-skill-2');
+      
+      if (skill1 && skill2) {
+        const validateSkills = () => {
+          const val1 = skill1.value;
+          const val2 = skill2.value;
+          if (val1 && val2 && val1 === val2 && val1 !== 'None') {
+            skill2.setCustomValidity('Skill 1 and Skill 2 cannot be the same');
+          } else {
+            skill1.setCustomValidity('');
+            skill2.setCustomValidity('');
+          }
+        };
+        
+        skill1.addEventListener('change', validateSkills);
+        skill2.addEventListener('change', validateSkills);
+      }
+    });
+  }
+
+  function setupMobileInputConstraints() {
+    const mobileInputs = segments.querySelectorAll('input[name*="_mobile"]');
+    mobileInputs.forEach(mobileEl => {
+      // Remove existing listeners to avoid duplicates
+      mobileEl.removeEventListener('input', handleMobileInput);
+      mobileEl.removeEventListener('keypress', handleMobileKeypress);
+      
+      // Add new listeners
+      mobileEl.addEventListener('input', handleMobileInput);
+      mobileEl.addEventListener('keypress', handleMobileKeypress);
+    });
+  }
+
+  function handleMobileInput(e) {
+    // Remove any non-digit characters
+    let value = e.target.value.replace(/\D/g, '');
+    // Limit to 11 digits
+    if (value.length > 11) {
+      value = value.substring(0, 11);
+    }
+    e.target.value = value;
+  }
+
+  function handleMobileKeypress(e) {
+    // Prevent non-numeric input
+    if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+    }
+  }
+
+  function handleNidInput(e) {
+    // Remove any non-digit characters
+    let value = e.target.value.replace(/\D/g, '');
+    
+    // Limit to 17 digits maximum
+    if (value.length > 17) {
+      value = value.substring(0, 17);
+    }
+    
+    // Format with spaces every 4 digits for display
+    let formatted = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+    e.target.value = formatted;
+    
+    // Custom validation for min/max length
+    const digitCount = value.length;
+    if (digitCount > 0 && digitCount < 10) {
+      e.target.setCustomValidity(`NID number must be at least 10 digits (currently ${digitCount})`);
+    } else if (digitCount > 17) {
+      e.target.setCustomValidity('NID number cannot exceed 17 digits');
+    } else {
+      e.target.setCustomValidity('');
+    }
+
+    // Clear previous debounce timer
+    if (e.target.debounceTimer) {
+      clearTimeout(e.target.debounceTimer);
+    }
+    
+    // Debounce API call for duplicate check (only if valid length)
+    if (digitCount >= 10 && digitCount <= 17) {
+      e.target.debounceTimer = setTimeout(() => {
+        checkSpouseNidDuplicate(value, e.target);
+      }, 500); // Wait 500ms after user stops typing
+    }
+  }
+
+  function handleNidKeypress(e) {
+    // Prevent non-numeric input
+    if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+      e.preventDefault();
+    }
+  }
+
+  function handleNidBlur(e) {
+    const digits = e.target.value.replace(/\D/g, '');
+    if (digits.length > 0 && digits.length < 10) {
+      e.target.setCustomValidity(`NID number must be at least 10 digits (currently ${digits.length})`);
+      e.target.reportValidity();
+    } else if (digits.length >= 10 && digits.length <= 17) {
+      // Final check on blur
+      checkSpouseNidDuplicate(digits, e.target);
+    }
+  }
+
+  async function checkSpouseNidDuplicate(nidDigits, nidEl) {
+    if (!nidEl || !nidDigits) return;
+
+    try {
+      const response = await fetch('/api/slum-dweller/check-nid', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nid: nidDigits })
+      });
+
+      if (!response.ok) {
+        console.log('NID check API not available, skipping duplicate check');
+        return; // Gracefully handle API unavailability
+      }
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        if (result.isDuplicate) {
+          nidEl.setCustomValidity('Duplicate NID - This NID number already exists in the system');
+        } else {
+          // Clear any duplicate error, but preserve other validation errors
+          const currentError = nidEl.validationMessage;
+          if (currentError.includes('Duplicate NID')) {
+            nidEl.setCustomValidity('');
+          }
+        }
+      }
+    } catch (error) {
+      console.log('NID check service unavailable, proceeding without duplicate check');
+      // Clear any existing duplicate validation errors when service is unavailable
+      const currentError = nidEl.validationMessage;
+      if (currentError && currentError.includes('Duplicate NID')) {
+        nidEl.setCustomValidity('');
+      }
+    }
+  }
+
+  function setupNidConstraints() {
+    const nidInputs = segments.querySelectorAll('input[name*="_nid"]');
+    nidInputs.forEach(nidEl => {
+      // Remove existing listeners to avoid duplicates
+      nidEl.removeEventListener('input', handleNidInput);
+      nidEl.removeEventListener('keypress', handleNidKeypress);
+      nidEl.removeEventListener('blur', handleNidBlur);
+      
+      // Add new listeners
+      nidEl.addEventListener('input', handleNidInput);
+      nidEl.addEventListener('keypress', handleNidKeypress);
+      nidEl.addEventListener('blur', handleNidBlur);
+      
+      // Set max length attribute for the input
+      nidEl.setAttribute('maxlength', '20'); // Allow for spaces in formatting
+    });
   }
 
   function sanitizeSpouseCount(){
@@ -106,7 +353,12 @@
           data[el.name] = '';
         }
       } else {
-        data[el.name] = el.value;
+        let value = el.value;
+        // Special handling for NID fields - remove spaces before storing
+        if (el.name.includes('_nid')) {
+          value = value.replace(/\s+/g, '');
+        }
+        data[el.name] = value;
       }
     });
     return data;
@@ -166,6 +418,8 @@
   initSession();
   // Initial load
   if (form) fillForm(form, load());
+  // Setup mobile input constraints for any existing mobile fields
+  setupMobileInputConstraints();
 
   // React to status changes
   maritalStatus?.addEventListener('change', () => {

@@ -85,6 +85,74 @@
                 <input type="text" name="occupation" placeholder="e.g., Tailor" />
               </label>
 
+              <!-- Two columns: Skills -->
+              <label class="field">
+                <span>Skill 1</span>
+                <select name="skills_1" id="skills_1" required>
+                  <option value="" disabled selected>Select skill</option>
+                  <option value="None">None</option>
+                  <option value="tailoring">Tailoring</option>
+                  <option value="embroidery">Embroidery</option>
+                  <option value="housekeeping">Housekeeping</option>
+                  <option value="cooking">Cooking</option>
+                  <option value="caregiving">Caregiving</option>
+                  <option value="delivery">Delivery</option>
+                  <option value="driver">Driver</option>
+                  <option value="rickshaw">Rickshaw</option>
+                  <option value="electric helper">Electric Helper</option>
+                  <option value="electrician">Electrician</option>
+                  <option value="plumbing helper">Plumbing Helper</option>
+                  <option value="plumber">Plumber</option>
+                  <option value="masonry helper">Masonry Helper</option>
+                  <option value="welding helper">Welding Helper</option>
+                  <option value="welding">Welding</option>
+                  <option value="carpentry">Carpentry</option>
+                  <option value="barbering">Barbering</option>
+                  <option value="beauty parlor">Beauty Parlor</option>
+                  <option value="mobile servicing">Mobile Servicing</option>
+                  <option value="electronics repair">Electronics Repair</option>
+                  <option value="sales">Sales</option>
+                  <option value="typing">Typing</option>
+                  <option value="ms office">MS Office</option>
+                  <option value="data entry">Data Entry</option>
+                  <option value="tutoring">Tutoring</option>
+                  <option value="security guard">Security Guard</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Skill 2</span>
+                <select name="skills_2" id="skills_2" required>
+                  <option value="" disabled selected>Select skill</option>
+                  <option value="None">None</option>
+                  <option value="tailoring">Tailoring</option>
+                  <option value="embroidery">Embroidery</option>
+                  <option value="housekeeping">Housekeeping</option>
+                  <option value="cooking">Cooking</option>
+                  <option value="caregiving">Caregiving</option>
+                  <option value="delivery">Delivery</option>
+                  <option value="driver">Driver</option>
+                  <option value="rickshaw">Rickshaw</option>
+                  <option value="electric helper">Electric Helper</option>
+                  <option value="electrician">Electrician</option>
+                  <option value="plumbing helper">Plumbing Helper</option>
+                  <option value="plumber">Plumber</option>
+                  <option value="masonry helper">Masonry Helper</option>
+                  <option value="welding helper">Welding Helper</option>
+                  <option value="welding">Welding</option>
+                  <option value="carpentry">Carpentry</option>
+                  <option value="barbering">Barbering</option>
+                  <option value="beauty parlor">Beauty Parlor</option>
+                  <option value="mobile servicing">Mobile Servicing</option>
+                  <option value="electronics repair">Electronics Repair</option>
+                  <option value="sales">Sales</option>
+                  <option value="typing">Typing</option>
+                  <option value="ms office">MS Office</option>
+                  <option value="data entry">Data Entry</option>
+                  <option value="tutoring">Tutoring</option>
+                  <option value="security guard">Security Guard</option>
+                </select>
+              </label>
+
               <!-- Single column: Income Range -->
               <label class="field span-2">
                 <span>Income Range</span>
@@ -123,11 +191,11 @@
               <!-- Two columns: Mobile + Family Members -->
               <label class="field">
                 <span>Mobile Number</span>
-                <input type="tel" name="mobile" placeholder="e.g., 017XXXXXXXX" required />
+                <input type="tel" name="mobile" placeholder="e.g., 017XXXXXXXX" required inputmode="numeric" pattern="[0-9]{11}" maxlength="11" />
               </label>
               <label class="field">
                 <span>Number of Family Members</span>
-                <input type="number" name="members" min="1" placeholder="e.g., 4" required />
+                <input type="number" name="members" min="1" value="1" placeholder="e.g., 4" required />
               </label>
             </div>
 
@@ -135,7 +203,7 @@
             <div class="fields">
               <label class="field span-2">
                 <span style="margin-top: 15px;">NID Number</span>
-                <input type="text" name="nidNumber" inputmode="numeric" placeholder="Enter National ID" required />
+                <input type="text" name="nidNumber" inputmode="numeric" placeholder="e.g., 1234 5678 9012 3456" required maxlength="20" />
               </label>
             </div>
             

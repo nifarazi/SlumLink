@@ -40,11 +40,85 @@
         </label>
         <label class="field">
           <span>Education</span>
-          <input type="text" name="child_${index}_education" placeholder="e.g., Primary" />
+          <select name="child_${index}_education">
+            <option value="" disabled selected>Select education</option>
+            <option value="none">None</option>
+            <option value="primary">Primary</option>
+            <option value="secondary">Secondary</option>
+            <option value="hsc">HSC</option>
+            <option value="diploma">Diploma</option>
+            <option value="graduate">Graduate</option>
+          </select>
         </label>
         <label class="field">
           <span>Job</span>
           <input type="text" name="child_${index}_job" placeholder="e.g., Apprentice" />
+        </label>
+        <label class="field">
+          <span>Skill 1</span>
+          <select name="child_${index}_skills_1" class="child-skill-1">
+            <option value="" disabled selected>Select skill</option>
+            <option value="None">None</option>
+            <option value="tailoring">Tailoring</option>
+            <option value="embroidery">Embroidery</option>
+            <option value="housekeeping">Housekeeping</option>
+            <option value="cooking">Cooking</option>
+            <option value="caregiving">Caregiving</option>
+            <option value="delivery">Delivery</option>
+            <option value="driver">Driver</option>
+            <option value="rickshaw">Rickshaw</option>
+            <option value="electric helper">Electric Helper</option>
+            <option value="electrician">Electrician</option>
+            <option value="plumbing helper">Plumbing Helper</option>
+            <option value="plumber">Plumber</option>
+            <option value="masonry helper">Masonry Helper</option>
+            <option value="welding helper">Welding Helper</option>
+            <option value="welding">Welding</option>
+            <option value="carpentry">Carpentry</option>
+            <option value="barbering">Barbering</option>
+            <option value="beauty parlor">Beauty Parlor</option>
+            <option value="mobile servicing">Mobile Servicing</option>
+            <option value="electronics repair">Electronics Repair</option>
+            <option value="sales">Sales</option>
+            <option value="typing">Typing</option>
+            <option value="ms office">MS Office</option>
+            <option value="data entry">Data Entry</option>
+            <option value="tutoring">Tutoring</option>
+            <option value="security guard">Security Guard</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Skill 2</span>
+          <select name="child_${index}_skills_2" class="child-skill-2">
+            <option value="" disabled selected>Select skill</option>
+            <option value="None">None</option>
+            <option value="tailoring">Tailoring</option>
+            <option value="embroidery">Embroidery</option>
+            <option value="housekeeping">Housekeeping</option>
+            <option value="cooking">Cooking</option>
+            <option value="caregiving">Caregiving</option>
+            <option value="delivery">Delivery</option>
+            <option value="driver">Driver</option>
+            <option value="rickshaw">Rickshaw</option>
+            <option value="electric helper">Electric Helper</option>
+            <option value="electrician">Electrician</option>
+            <option value="plumbing helper">Plumbing Helper</option>
+            <option value="plumber">Plumber</option>
+            <option value="masonry helper">Masonry Helper</option>
+            <option value="welding helper">Welding Helper</option>
+            <option value="welding">Welding</option>
+            <option value="carpentry">Carpentry</option>
+            <option value="barbering">Barbering</option>
+            <option value="beauty parlor">Beauty Parlor</option>
+            <option value="mobile servicing">Mobile Servicing</option>
+            <option value="electronics repair">Electronics Repair</option>
+            <option value="sales">Sales</option>
+            <option value="typing">Typing</option>
+            <option value="ms office">MS Office</option>
+            <option value="data entry">Data Entry</option>
+            <option value="tutoring">Tutoring</option>
+            <option value="security guard">Security Guard</option>
+          </select>
         </label>
         <label class="field span-2">
           <span>Income Range</span>
@@ -62,6 +136,10 @@
           <input type="text" name="child_${index}_preferred_job" placeholder="e.g., Electrician" />
         </label>
         <label class="field span-2">
+          <span>Birth Certificate Number</span>
+          <input type="text" name="child_${index}_birth_certificate_number" inputmode="numeric" placeholder="Enter 17-digit birth certificate number" maxlength="17" />
+        </label>
+        <label class="field span-2">
           <span>Birth Certificate (Upload)</span>
           <input type="file" name="child_${index}_birth_certificate" accept=".pdf,image/*" />
         </label>
@@ -74,6 +152,137 @@
     clearSegments();
     const count = Math.max(0, Math.min(Number(n) || 0, 10));
     for(let i=1;i<=count;i++) segments.appendChild(makeChildSegment(i));
+    // Setup skill validation for newly created skill fields
+    setupSkillValidation();
+    // Setup birth certificate number constraints
+    setupBirthCertificateConstraints();
+  }
+
+  function setupSkillValidation() {
+    const skillSegments = segments.querySelectorAll('.child-segment');
+    skillSegments.forEach(segment => {
+      const skill1 = segment.querySelector('.child-skill-1');
+      const skill2 = segment.querySelector('.child-skill-2');
+      
+      if (skill1 && skill2) {
+        const validateSkills = () => {
+          const val1 = skill1.value;
+          const val2 = skill2.value;
+          if (val1 && val2 && val1 === val2 && val1 !== 'None') {
+            skill2.setCustomValidity('Skill 1 and Skill 2 cannot be the same');
+          } else {
+            skill1.setCustomValidity('');
+            skill2.setCustomValidity('');
+          }
+        };
+        
+        skill1.addEventListener('change', validateSkills);
+        skill2.addEventListener('change', validateSkills);
+      }
+    });
+  }
+
+  function handleBirthCertificateInput(e) {
+    // Remove any non-digit characters
+    let value = e.target.value.replace(/\D/g, '');
+    
+    // Limit to 17 digits exactly
+    if (value.length > 17) {
+      value = value.substring(0, 17);
+    }
+    
+    e.target.value = value;
+    
+    // Custom validation for exact length
+    const digitCount = value.length;
+    if (digitCount > 0 && digitCount !== 17) {
+      e.target.setCustomValidity(`Birth certificate number must be exactly 17 digits (currently ${digitCount})`);
+    } else if (digitCount === 17) {
+      e.target.setCustomValidity('');
+      // Clear previous debounce timer
+      if (e.target.debounceTimer) {
+        clearTimeout(e.target.debounceTimer);
+      }
+      // Debounce API call for duplicate check
+      e.target.debounceTimer = setTimeout(() => {
+        checkBirthCertificateDuplicate(value, e.target);
+      }, 500); // Wait 500ms after user stops typing
+    } else {
+      e.target.setCustomValidity('');
+    }
+  }
+
+  function handleBirthCertificateKeypress(e) {
+    // Prevent non-numeric input
+    if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+    }
+  }
+
+  function handleBirthCertificateBlur(e) {
+    const digits = e.target.value.replace(/\D/g, '');
+    if (digits.length > 0 && digits.length !== 17) {
+      e.target.setCustomValidity(`Birth certificate number must be exactly 17 digits (currently ${digits.length})`);
+      e.target.reportValidity();
+    } else if (digits.length === 17) {
+      // Final check on blur
+      checkBirthCertificateDuplicate(digits, e.target);
+    }
+  }
+
+  async function checkBirthCertificateDuplicate(certNumber, certEl) {
+    if (!certEl || !certNumber) return;
+
+    try {
+      const response = await fetch('/api/children/check-birth-certificate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ birth_certificate_number: certNumber })
+      });
+
+      if (!response.ok) {
+        console.log('Birth certificate check API not available, skipping duplicate check');
+        return; // Gracefully handle API unavailability
+      }
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        if (result.isDuplicate) {
+          certEl.setCustomValidity('Duplicate birth certificate number - This number already exists in the system');
+        } else {
+          // Clear any duplicate error, but preserve other validation errors
+          const currentError = certEl.validationMessage;
+          if (currentError.includes('Duplicate birth certificate number')) {
+            certEl.setCustomValidity('');
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Birth certificate check service unavailable, proceeding without duplicate check');
+      // Clear any existing duplicate validation errors when service is unavailable
+      const currentError = certEl.validationMessage;
+      if (currentError && currentError.includes('Duplicate birth certificate number')) {
+        certEl.setCustomValidity('');
+      }
+    }
+  }
+
+  function setupBirthCertificateConstraints() {
+    const birthCertInputs = segments.querySelectorAll('input[name*="_birth_certificate_number"]');
+    birthCertInputs.forEach(certEl => {
+      // Remove existing listeners to avoid duplicates
+      certEl.removeEventListener('input', handleBirthCertificateInput);
+      certEl.removeEventListener('keypress', handleBirthCertificateKeypress);
+      certEl.removeEventListener('blur', handleBirthCertificateBlur);
+      
+      // Add new listeners
+      certEl.addEventListener('input', handleBirthCertificateInput);
+      certEl.addEventListener('keypress', handleBirthCertificateKeypress);
+      certEl.addEventListener('blur', handleBirthCertificateBlur);
+    });
   }
 
   function collectFormData(frm){
@@ -376,7 +585,8 @@
             job: childrenData[`child_${i}_job`] || null,
             income: childrenData[`child_${i}_income`] || null,
             preferredJob: childrenData[`child_${i}_preferred_job`] || null,
-            birthCertificate: childrenData[`child_${i}_birth_certificate`] || null
+            birthCertificate: childrenData[`child_${i}_birth_certificate`] || null,
+            birthCertificateNumber: childrenData[`child_${i}_birth_certificate_number`] || null
           });
         }
 

@@ -7,7 +7,8 @@ import {
   getSlumDwellerById,
   approveSlumDweller,
   rejectSlumDweller,
-  getCurrentUserProfile
+  getCurrentUserProfile,
+  checkNidDuplicate
 } from "../controllers/slumDweller.controller.js";
 
 const router = express.Router();
@@ -17,6 +18,9 @@ router.post("/register", registerSlumDweller);
 
 // POST /api/slum-dweller/signin
 router.post("/signin", signinSlumDweller);
+
+// POST /api/slum-dweller/check-nid - Check NID duplicate
+router.post("/check-nid", checkNidDuplicate);
 
 // GET /api/slum-dweller/pending
 router.get("/pending", getPendingSlumDwellers);
