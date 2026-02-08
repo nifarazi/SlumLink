@@ -335,9 +335,10 @@ export const signinNGO = async (req, res) => {
     }
 
     const sql = `
-      SELECT org_id, org_name, email, status, password
+      SELECT org_id, org_name, email, status, password, org_type
       FROM organizations
       WHERE email = ?
+        AND org_type = 'ngo'
       LIMIT 1
     `;
 
