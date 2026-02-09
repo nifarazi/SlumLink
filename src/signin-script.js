@@ -417,7 +417,7 @@ signinForm?.addEventListener("submit", (e) => {
     // Authenticate Slum Dweller using slum_code and password via backend
     const loginError = document.getElementById("loginError");
     
-    // Hide previous error message
+    // Clear previous error state
     if (loginError) {
       loginError.style.display = "none";
       loginError.textContent = "";
@@ -432,17 +432,19 @@ signinForm?.addEventListener("submit", (e) => {
         const data = await r.json().catch(() => null);
 
         if (!r.ok) {
-          // Show inline error message below password field
+          // Show error toast notification like admin and local authority
           const msg = data?.message || "Invalid slum code or password";
-          
-          if (loginError) {
-            loginError.textContent = msg;
-            loginError.style.display = "block";
-          }
+          showErrorNotification("Incorrect Slum Code or Password has been entered");
 
           // Mark fields as error for better UX
           identifierInput?.classList.add("has-error");
           passwordInput?.classList.add("has-error");
+
+          // Also show inline error message for consistency
+          if (loginError) {
+            loginError.textContent = "Incorrect Slum Code or Password has been entered";
+            loginError.style.display = "block";
+          }
           return;
         }
 
@@ -485,7 +487,9 @@ signinForm?.addEventListener("submit", (e) => {
         }, 1200);
       })
       .catch(() => {
-        // Show network error inline
+        // Show network error toast and inline message
+        showErrorNotification("Network error. Please try again.");
+        
         if (loginError) {
           loginError.textContent = "Network error. Please try again.";
           loginError.style.display = "block";
