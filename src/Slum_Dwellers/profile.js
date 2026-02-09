@@ -251,6 +251,8 @@ function formatDate(dateStr) {
           { key: 'NID', val: resident.nid || '', editable: false },
           { key: 'Occupation', val: resident.occupation || '', editable: true, field: 'occupation' },
           { key: 'Education', val: resident.education || '', editable: true, field: 'education' },
+          { key: 'Skills 1', val: resident.skills_1 || 'None', editable: true, field: 'skills_1' },
+          { key: 'Skills 2', val: resident.skills_2 || 'None', editable: true, field: 'skills_2' },
           { key: 'Income Range', val: resident.income || '', editable: true, field: 'income', type: 'select' },
           { key: 'Area', val: resident.area || '', editable: true, field: 'area' },
           { key: 'District', val: resident.district || '', editable: true, field: 'district' },
@@ -288,6 +290,8 @@ function formatDate(dateStr) {
                 <div class="info-row" data-field="mobile" data-editable="true"><span class="info-key">Phone Number</span><span class="info-val">${s.mobile || '—'}</span></div>
                 <div class="info-row" data-field="education" data-editable="true"><span class="info-key">Education</span><span class="info-val">${s.education || '—'}</span></div>
                 <div class="info-row" data-field="job" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">${s.job || '—'}</span></div>
+                <div class="info-row" data-field="skills_1" data-editable="true"><span class="info-key">Skills 1</span><span class="info-val">${s.skills_1 || 'None'}</span></div>
+                <div class="info-row" data-field="skills_2" data-editable="true"><span class="info-key">Skills 2</span><span class="info-val">${s.skills_2 || 'None'}</span></div>
                 <div class="info-row" data-field="income" data-editable="true" data-type="select"><span class="info-key">Income Range</span><span class="info-val">${s.income || '—'}</span></div>
               </div>
             </div>
@@ -316,6 +320,8 @@ function formatDate(dateStr) {
                 <div class="info-row" data-field="gender" data-editable="false"><span class="info-key">Gender</span><span class="info-val">${c.gender || '—'}</span></div>
                 <div class="info-row" data-field="education" data-editable="true"><span class="info-key">Education</span><span class="info-val">${c.education || '—'}</span></div>
                 <div class="info-row" data-field="job" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">${c.job || '—'}</span></div>
+                <div class="info-row" data-field="skills_1" data-editable="true"><span class="info-key">Skills 1</span><span class="info-val">${c.skills_1 || 'None'}</span></div>
+                <div class="info-row" data-field="skills_2" data-editable="true"><span class="info-key">Skills 2</span><span class="info-val">${c.skills_2 || 'None'}</span></div>
                 <div class="info-row" data-field="income" data-editable="true" data-type="select"><span class="info-key">Income Range</span><span class="info-val">${c.income || '—'}</span></div>
                 <div class="info-row" data-field="preferred_job" data-editable="true"><span class="info-key">Preferred Job</span><span class="info-val">${c.preferred_job || '—'}</span></div>
               </div>
@@ -1067,6 +1073,14 @@ function showPasswordChangeToast() {
         </select>
       </div>
       <div class="modal-field">
+        <label><span>Skills 1</span></label>
+        <input type="text" name="spouse_add_${index}_skills_1" placeholder="Enter first skill" />
+      </div>
+      <div class="modal-field">
+        <label><span>Skills 2</span></label>
+        <input type="text" name="spouse_add_${index}_skills_2" placeholder="Enter second skill" />
+      </div>
+      <div class="modal-field">
         <label><span>Income Range</span></label>
         <select name="spouse_add_${index}_income">
           <option value="">Select income range</option>
@@ -1141,6 +1155,14 @@ function showPasswordChangeToast() {
           <option value="Small Business">Small Business</option>
           <option value="Other">Other</option>
         </select>
+      </div>
+      <div class="modal-field">
+        <label><span>Skills 1</span></label>
+        <input type="text" name="child_add_${index}_skills_1" placeholder="Enter first skill" />
+      </div>
+      <div class="modal-field">
+        <label><span>Skills 2</span></label>
+        <input type="text" name="child_add_${index}_skills_2" placeholder="Enter second skill" />
       </div>
       <div class="modal-field">
         <label><span>Income Range</span></label>

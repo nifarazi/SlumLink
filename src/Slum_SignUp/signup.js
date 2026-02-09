@@ -41,7 +41,7 @@
     "Khulna": { "Khulna": ["Rupsha Ghat Cluster", "Khalishpur Cluster"] },
     "Rajshahi": { "Rajshahi": ["Kazla Cluster", "Bornali Cluster"] },
     "Barishal": { "Barishal": ["Nathullabad Cluster", "Battala Cluster"] },
-    "Sylhet": { "Sylhet": ["Ambarkhana Cluster", "Subidbazar Cluster"] },
+    "Sylhet": { "Sylhet": ["Ambarkhana Cluster", "Subid Bazar Cluster"] },
     "Rangpur": { "Rangpur": ["Jahaj Company Cluster", "Modern Mor Cluster"] },
     "Mymensingh": { "Mymensingh": ["Town Hall Cluster", "Charpara Cluster"] }
   };
@@ -83,6 +83,8 @@
     Object.entries(data).forEach(([k, v]) => {
       const el = frm.querySelector(`[name="${CSS.escape(k)}"]`);
       if (!el) return;
+      // Skip file inputs as they cannot have their value set programmatically
+      if (el.type === 'file') return;
       if (el.type === 'checkbox') el.checked = !!v; else el.value = v;
     });
   }

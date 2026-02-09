@@ -47,12 +47,12 @@
           <span>Education</span>
           <select name="spouse_${index}_education">
             <option value="" disabled selected>Select education</option>
-            <option value="none">None</option>
-            <option value="primary">Primary</option>
-            <option value="secondary">Secondary</option>
-            <option value="hsc">HSC</option>
-            <option value="diploma">Diploma</option>
-            <option value="graduate">Graduate</option>
+            <option value="None">None</option>
+            <option value="Primary">Primary</option>
+            <option value="Secondary">Secondary</option>
+            <option value="HSC">HSC</option>
+            <option value="Diploma">Diploma</option>
+            <option value="Graduate">Graduate</option>
           </select>
         </label>
         <label class="field">
@@ -64,32 +64,32 @@
           <select name="spouse_${index}_skills_1" class="spouse-skill-1">
             <option value="" disabled selected>Select skill</option>
             <option value="None">None</option>
-            <option value="tailoring">Tailoring</option>
-            <option value="embroidery">Embroidery</option>
-            <option value="housekeeping">Housekeeping</option>
-            <option value="cooking">Cooking</option>
-            <option value="caregiving">Caregiving</option>
-            <option value="delivery">Delivery</option>
-            <option value="driver">Driver</option>
-            <option value="rickshaw">Rickshaw</option>
-            <option value="electric helper">Electric Helper</option>
-            <option value="electrician">Electrician</option>
-            <option value="plumbing helper">Plumbing Helper</option>
-            <option value="plumber">Plumber</option>
-            <option value="masonry helper">Masonry Helper</option>
-            <option value="welding helper">Welding Helper</option>
-            <option value="welding">Welding</option>
-            <option value="carpentry">Carpentry</option>
-            <option value="barbering">Barbering</option>
-            <option value="beauty parlor">Beauty Parlor</option>
-            <option value="mobile servicing">Mobile Servicing</option>
-            <option value="electronics repair">Electronics Repair</option>
-            <option value="sales">Sales</option>
-            <option value="typing">Typing</option>
-            <option value="ms office">MS Office</option>
-            <option value="data entry">Data Entry</option>
-            <option value="tutoring">Tutoring</option>
-            <option value="security guard">Security Guard</option>
+            <option value="Tailoring">Tailoring</option>
+            <option value="Embroidery">Embroidery</option>
+            <option value="Housekeeping">Housekeeping</option>
+            <option value="Cooking">Cooking</option>
+            <option value="Caregiving">Caregiving</option>
+            <option value="Delivery">Delivery</option>
+            <option value="Driver">Driver</option>
+            <option value="Rickshaw">Rickshaw</option>
+            <option value="Electric Helper">Electric Helper</option>
+            <option value="Electrician">Electrician</option>
+            <option value="Plumbing Helper">Plumbing Helper</option>
+            <option value="Plumber">Plumber</option>
+            <option value="Masonry Helper">Masonry Helper</option>
+            <option value="Welding Helper">Welding Helper</option>
+            <option value="Welding">Welding</option>
+            <option value="Carpentry">Carpentry</option>
+            <option value="Barbering">Barbering</option>
+            <option value="Beauty Parlor">Beauty Parlor</option>
+            <option value="Mobile Servicing">Mobile Servicing</option>
+            <option value="Electronics Repair">Electronics Repair</option>
+            <option value="Sales">Sales</option>
+            <option value="Typing">Typing</option>
+            <option value="MS Office">MS Office</option>
+            <option value="Data Entry">Data Entry</option>
+            <option value="Tutoring">Tutoring</option>
+            <option value="Security Guard">Security Guard</option>
           </select>
         </label>
         <label class="field">
@@ -97,32 +97,32 @@
           <select name="spouse_${index}_skills_2" class="spouse-skill-2">
             <option value="" disabled selected>Select skill</option>
             <option value="None">None</option>
-            <option value="tailoring">Tailoring</option>
-            <option value="embroidery">Embroidery</option>
-            <option value="housekeeping">Housekeeping</option>
-            <option value="cooking">Cooking</option>
-            <option value="caregiving">Caregiving</option>
-            <option value="delivery">Delivery</option>
-            <option value="driver">Driver</option>
-            <option value="rickshaw">Rickshaw</option>
-            <option value="electric helper">Electric Helper</option>
-            <option value="electrician">Electrician</option>
-            <option value="plumbing helper">Plumbing Helper</option>
-            <option value="plumber">Plumber</option>
-            <option value="masonry helper">Masonry Helper</option>
-            <option value="welding helper">Welding Helper</option>
-            <option value="welding">Welding</option>
-            <option value="carpentry">Carpentry</option>
-            <option value="barbering">Barbering</option>
-            <option value="beauty parlor">Beauty Parlor</option>
-            <option value="mobile servicing">Mobile Servicing</option>
-            <option value="electronics repair">Electronics Repair</option>
-            <option value="sales">Sales</option>
-            <option value="typing">Typing</option>
-            <option value="ms office">MS Office</option>
-            <option value="data entry">Data Entry</option>
-            <option value="tutoring">Tutoring</option>
-            <option value="security guard">Security Guard</option>
+            <option value="Tailoring">Tailoring</option>
+            <option value="Embroidery">Embroidery</option>
+            <option value="Housekeeping">Housekeeping</option>
+            <option value="Cooking">Cooking</option>
+            <option value="Caregiving">Caregiving</option>
+            <option value="Delivery">Delivery</option>
+            <option value="Driver">Driver</option>
+            <option value="Rickshaw">Rickshaw</option>
+            <option value="Electric Helper">Electric Helper</option>
+            <option value="Electrician">Electrician</option>
+            <option value="Plumbing Helper">Plumbing Helper</option>
+            <option value="Plumber">Plumber</option>
+            <option value="Masonry Helper">Masonry Helper</option>
+            <option value="Welding Helper">Welding Helper</option>
+            <option value="Welding">Welding</option>
+            <option value="Carpentry">Carpentry</option>
+            <option value="Barbering">Barbering</option>
+            <option value="Beauty Parlor">Beauty Parlor</option>
+            <option value="Mobile Servicing">Mobile Servicing</option>
+            <option value="Electronics Repair">Electronics Repair</option>
+            <option value="Sales">Sales</option>
+            <option value="Typing">Typing</option>
+            <option value="MS Office">MS Office</option>
+            <option value="Data Entry">Data Entry</option>
+            <option value="Tutoring">Tutoring</option>
+            <option value="Security Guard">Security Guard</option>
           </select>
         </label>
         <label class="field span-2">
@@ -379,6 +379,8 @@
     Object.entries(data).forEach(([k, v]) => {
       const el = frm.querySelector(`[name="${CSS.escape(k)}"]`);
       if (!el) return;
+      // Skip file inputs as they cannot have their value set programmatically
+      if (el.type === 'file') return;
       if (el.type === 'checkbox') el.checked = !!v; else el.value = v;
     });
   }
