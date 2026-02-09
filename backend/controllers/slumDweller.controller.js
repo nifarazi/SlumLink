@@ -154,8 +154,8 @@ export const registerSlumDweller = async (req, res) => {
     // Insert into slum_dwellers table
     const dwellerSql = `
       INSERT INTO slum_dwellers 
-      (full_name, mobile, dob, gender, nid, education, occupation, income, area, district, division, family_members, password_hash, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+      (full_name, mobile, dob, gender, nid, education, occupation, income, area, district, division, family_members, password_hash, skills_1, skills_2, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     `;
 
     const dwellerValues = [
@@ -171,7 +171,9 @@ export const registerSlumDweller = async (req, res) => {
       personal.district || null,
       personal.division || null,
       personal.members || 0,
-      password_hash
+      password_hash,
+      personal.skills_1 || 'None',
+      personal.skills_2 || 'None'
     ];
 
     const [dwellerResult] = await connection.query(dwellerSql, dwellerValues);
@@ -193,8 +195,8 @@ export const registerSlumDweller = async (req, res) => {
         
         const spouseSql = `
           INSERT INTO spouses 
-          (slum_id, name, dob, gender, nid, education, job, income, mobile, marriage_certificate)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          (slum_id, name, dob, gender, nid, education, job, income, mobile, marriage_certificate, skills_1, skills_2)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const spouseValues = [
@@ -207,7 +209,9 @@ export const registerSlumDweller = async (req, res) => {
           spouse.occupation || null,
           spouse.income || null,
           spouse.mobile || null,
-          certBuffer
+          certBuffer,
+          spouse.skills_1 || 'None',
+          spouse.skills_2 || 'None'
         ];
         await connection.query(spouseSql, spouseValues);
       }
@@ -221,8 +225,8 @@ export const registerSlumDweller = async (req, res) => {
         
         const childSql = `
           INSERT INTO children 
-          (slum_id, name, dob, gender, education, job, income, preferred_job, birth_certificate)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          (slum_id, name, dob, gender, education, job, income, preferred_job, birth_certificate, birth_certificate_number, skills_1, skills_2)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const childValues = [
@@ -234,7 +238,10 @@ export const registerSlumDweller = async (req, res) => {
           child.job || null,
           child.income || null,
           child.preferredJob || null,
-          certBuffer
+          certBuffer,
+          child.birthCertificateNumber || null,
+          child.skills_1 || 'None',
+          child.skills_2 || 'None'
         ];
         await connection.query(childSql, childValues);
 
