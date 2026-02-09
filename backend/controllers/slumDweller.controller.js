@@ -607,3 +607,199 @@ export const getCurrentUserProfile = async (req, res) => {
     });
   }
 };
+
+// Update slum dweller personal information
+export const updatePersonalInfo = async (req, res) => {
+  try {
+    const { slumId } = req.params;
+    const updates = req.body;
+
+    // Validate slumId
+    if (!slumId) {
+      return res.status(400).json({
+        status: "error",
+        message: "Slum ID is required."
+      });
+    }
+
+    // Build dynamic update query
+    const allowedFields = [
+      'full_name', 'mobile', 'nid', 'dob', 'gender', 'education', 
+      'occupation', 'income', 'area', 'district', 'division', 'family_members',
+      'skills_1', 'skills_2'
+    ];
+    
+    const updateFields = [];
+    const updateValues = [];
+    
+    Object.keys(updates).forEach(key => {
+      if (allowedFields.includes(key) && updates[key] !== undefined) {
+        updateFields.push(`${key} = ?`);
+        updateValues.push(updates[key]);
+      }
+    });
+    
+    if (updateFields.length === 0) {
+      return res.status(400).json({
+        status: "error",
+        message: "No valid fields to update."
+      });
+    }
+    
+    updateValues.push(slumId);
+    
+    const [result] = await pool.query(
+      `UPDATE slum_dwellers SET ${updateFields.join(', ')} WHERE slum_code = ?`,
+      updateValues
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Slum dweller not found."
+      });
+    }
+    
+    return res.json({
+      status: "success",
+      message: "Personal information updated successfully"
+    });
+    
+  } catch (error) {
+    console.error("Update Personal Info Error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while updating personal information."
+    });
+  }
+};
+
+// Update spouse information
+export const updateSpouseInfo = async (req, res) => {
+  try {
+    const { slumId, spouseId } = req.params;
+    const updates = req.body;
+
+    // Validate required parameters
+    if (!slumId || !spouseId) {
+      return res.status(400).json({
+        status: "error",
+        message: "Slum ID and Spouse ID are required."
+      });
+    }
+
+    // Build dynamic update query for spouse
+    const allowedFields = [
+      'name', 'dob', 'gender', 'nid', 'education', 
+      'job', 'income', 'mobile', 'skills_1', 'skills_2'
+    ];
+    
+    const updateFields = [];
+    const updateValues = [];
+    
+    Object.keys(updates).forEach(key => {
+      if (allowedFields.includes(key) && updates[key] !== undefined) {
+        updateFields.push(`${key} = ?`);
+        updateValues.push(updates[key]);
+      }
+    });
+    
+    if (updateFields.length === 0) {
+      return res.status(400).json({
+        status: "error",
+        message: "No valid fields to update."
+      });
+    }
+    
+    updateValues.push(spouseId, slumId);
+    
+    const [result] = await pool.query(
+      `UPDATE spouses SET ${updateFields.join(', ')} WHERE id = ? AND slum_id = ?`,
+      updateValues
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Spouse not found."
+      });
+    }
+    
+    return res.json({
+      status: "success",
+      message: "Spouse information updated successfully"
+    });
+    
+  } catch (error) {
+    console.error("Update Spouse Info Error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while updating spouse information."
+    });
+  }
+};
+
+// Update child information
+export const updateChildInfo = async (req, res) => {
+  try {
+    const { slumId, childId } = req.params;
+    const updates = req.body;
+
+    // Validate required parameters
+    if (!slumId || !childId) {
+      return res.status(400).json({
+        status: "error",
+        message: "Slum ID and Child ID are required."
+      });
+    }
+
+    // Build dynamic update query for child
+    const allowedFields = [
+      'name', 'dob', 'gender', 'education', 
+      'job', 'income', 'preferred_job', 'skills_1', 'skills_2'
+    ];
+    
+    const updateFields = [];
+    const updateValues = [];
+    
+    Object.keys(updates).forEach(key => {
+      if (allowedFields.includes(key) && updates[key] !== undefined) {
+        updateFields.push(`${key} = ?`);
+        updateValues.push(updates[key]);
+      }
+    });
+    
+    if (updateFields.length === 0) {
+      return res.status(400).json({
+        status: "error",
+        message: "No valid fields to update."
+      });
+    }
+    
+    updateValues.push(childId, slumId);
+    
+    const [result] = await pool.query(
+      `UPDATE children SET ${updateFields.join(', ')} WHERE id = ? AND slum_id = ?`,
+      updateValues
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Child not found."
+      });
+    }
+    
+    return res.json({
+      status: "success",
+      message: "Child information updated successfully"
+    });
+    
+  } catch (error) {
+    console.error("Update Child Info Error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while updating child information."
+    });
+  }
+};

@@ -85,6 +85,12 @@
 // Helper functions
 function safeJsonParse(raw, fallback){ try { return JSON.parse(raw); } catch { return fallback; } }
 
+// Get current user info
+function getCurrentUser() {
+  const currentRaw = localStorage.getItem('SLUMLINK_CURRENT_USER');
+  return currentRaw ? safeJsonParse(currentRaw, null) : null;
+}
+
 // Show success toast for profile updates
 function showProfileUpdateToast() {
   // Remove any existing toast
@@ -101,7 +107,7 @@ function showProfileUpdateToast() {
     '</span>',
     '<div class="toast-content">',
       '<strong>Success</strong>',
-      '<div class="subtitle">Profile Updated Successfully</div>',
+      '<div class="subtitle">Profile Information Editted Successfully</div>',
     '</div>'
   ].join('');
   document.body.appendChild(toast);
@@ -168,6 +174,91 @@ function resolveSlumFromArea(area){
   return '';
 }
 
+// Area data for cascading dropdowns
+const AREA_DATA = {
+  "Dhaka": {
+    "Dhaka (North)": [
+      "Korail",
+      "Begun Bari",
+      "Duaripara",
+      "Kallyanpur",
+      "Pora Basti",
+      "Chalantika",
+      "Agargaon",
+      "Sattola (Mohakhali)",
+      "Mohammadpur",
+      "Basbari",
+      "Molla"
+    ],
+    "Dhaka (South)": [
+      "Nama Para",
+      "Pura",
+      "Nubur",
+      "Mannan"
+    ],
+    "Narayanganj": [
+      "Bhuigar",
+      "Chashara",
+      "Fatullah Cluster"
+    ],
+    "Gazipur": [
+      "Tongi Cluster",
+      "Board Bazar Cluster"
+    ]
+  },
+  "Chattogram": {
+    "Chattogram (City)": ["Halishahar", "Pahartali", "Agrabad Cluster"],
+    "Cox's Bazar": ["Teknaf Cluster", "Kutupalong (Nearby)"]
+  },
+  "Khulna": { "Khulna": ["Rupsha Ghat Cluster", "Khalishpur Cluster"] },
+  "Rajshahi": { "Rajshahi": ["Kazla Cluster", "Bornali Cluster"] },
+  "Barishal": { "Barishal": ["Nathullabad Cluster", "Battala Cluster"] },
+  "Sylhet": { "Sylhet": ["Ambarkhana Cluster", "Subid Bazar Cluster"] },
+  "Rangpur": { "Rangpur": ["Jahaj Company Cluster", "Modern Mor Cluster"] },
+  "Mymensingh": { "Mymensingh": ["Town Hall Cluster", "Charpara Cluster"] }
+};
+
+// Education options for dropdown
+const educationOptions = [
+  { value: 'None', label: 'None' },
+  { value: 'Primary', label: 'Primary' },
+  { value: 'Secondary', label: 'Secondary' },
+  { value: 'HSC', label: 'HSC' },
+  { value: 'Diploma', label: 'Diploma' },
+  { value: 'Graduate', label: 'Graduate' },
+];
+
+// Skills options for dropdown
+const skillsOptions = [
+  { value: 'None', label: 'None' },
+  { value: 'Tailoring', label: 'Tailoring' },
+  { value: 'Embroidery', label: 'Embroidery' },
+  { value: 'Housekeeping', label: 'Housekeeping' },
+  { value: 'Cooking', label: 'Cooking' },
+  { value: 'Caregiving', label: 'Caregiving' },
+  { value: 'Delivery', label: 'Delivery' },
+  { value: 'Driver', label: 'Driver' },
+  { value: 'Rickshaw', label: 'Rickshaw' },
+  { value: 'Electric Helper', label: 'Electric Helper' },
+  { value: 'Electrician', label: 'Electrician' },
+  { value: 'Plumbing Helper', label: 'Plumbing Helper' },
+  { value: 'Plumber', label: 'Plumber' },
+  { value: 'Masonry Helper', label: 'Masonry Helper' },
+  { value: 'Welding Helper', label: 'Welding Helper' },
+  { value: 'Welding', label: 'Welding' },
+  { value: 'Carpentry', label: 'Carpentry' },
+  { value: 'Barbering', label: 'Barbering' },
+  { value: 'Beauty Parlor', label: 'Beauty Parlor' },
+  { value: 'Mobile Servicing', label: 'Mobile Servicing' },
+  { value: 'Electronics Repair', label: 'Electronics Repair' },
+  { value: 'Sales', label: 'Sales' },
+  { value: 'Typing', label: 'Typing' },
+  { value: 'MS Office', label: 'MS Office' },
+  { value: 'Data Entry', label: 'Data Entry' },
+  { value: 'Tutoring', label: 'Tutoring' },
+  { value: 'Security Guard', label: 'Security Guard' },
+];
+
 // Income range options for dropdown
 const incomeRangeOptions = [
   { value: 'No Income', label: 'No Income' },
@@ -176,6 +267,108 @@ const incomeRangeOptions = [
   { value: '৳5,001 – ৳9,999', label: '৳5,001 – ৳9,999' },
   { value: '৳10,000 and above', label: '৳10,000 and above' },
 ];
+
+// Utility functions for dropdowns
+function fillSelectOptions(selectEl, items, placeholder = "Select", currentValue = '') {
+  selectEl.innerHTML = "";
+  
+  let hasCurrentValue = currentValue && currentValue.trim() !== '';
+  
+  // Add placeholder option
+  const opt0 = document.createElement("option");
+  opt0.value = hasCurrentValue ? currentValue : "";
+  opt0.disabled = !hasCurrentValue;
+  opt0.selected = true;
+  opt0.textContent = currentValue || placeholder;
+  selectEl.appendChild(opt0);
+
+  items.forEach((item) => {
+    const opt = document.createElement("option");
+    const value = item.value || item;
+    const label = item.label || item;
+    opt.value = value;
+    opt.textContent = label;
+    
+    // If this option matches the current value, select it instead of placeholder
+    if (hasCurrentValue && (value === currentValue || label === currentValue)) {
+      opt.selected = true;
+      opt0.selected = false;
+      opt0.disabled = true;
+      opt0.value = "";
+    }
+    
+    selectEl.appendChild(opt);
+  });
+}
+
+function createDivisionSelect(currentValue = '') {
+  const selectEl = document.createElement('select');
+  selectEl.className = 'info-input division-select';
+  const divisions = Object.keys(AREA_DATA);
+  fillSelectOptions(selectEl, divisions, "Select division", currentValue);
+  return selectEl;
+}
+
+function createDistrictSelect(division = '', currentValue = '') {
+  const selectEl = document.createElement('select');
+  selectEl.className = 'info-input district-select';
+  if (!division) {
+    selectEl.disabled = true;
+    fillSelectOptions(selectEl, [], "Select district");
+  } else {
+    const districts = Object.keys(AREA_DATA[division] || {});
+    fillSelectOptions(selectEl, districts, "Select district", currentValue);
+  }
+  return selectEl;
+}
+
+function createAreaSelect(division = '', district = '', currentValue = '') {
+  const selectEl = document.createElement('select');
+  selectEl.className = 'info-input area-select';
+  if (!division || !district) {
+    selectEl.disabled = true;
+    fillSelectOptions(selectEl, [], "Select area");
+  } else {
+    const areas = (AREA_DATA[division]?.[district] || []);
+    fillSelectOptions(selectEl, areas, "Select area", currentValue);
+  }
+  return selectEl;
+}
+
+function setupCascadingDropdowns(divisionEl, districtEl, areaEl) {
+  divisionEl.addEventListener('change', () => {
+    const division = divisionEl.value;
+    if (!division) {
+      districtEl.disabled = true;
+      areaEl.disabled = true;
+      fillSelectOptions(districtEl, [], "Select district");
+      fillSelectOptions(areaEl, [], "Select area");
+      return;
+    }
+
+    const districts = Object.keys(AREA_DATA[division] || {});
+    fillSelectOptions(districtEl, districts, "Select district");
+    districtEl.disabled = false;
+
+    areaEl.disabled = true;
+    fillSelectOptions(areaEl, [], "Select area");
+  });
+
+  districtEl.addEventListener('change', () => {
+    const division = divisionEl.value;
+    const district = districtEl.value;
+
+    if (!division || !district) {
+      areaEl.disabled = true;
+      fillSelectOptions(areaEl, [], "Select area");
+      return;
+    }
+
+    const areas = (AREA_DATA[division]?.[district] || []);
+    fillSelectOptions(areaEl, areas, "Select area");
+    areaEl.disabled = false;
+  });
+}
 
 // Get current user and application data
 function getCurrentUserApp() {
@@ -391,6 +584,32 @@ function formatDate(dateStr) {
           inputEl.innerHTML = incomeRangeOptions.map(opt => 
             `<option value="${opt.value}" ${(original[field] === opt.value || original[field] === opt.label) ? 'selected' : ''}>${opt.label}</option>`
           ).join('');
+        } else if (field === 'division') {
+          inputEl = createDivisionSelect(original[field]);
+          inputEl.setAttribute('data-field', 'division');
+        } else if (field === 'district') {
+          inputEl = createDistrictSelect('', original[field]);
+          inputEl.setAttribute('data-field', 'district');
+        } else if (field === 'area') {
+          inputEl = createAreaSelect('', '', original[field]);
+          inputEl.setAttribute('data-field', 'area');
+        } else if (field === 'education') {
+          inputEl = document.createElement('select');
+          inputEl.className = 'info-input';
+          const currentEducation = original[field] || '';
+          fillSelectOptions(inputEl, educationOptions, "Select education", currentEducation);
+        } else if (field === 'skills_1') {
+          inputEl = document.createElement('select');
+          inputEl.className = 'info-input';
+          inputEl.setAttribute('data-skill-type', 'skill1');
+          const currentSkill1 = original[field] || '';
+          fillSelectOptions(inputEl, skillsOptions, "Select skill", currentSkill1);
+        } else if (field === 'skills_2') {
+          inputEl = document.createElement('select');
+          inputEl.className = 'info-input';
+          inputEl.setAttribute('data-skill-type', 'skill2');
+          const currentSkill2 = original[field] || '';
+          fillSelectOptions(inputEl, skillsOptions, "Select skill", currentSkill2);
         } else {
           inputEl = document.createElement('input');
           inputEl.className = 'info-input';
@@ -401,13 +620,61 @@ function formatDate(dateStr) {
       }
     });
 
+    // Setup cascading dropdowns and skill validation after all fields are created
+    const divisionEl = grid.querySelector('.division-select');
+    const districtEl = grid.querySelector('.district-select');
+    const areaEl = grid.querySelector('.area-select');
+    
+    if (divisionEl && districtEl && areaEl) {
+      // Restore the cascading state based on current values
+      const currentDivision = original.division;
+      const currentDistrict = original.district;
+      const currentArea = original.area;
+      
+      if (currentDivision) {
+        // Update district options
+        const districts = Object.keys(AREA_DATA[currentDivision] || {});
+        fillSelectOptions(districtEl, districts, "Select district", currentDistrict);
+        districtEl.disabled = false;
+        
+        if (currentDistrict) {
+          // Update area options
+          const areas = (AREA_DATA[currentDivision]?.[currentDistrict] || []);
+          fillSelectOptions(areaEl, areas, "Select area", currentArea);
+          areaEl.disabled = false;
+        }
+      }
+      
+      setupCascadingDropdowns(divisionEl, districtEl, areaEl);
+    }
+    
+    // Setup skill validation
+    const skill1El = grid.querySelector('[data-skill-type="skill1"]');
+    const skill2El = grid.querySelector('[data-skill-type="skill2"]');
+    
+    if (skill1El && skill2El) {
+      const validateSkills = () => {
+        const val1 = skill1El.value;
+        const val2 = skill2El.value;
+        if (val1 && val2 && val1 === val2 && val1 !== 'None') {
+          skill2El.setCustomValidity('Skill 1 and Skill 2 cannot be the same');
+        } else {
+          skill1El.setCustomValidity('');
+          skill2El.setCustomValidity('');
+        }
+      };
+      
+      skill1El.addEventListener('change', validateSkills);
+      skill2El.addEventListener('change', validateSkills);
+    }
+
     // Toggle buttons
     editBtn.hidden = true;
     saveBtn.hidden = false;
     cancelBtn.hidden = false;
   };
 
-  const exitEdit = (applyChanges) => {
+  const exitEdit = async (applyChanges) => {
     if (!editing) return;
     
     const rows = grid.querySelectorAll('.info-row');
@@ -423,8 +690,16 @@ function formatDate(dateStr) {
       
       if (applyChanges && currentField && isEditable) {
         const newVal = currentField.value.trim();
-        newValues[field] = newVal;
-        span.textContent = newVal || '—';
+        const originalVal = original[field] || '';
+        
+        // Only include in newValues if the value has actually changed
+        if (newVal !== originalVal && newVal !== '') {
+          newValues[field] = newVal;
+        }
+        
+        // Display the new value or fall back to original
+        const displayVal = newVal !== '' ? newVal : originalVal;
+        span.textContent = displayVal || '—';
       } else {
         span.textContent = original[field] || '—';
       }
@@ -432,30 +707,40 @@ function formatDate(dateStr) {
       if (currentField) currentField.replaceWith(span);
     });
 
-    // Save to localStorage if applying changes
+    // Save to backend API if applying changes
     if (applyChanges && Object.keys(newValues).length > 0) {
-      const { apps, appIndex } = getCurrentUserApp();
-      if (appIndex >= 0) {
-        const app = apps[appIndex];
-        const oldArea = app.data?.personal?.area || '';
-        
-        // Update personal data
-        if (!app.data) app.data = {};
-        if (!app.data.personal) app.data.personal = {};
-        
-        Object.keys(newValues).forEach(field => {
-          app.data.personal[field] = newValues[field];
-        });
-        
-        // If area changed, update slum name
-        const newArea = newValues.area || app.data.personal.area || '';
-        if (newArea && newArea !== oldArea) {
-          const newSlum = resolveSlumFromArea(newArea) || newArea;
-          app.slum = newSlum;
+      try {
+        const currentUser = getCurrentUser();
+        if (!currentUser || !currentUser.slum_code) {
+          throw new Error('User not authenticated');
         }
+
+        const response = await fetch(`/api/slum-dweller/${currentUser.slum_code}/personal`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newValues)
+        });
+
+        const result = await response.json();
         
-        saveApplication(apps);
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to update personal information');
+        }
+
         showProfileUpdateToast();
+      } catch (error) {
+        console.error('Error updating personal information:', error);
+        alert('Failed to update personal information: ' + error.message);
+        // Revert changes on error
+        rows.forEach((row) => {
+          const span = row.querySelector('.info-val');
+          const field = row.dataset.field || '';
+          if (span) {
+            span.textContent = original[field] || '—';
+          }
+        });
       }
     }
 
@@ -480,7 +765,7 @@ function formatDate(dateStr) {
   const spouseList = maritalPanel.querySelector('.spouse-list');
   if (!spouseList) return;
 
-  spouseList.addEventListener('click', (e) => {
+  spouseList.addEventListener('click', async (e) => {
     const card = e.target.closest('.spouse-card');
     if (!card) return;
     const spouseIndex = parseInt(card.dataset.spouseIndex, 10);
@@ -512,6 +797,21 @@ function formatDate(dateStr) {
             inputEl.innerHTML = incomeRangeOptions.map(opt => 
               `<option value="${opt.value}" ${(original[field] === opt.value || original[field] === opt.label) ? 'selected' : ''}>${opt.label}</option>`
             ).join('');
+          } else if (field === 'education') {
+            inputEl = document.createElement('select');
+            inputEl.className = 'info-input';
+            const currentEducation = original[field] || '';
+            fillSelectOptions(inputEl, educationOptions, "Select education", currentEducation);
+          } else if (field === 'skills_1') {
+            inputEl = document.createElement('select');
+            inputEl.className = 'info-input spouse-skill-1';
+            const currentSkill1 = original[field] || '';
+            fillSelectOptions(inputEl, skillsOptions, "Select skill", currentSkill1);
+          } else if (field === 'skills_2') {
+            inputEl = document.createElement('select');
+            inputEl.className = 'info-input spouse-skill-2';
+            const currentSkill2 = original[field] || '';
+            fillSelectOptions(inputEl, skillsOptions, "Select skill", currentSkill2);
           } else {
             inputEl = document.createElement('input');
             inputEl.className = 'info-input';
@@ -521,6 +821,26 @@ function formatDate(dateStr) {
           valEl.replaceWith(inputEl);
         }
       });
+
+      // Setup skill validation for spouse
+      const spouseSkill1 = card.querySelector('.spouse-skill-1');
+      const spouseSkill2 = card.querySelector('.spouse-skill-2');
+      
+      if (spouseSkill1 && spouseSkill2) {
+        const validateSpouseSkills = () => {
+          const val1 = spouseSkill1.value;
+          const val2 = spouseSkill2.value;
+          if (val1 && val2 && val1 === val2 && val1 !== 'None') {
+            spouseSkill2.setCustomValidity('Skill 1 and Skill 2 cannot be the same');
+          } else {
+            spouseSkill1.setCustomValidity('');
+            spouseSkill2.setCustomValidity('');
+          }
+        };
+        
+        spouseSkill1.addEventListener('change', validateSpouseSkills);
+        spouseSkill2.addEventListener('change', validateSpouseSkills);
+      }
 
       card._original = original;
       editBtn.hidden = true;
@@ -543,8 +863,16 @@ function formatDate(dateStr) {
         
         if (currentField && isEditable) {
           const newVal = currentField.value.trim();
-          newValues[field] = newVal;
-          span.textContent = newVal || '—';
+          const originalVal = (card._original && card._original[field]) || '';
+          
+          // Only include in newValues if the value has actually changed
+          if (newVal !== originalVal && newVal !== '') {
+            newValues[field] = newVal;
+          }
+          
+          // Display the new value or fall back to original
+          const displayVal = newVal !== '' ? newVal : originalVal;
+          span.textContent = displayVal || '—';
         } else {
           span.textContent = (card._original && card._original[field]) || '—';
         }
@@ -552,23 +880,47 @@ function formatDate(dateStr) {
         if (currentField) currentField.replaceWith(span);
       });
 
-      // Save to localStorage
+      // Save to backend API
       if (Object.keys(newValues).length > 0) {
-        const { apps, appIndex } = getCurrentUserApp();
-        if (appIndex >= 0) {
-          const app = apps[appIndex];
-          if (!app.data) app.data = {};
-          if (!app.data.marital) app.data.marital = {};
-          if (!app.data.marital.spouses) app.data.marital.spouses = [];
-          
-          if (app.data.marital.spouses[spouseIndex]) {
-            Object.keys(newValues).forEach(field => {
-              app.data.marital.spouses[spouseIndex][field] = newValues[field];
-            });
+        try {
+          const currentUser = getCurrentUser();
+          if (!currentUser || !currentUser.slum_code) {
+            throw new Error('User not authenticated');
           }
+
+          // We need to get the actual spouse ID from the card data attribute
+          const actualSpouseId = card.dataset.spouseId;
+          if (!actualSpouseId) {
+            throw new Error('Spouse ID not found');
+          }
+
+          const response = await fetch(`/api/slum-dweller/${currentUser.slum_code}/spouse/${actualSpouseId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newValues)
+          });
+
+          const result = await response.json();
           
-          saveApplication(apps);
+          if (!response.ok) {
+            throw new Error(result.message || 'Failed to update spouse information');
+          }
+
           showProfileUpdateToast();
+        } catch (error) {
+          console.error('Error updating spouse information:', error);
+          alert('Failed to update spouse information: ' + error.message);
+          // Revert changes on error
+          const rows = grid.querySelectorAll('.info-row');
+          rows.forEach((row) => {
+            const span = row.querySelector('.info-val');
+            const field = row.dataset.field || '';
+            if (span) {
+              span.textContent = (card._original && card._original[field]) || '—';
+            }
+          });
         }
       }
 
@@ -610,7 +962,7 @@ function formatDate(dateStr) {
   const childrenList = childrenPanel.querySelector('.children-list');
   if (!childrenList) return;
 
-  childrenList.addEventListener('click', (e) => {
+  childrenList.addEventListener('click', async (e) => {
     const card = e.target.closest('.child-card');
     if (!card) return;
     const childIndex = parseInt(card.dataset.childIndex, 10);
@@ -642,6 +994,21 @@ function formatDate(dateStr) {
             inputEl.innerHTML = incomeRangeOptions.map(opt => 
               `<option value="${opt.value}" ${(original[field] === opt.value || original[field] === opt.label) ? 'selected' : ''}>${opt.label}</option>`
             ).join('');
+          } else if (field === 'education') {
+            inputEl = document.createElement('select');
+            inputEl.className = 'info-input';
+            const currentEducation = original[field] || '';
+            fillSelectOptions(inputEl, educationOptions, "Select education", currentEducation);
+          } else if (field === 'skills_1') {
+            inputEl = document.createElement('select');
+            inputEl.className = 'info-input child-skill-1';
+            const currentSkill1 = original[field] || '';
+            fillSelectOptions(inputEl, skillsOptions, "Select skill", currentSkill1);
+          } else if (field === 'skills_2') {
+            inputEl = document.createElement('select');
+            inputEl.className = 'info-input child-skill-2';
+            const currentSkill2 = original[field] || '';
+            fillSelectOptions(inputEl, skillsOptions, "Select skill", currentSkill2);
           } else {
             inputEl = document.createElement('input');
             inputEl.className = 'info-input';
@@ -651,6 +1018,26 @@ function formatDate(dateStr) {
           valEl.replaceWith(inputEl);
         }
       });
+
+      // Setup skill validation for children
+      const childSkill1 = card.querySelector('.child-skill-1');
+      const childSkill2 = card.querySelector('.child-skill-2');
+      
+      if (childSkill1 && childSkill2) {
+        const validateChildSkills = () => {
+          const val1 = childSkill1.value;
+          const val2 = childSkill2.value;
+          if (val1 && val2 && val1 === val2 && val1 !== 'None') {
+            childSkill2.setCustomValidity('Skill 1 and Skill 2 cannot be the same');
+          } else {
+            childSkill1.setCustomValidity('');
+            childSkill2.setCustomValidity('');
+          }
+        };
+        
+        childSkill1.addEventListener('change', validateChildSkills);
+        childSkill2.addEventListener('change', validateChildSkills);
+      }
 
       card._original = original;
       editBtn.hidden = true;
@@ -673,8 +1060,16 @@ function formatDate(dateStr) {
         
         if (currentField && isEditable) {
           const newVal = currentField.value.trim();
-          newValues[field] = newVal;
-          span.textContent = newVal || '—';
+          const originalVal = (card._original && card._original[field]) || '';
+          
+          // Only include in newValues if the value has actually changed
+          if (newVal !== originalVal && newVal !== '') {
+            newValues[field] = newVal;
+          }
+          
+          // Display the new value or fall back to original
+          const displayVal = newVal !== '' ? newVal : originalVal;
+          span.textContent = displayVal || '—';
         } else {
           span.textContent = (card._original && card._original[field]) || '—';
         }
@@ -682,23 +1077,47 @@ function formatDate(dateStr) {
         if (currentField) currentField.replaceWith(span);
       });
 
-      // Save to localStorage
+      // Save to backend API
       if (Object.keys(newValues).length > 0) {
-        const { apps, appIndex } = getCurrentUserApp();
-        if (appIndex >= 0) {
-          const app = apps[appIndex];
-          if (!app.data) app.data = {};
-          if (!app.data.children) app.data.children = {};
-          if (!app.data.children.children) app.data.children.children = [];
-          
-          if (app.data.children.children[childIndex]) {
-            Object.keys(newValues).forEach(field => {
-              app.data.children.children[childIndex][field] = newValues[field];
-            });
+        try {
+          const currentUser = getCurrentUser();
+          if (!currentUser || !currentUser.slum_code) {
+            throw new Error('User not authenticated');
           }
+
+          // We need to get the actual child ID from the card data attribute
+          const actualChildId = card.dataset.childId;
+          if (!actualChildId) {
+            throw new Error('Child ID not found');
+          }
+
+          const response = await fetch(`/api/slum-dweller/${currentUser.slum_code}/child/${actualChildId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newValues)
+          });
+
+          const result = await response.json();
           
-          saveApplication(apps);
+          if (!response.ok) {
+            throw new Error(result.message || 'Failed to update child information');
+          }
+
           showProfileUpdateToast();
+        } catch (error) {
+          console.error('Error updating child information:', error);
+          alert('Failed to update child information: ' + error.message);
+          // Revert changes on error
+          const rows = grid.querySelectorAll('.info-row');
+          rows.forEach((row) => {
+            const span = row.querySelector('.info-val');
+            const field = row.dataset.field || '';
+            if (span) {
+              span.textContent = (card._original && card._original[field]) || '—';
+            }
+          });
         }
       }
 
