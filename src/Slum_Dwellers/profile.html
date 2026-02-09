@@ -92,15 +92,15 @@
               </div>
             </div>
             <div class="info-grid">
-              <div class="info-row"><span class="info-key">Full Name</span><span class="info-val">Hasan Mia</span></div>
-              <div class="info-row"><span class="info-key">Phone Number</span><span class="info-val">+8801701513788</span></div>
-              <div class="info-row"><span class="info-key">Gender</span><span class="info-val">Male</span></div>
-              <div class="info-row"><span class="info-key">Date of Birth</span><span class="info-val">12 Jan 1988</span></div>
-              <div class="info-row"><span class="info-key">Occupation</span><span class="info-val">Day Laborer</span></div>
-              <div class="info-row"><span class="info-key">Education</span><span class="info-val">Secondary School (SSC)</span></div>
-              <div class="info-row"><span class="info-key">Income Range</span><span class="info-val">5001-9999</span></div>
-              <div class="info-row"><span class="info-key">Division</span><span class="info-val">Dhaka</span></div>
-              <div class="info-row"><span class="info-key">Family Members</span><span class="info-val">4</span></div>
+              <div class="info-row" data-field="full_name" data-editable="true"><span class="info-key">Full Name</span><span class="info-val">Hasan Mia</span></div>
+              <div class="info-row" data-field="mobile" data-editable="true"><span class="info-key">Phone Number</span><span class="info-val">+8801701513788</span></div>
+              <div class="info-row" data-field="gender" data-editable="false"><span class="info-key">Gender</span><span class="info-val">Male</span></div>
+              <div class="info-row" data-field="dob" data-editable="false"><span class="info-key">Date of Birth</span><span class="info-val">12 Jan 1988</span></div>
+              <div class="info-row" data-field="occupation" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">Day Laborer</span></div>
+              <div class="info-row" data-field="education" data-editable="true"><span class="info-key">Education</span><span class="info-val">Secondary School (SSC)</span></div>
+              <div class="info-row" data-field="income" data-editable="true" data-type="select"><span class="info-key">Income Range</span><span class="info-val">5001-9999</span></div>
+              <div class="info-row" data-field="division" data-editable="true"><span class="info-key">Division</span><span class="info-val">Dhaka</span></div>
+              <div class="info-row" data-field="family_members" data-editable="true"><span class="info-key">Family Members</span><span class="info-val">4</span></div>
             </div>
           </div>
         </section>
@@ -110,21 +110,23 @@
             <div class="panel-title">Marital Information</div>
             <div class="spouse-list">
               <!-- Spouse Card 1 -->
-              <div class="spouse-card">
+              <div class="spouse-card" data-spouse-index="0" data-spouse-id="1">
                 <div class="spouse-header">
                   <div class="spouse-name">Ayesha Begum</div>
                   <div class="card-actions">
-                    <button class="btn primary" type="button">Edit Profile</button>
+                    <button class="btn primary edit-spouse-btn" type="button">Edit Profile</button>
+                    <button class="btn primary save-spouse-btn" type="button" hidden>Save</button>
+                    <button class="btn outlined cancel-spouse-btn" type="button" hidden>Cancel</button>
                   </div>
                 </div>
                 <div class="info-grid">
-                  <div class="info-row"><span class="info-key">Name</span><span class="info-val">Ayesha Begum</span></div>
-                  <div class="info-row"><span class="info-key">Date of Birth</span><span class="info-val">05 Mar 1990</span></div>
-                  <div class="info-row"><span class="info-key">Gender</span><span class="info-val">Female</span></div>
-                  <div class="info-row"><span class="info-key">Phone Number</span><span class="info-val">+8801701513799</span></div>
-                  <div class="info-row"><span class="info-key">Education</span><span class="info-val">Primary School</span></div>
-                  <div class="info-row"><span class="info-key">Occupation</span><span class="info-val">Home Maker</span></div>
-                  <div class="info-row"><span class="info-key">Income Range</span><span class="info-val">—</span></div>
+                  <div class="info-row" data-field="name" data-editable="false"><span class="info-key">Name</span><span class="info-val">Ayesha Begum</span></div>
+                  <div class="info-row" data-field="dob" data-editable="false"><span class="info-key">Date of Birth</span><span class="info-val">05 Mar 1990</span></div>
+                  <div class="info-row" data-field="gender" data-editable="false"><span class="info-key">Gender</span><span class="info-val">Female</span></div>
+                  <div class="info-row" data-field="mobile" data-editable="true"><span class="info-key">Phone Number</span><span class="info-val">+8801701513799</span></div>
+                  <div class="info-row" data-field="education" data-editable="true"><span class="info-key">Education</span><span class="info-val">Primary School</span></div>
+                  <div class="info-row" data-field="job" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">Home Maker</span></div>
+                  <div class="info-row" data-field="income" data-editable="true" data-type="select"><span class="info-key">Income Range</span><span class="info-val">—</span></div>
                 </div>
               </div>
 
@@ -138,38 +140,42 @@
             <div class="panel-title">Children Information</div>
             <div class="children-list">
               <!-- Child Card 1 -->
-              <div class="child-card">
+              <div class="child-card" data-child-index="0" data-child-id="1">
                 <div class="child-header">
                   <div class="child-name">Rafi Ali</div>
                   <div class="card-actions">
-                    <button class="btn primary" type="button">Edit Profile</button>
+                    <button class="btn primary edit-child-btn" type="button">Edit Profile</button>
+                    <button class="btn primary save-child-btn" type="button" hidden>Save</button>
+                    <button class="btn outlined cancel-child-btn" type="button" hidden>Cancel</button>
                   </div>
                 </div>
                 <div class="info-grid">
-                  <div class="info-row"><span class="info-key">Name</span><span class="info-val">Rafi Ali</span></div>
-                  <div class="info-row"><span class="info-key">Date of Birth</span><span class="info-val">15 Feb 2016</span></div>
-                  <div class="info-row"><span class="info-key">Education</span><span class="info-val">Primary School</span></div>
-                  <div class="info-row"><span class="info-key">Occupation</span><span class="info-val">Student</span></div>
-                  <div class="info-row"><span class="info-key">Income Range</span><span class="info-val">—</span></div>
-                  <div class="info-row"><span class="info-key">Preferred Job</span><span class="info-val">Engineer</span></div>
+                  <div class="info-row" data-field="name" data-editable="false"><span class="info-key">Name</span><span class="info-val">Rafi Ali</span></div>
+                  <div class="info-row" data-field="dob" data-editable="false"><span class="info-key">Date of Birth</span><span class="info-val">15 Feb 2016</span></div>
+                  <div class="info-row" data-field="education" data-editable="true"><span class="info-key">Education</span><span class="info-val">Primary School</span></div>
+                  <div class="info-row" data-field="job" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">Student</span></div>
+                  <div class="info-row" data-field="income" data-editable="true" data-type="select"><span class="info-key">Income Range</span><span class="info-val">—</span></div>
+                  <div class="info-row" data-field="preferred_job" data-editable="true"><span class="info-key">Preferred Job</span><span class="info-val">Engineer</span></div>
                 </div>
               </div>
 
               <!-- Child Card 2 -->
-              <div class="child-card">
+              <div class="child-card" data-child-index="1" data-child-id="2">
                 <div class="child-header">
                   <div class="child-name">Sara Khatun</div>
                   <div class="card-actions">
-                    <button class="btn primary" type="button">Edit Profile</button>
+                    <button class="btn primary edit-child-btn" type="button">Edit Profile</button>
+                    <button class="btn primary save-child-btn" type="button" hidden>Save</button>
+                    <button class="btn outlined cancel-child-btn" type="button" hidden>Cancel</button>
                   </div>
                 </div>
                 <div class="info-grid">
-                  <div class="info-row"><span class="info-key">Name</span><span class="info-val">Sara Khatun</span></div>
-                  <div class="info-row"><span class="info-key">Date of Birth</span><span class="info-val">22 Sep 2020</span></div>
-                  <div class="info-row"><span class="info-key">Education</span><span class="info-val">Nursery</span></div>
-                  <div class="info-row"><span class="info-key">Occupation</span><span class="info-val">—</span></div>
-                  <div class="info-row"><span class="info-key">Income Range</span><span class="info-val">—</span></div>
-                  <div class="info-row"><span class="info-key">Preferred Job</span><span class="info-val">Doctor</span></div>
+                  <div class="info-row" data-field="name" data-editable="false"><span class="info-key">Name</span><span class="info-val">Sara Khatun</span></div>
+                  <div class="info-row" data-field="dob" data-editable="false"><span class="info-key">Date of Birth</span><span class="info-val">22 Sep 2020</span></div>
+                  <div class="info-row" data-field="education" data-editable="true"><span class="info-key">Education</span><span class="info-val">Nursery</span></div>
+                  <div class="info-row" data-field="job" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">—</span></div>
+                  <div class="info-row" data-field="income" data-editable="true" data-type="select"><span class="info-key">Income Range</span><span class="info-val">—</span></div>
+                  <div class="info-row" data-field="preferred_job" data-editable="true"><span class="info-key">Preferred Job</span><span class="info-val">Doctor</span></div>
                 </div>
               </div>
             </div>

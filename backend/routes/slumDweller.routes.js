@@ -8,7 +8,10 @@ import {
   approveSlumDweller,
   rejectSlumDweller,
   getCurrentUserProfile,
-  checkNidDuplicate
+  checkNidDuplicate,
+  updatePersonalInfo,
+  updateSpouseInfo,
+  updateChildInfo
 } from "../controllers/slumDweller.controller.js";
 
 const router = express.Router();
@@ -36,6 +39,15 @@ router.get("/:id", getSlumDwellerById);
 
 // PATCH /api/slum-dweller/:id/approve
 router.patch("/:id/approve", approveSlumDweller);
+
+// PUT /api/slum-dweller/:slumId/personal - Update personal information
+router.put("/:slumId/personal", updatePersonalInfo);
+
+// PUT /api/slum-dweller/:slumId/spouse/:spouseId - Update spouse information
+router.put("/:slumId/spouse/:spouseId", updateSpouseInfo);
+
+// PUT /api/slum-dweller/:slumId/child/:childId - Update child information  
+router.put("/:slumId/child/:childId", updateChildInfo);
 
 // DELETE /api/slum-dweller/:id
 router.delete("/:id", rejectSlumDweller);
