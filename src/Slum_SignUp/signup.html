@@ -188,14 +188,10 @@
                 </select>
               </label>
 
-              <!-- Two columns: Mobile + Family Members -->
-              <label class="field">
+              <!-- Mobile Number -->
+              <label class="field span-2">
                 <span>Mobile Number</span>
                 <input type="tel" name="mobile" placeholder="e.g., 017XXXXXXXX" required inputmode="numeric" pattern="[0-9]{11}" maxlength="11" />
-              </label>
-              <label class="field">
-                <span>Number of Family Members</span>
-                <input type="number" name="members" min="1" value="1" placeholder="e.g., 4" required />
               </label>
             </div>
 
@@ -204,6 +200,7 @@
               <label class="field span-2">
                 <span style="margin-top: 15px;">NID Number</span>
                 <input type="text" name="nidNumber" inputmode="numeric" placeholder="e.g., 1234 5678 9012 3456" required maxlength="20" />
+                <span class="field-error" id="nidError" style="display: none;"></span>
               </label>
             </div>
             

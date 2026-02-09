@@ -42,6 +42,7 @@
         <label class="field span-2">
           <span>NID Number</span>
           <input type="text" name="spouse_${index}_nid" inputmode="numeric" placeholder="Enter National ID" />
+          <span class="field-error" id="spouseNidError_${index}" style="display: none;"></span>
         </label>
         <label class="field">
           <span>Education</span>
@@ -270,7 +271,35 @@
   }
 
   async function checkSpouseNidDuplicate(nidDigits, nidEl) {
-    if (!nidEl || !nidDigits) return;
+    if (!nidEl || !nidDigits) {
+      clearSpouseNidError(nidEl);
+      return;
+    }
+
+    // Check against personal NID from signup page
+    const personalData = getPersonalData();
+    if (personalData && personalData.nidNumber) {
+      const personalNid = String(personalData.nidNumber).replace(/\s+/g, '');
+      const currentNid = String(nidDigits).replace(/\s+/g, '');
+      if (personalNid === currentNid) {
+        showSpouseNidError(nidEl, 'Spouse NID cannot be the same as personal NID');
+        nidEl.setCustomValidity('Spouse NID cannot be the same as personal NID');
+        return;
+      }
+    }
+
+    // Check against other spouse NIDs on the same page
+    const allSpouseNids = getAllSpouseNids();
+    const currentNid = String(nidDigits).replace(/\s+/g, '');
+    const currentFieldName = nidEl.name;
+    
+    for (const [fieldName, nid] of Object.entries(allSpouseNids)) {
+      if (fieldName !== currentFieldName && nid === currentNid) {
+        showSpouseNidError(nidEl, 'Duplicate NID found among spouses');
+        nidEl.setCustomValidity('Duplicate NID found among spouses');
+        return;
+      }
+    }
 
     try {
       const response = await fetch('/api/slum-dweller/check-nid', {
@@ -283,6 +312,7 @@
 
       if (!response.ok) {
         console.log('NID check API not available, skipping duplicate check');
+        clearSpouseNidError(nidEl);
         return; // Gracefully handle API unavailability
       }
 
@@ -290,22 +320,91 @@
 
       if (result.status === 'success') {
         if (result.isDuplicate) {
+          showSpouseNidError(nidEl, 'This NID number already exists in the system');
           nidEl.setCustomValidity('Duplicate NID - This NID number already exists in the system');
         } else {
+          showSpouseNidSuccess(nidEl);
           // Clear any duplicate error, but preserve other validation errors
           const currentError = nidEl.validationMessage;
-          if (currentError.includes('Duplicate NID')) {
+          if (currentError.includes('Duplicate NID') || currentError.includes('Spouse NID')) {
             nidEl.setCustomValidity('');
           }
         }
       }
     } catch (error) {
       console.log('NID check service unavailable, proceeding without duplicate check');
+      clearSpouseNidError(nidEl);
       // Clear any existing duplicate validation errors when service is unavailable
       const currentError = nidEl.validationMessage;
-      if (currentError && currentError.includes('Duplicate NID')) {
+      if (currentError && (currentError.includes('Duplicate NID') || currentError.includes('Spouse NID'))) {
         nidEl.setCustomValidity('');
       }
+    }
+  }
+
+  function getPersonalData() {
+    try {
+      const data = sessionStorage.getItem('SLUMLINK_SIGNUP');
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function getAllSpouseNids() {
+    const nids = {};
+    const nidInputs = segments.querySelectorAll('input[name*="_nid"]');
+    nidInputs.forEach(input => {
+      const nid = input.value.replace(/\s+/g, '');
+      if (nid) {
+        nids[input.name] = nid;
+      }
+    });
+    return nids;
+  }
+
+  function showSpouseNidError(nidEl, message) {
+    const nidField = nidEl?.closest('.field');
+    const fieldName = nidEl.name;
+    const index = fieldName.match(/spouse_(\d+)_nid/)?.[1];
+    const errorEl = index ? document.getElementById(`spouseNidError_${index}`) : null;
+    
+    if (nidField) {
+      nidField.classList.add('has-error');
+      nidField.classList.remove('has-success');
+    }
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+    }
+  }
+
+  function showSpouseNidSuccess(nidEl) {
+    const nidField = nidEl?.closest('.field');
+    const fieldName = nidEl.name;
+    const index = fieldName.match(/spouse_(\d+)_nid/)?.[1];
+    const errorEl = index ? document.getElementById(`spouseNidError_${index}`) : null;
+    
+    if (nidField) {
+      nidField.classList.remove('has-error');
+      nidField.classList.add('has-success');
+    }
+    if (errorEl) {
+      errorEl.style.display = 'none';
+    }
+  }
+
+  function clearSpouseNidError(nidEl) {
+    const nidField = nidEl?.closest('.field');
+    const fieldName = nidEl?.name;
+    const index = fieldName?.match(/spouse_(\d+)_nid/)?.[1];
+    const errorEl = index ? document.getElementById(`spouseNidError_${index}`) : null;
+    
+    if (nidField) {
+      nidField.classList.remove('has-error', 'has-success');
+    }
+    if (errorEl) {
+      errorEl.style.display = 'none';
     }
   }
 

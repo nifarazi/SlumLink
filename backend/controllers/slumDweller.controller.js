@@ -69,10 +69,10 @@ export const signinSlumDweller = async (req, res) => {
   }
 };
 
-// Check NID duplicate
+// Enhanced NID duplicate checking function
 export const checkNidDuplicate = async (req, res) => {
   try {
-    const { nid } = req.body;
+    const { nid, excludeSlumId = null, excludeSpouseId = null, context = 'general' } = req.body;
 
     // Validate NID input
     if (!nid) {
@@ -85,18 +85,13 @@ export const checkNidDuplicate = async (req, res) => {
     // Remove any spaces from NID for consistent checking
     const cleanNid = String(nid).replace(/\s+/g, '');
 
-    // Check if NID already exists in database
-    const [existingRows] = await pool.query(
-      'SELECT COUNT(*) as count FROM slum_dwellers WHERE nid = ?',
-      [cleanNid]
-    );
-
-    const isDuplicate = existingRows[0].count > 0;
+    const duplicateInfo = await checkNidDuplicateInternal(cleanNid, excludeSlumId, excludeSpouseId, context);
 
     return res.json({
       status: "success",
-      isDuplicate: isDuplicate,
-      message: isDuplicate ? "NID already exists in the system" : "NID is available"
+      isDuplicate: duplicateInfo.isDuplicate,
+      message: duplicateInfo.message,
+      details: duplicateInfo.details
     });
 
   } catch (error) {
@@ -107,6 +102,229 @@ export const checkNidDuplicate = async (req, res) => {
     });
   }
 };
+
+// Check Birth Certificate duplicate
+export const checkBirthCertificateDuplicate = async (req, res) => {
+  try {
+    const { birth_certificate_number } = req.body;
+
+    // Validate birth certificate number input
+    if (!birth_certificate_number) {
+      return res.status(400).json({
+        status: "error",
+        message: "Birth certificate number is required."
+      });
+    }
+
+    // Remove any spaces from birth certificate number for consistent checking
+    const cleanCertNumber = String(birth_certificate_number).replace(/\s+/g, '');
+
+    // Validate 17-digit format
+    if (!/^\d{17}$/.test(cleanCertNumber)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Birth certificate number must be exactly 17 digits."
+      });
+    }
+
+    // Check if birth certificate number already exists in children table
+    const [existingRows] = await pool.query(
+      'SELECT COUNT(*) as count FROM children WHERE birth_certificate_number = ?',
+      [cleanCertNumber]
+    );
+
+    const isDuplicate = existingRows[0].count > 0;
+
+    let details = [];
+    if (isDuplicate) {
+      // Get details of the duplicate record
+      const [detailRows] = await pool.query(
+        'SELECT slum_id, name FROM children WHERE birth_certificate_number = ? LIMIT 1',
+        [cleanCertNumber]
+      );
+      
+      if (detailRows.length > 0) {
+        details.push({
+          location: "children",
+          slum_id: detailRows[0].slum_id,
+          name: detailRows[0].name
+        });
+      }
+    }
+
+    return res.json({
+      status: "success",
+      isDuplicate: isDuplicate,
+      message: isDuplicate ? "Birth certificate number already exists in the system" : "Birth certificate number is available",
+      details: details
+    });
+
+  } catch (error) {
+    console.error("Birth Certificate Check Error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while checking birth certificate number."
+    });
+  }
+};
+
+// Internal helper function for comprehensive NID checking
+async function checkNidDuplicateInternal(cleanNid, excludeSlumId = null, excludeSpouseId = null, context = 'general') {
+  // Check in slum_dwellers table - count only first
+  let slumDwellerCountQuery = 'SELECT COUNT(*) as count FROM slum_dwellers WHERE nid = ?';
+  const slumDwellerCountParams = [cleanNid];
+  
+  if (excludeSlumId) {
+    slumDwellerCountQuery += ' AND slum_code != ?';
+    slumDwellerCountParams.push(excludeSlumId);
+  }
+
+  const [slumDwellerCountRows] = await pool.query(slumDwellerCountQuery, slumDwellerCountParams);
+  const slumDwellerCount = slumDwellerCountRows[0].count;
+
+  // Check in spouses table - count only first
+  let spousesCountQuery = 'SELECT COUNT(*) as count FROM spouses WHERE nid = ? AND status != "pending_remove"';
+  const spousesCountParams = [cleanNid];
+  
+  if (excludeSpouseId) {
+    spousesCountQuery += ' AND id != ?';
+    spousesCountParams.push(excludeSpouseId);
+  }
+  
+  if (excludeSlumId) {
+    spousesCountQuery += ' AND slum_id != ?';
+    spousesCountParams.push(excludeSlumId);
+  }
+
+  const [spousesCountRows] = await pool.query(spousesCountQuery, spousesCountParams);
+  const spousesCount = spousesCountRows[0].count;
+
+  const totalDuplicates = slumDwellerCount + spousesCount;
+  const isDuplicate = totalDuplicates > 0;
+
+  let message = "NID is available";
+  let details = [];
+
+  // If duplicates exist, get detailed info with separate queries
+  if (isDuplicate) {
+    if (slumDwellerCount > 0) {
+      let slumDwellerDetailQuery = 'SELECT slum_code, full_name FROM slum_dwellers WHERE nid = ?';
+      const slumDwellerDetailParams = [cleanNid];
+      
+      if (excludeSlumId) {
+        slumDwellerDetailQuery += ' AND slum_code != ?';
+        slumDwellerDetailParams.push(excludeSlumId);
+      }
+      slumDwellerDetailQuery += ' LIMIT 1';
+      
+      const [slumDwellerDetailRows] = await pool.query(slumDwellerDetailQuery, slumDwellerDetailParams);
+      if (slumDwellerDetailRows.length > 0) {
+        message = "NID already exists in the system";
+        details.push({
+          location: "slum_dwellers",
+          slum_code: slumDwellerDetailRows[0].slum_code,
+          name: slumDwellerDetailRows[0].full_name
+        });
+      }
+    }
+    
+    if (spousesCount > 0) {
+      let spousesDetailQuery = 'SELECT slum_id, name FROM spouses WHERE nid = ? AND status != "pending_remove"';
+      const spousesDetailParams = [cleanNid];
+      
+      if (excludeSpouseId) {
+        spousesDetailQuery += ' AND id != ?';
+        spousesDetailParams.push(excludeSpouseId);
+      }
+      
+      if (excludeSlumId) {
+        spousesDetailQuery += ' AND slum_id != ?';
+        spousesDetailParams.push(excludeSlumId);
+      }
+      spousesDetailQuery += ' LIMIT 1';
+      
+      const [spousesDetailRows] = await pool.query(spousesDetailQuery, spousesDetailParams);
+      if (spousesDetailRows.length > 0) {
+        message = "NID already exists in the system";
+        details.push({
+          location: "spouses",
+          slum_id: spousesDetailRows[0].slum_id,
+          name: spousesDetailRows[0].name
+        });
+      }
+    }
+  }
+
+  return {
+    isDuplicate,
+    message,
+    details,
+    slumDwellerCount,
+    spousesCount
+  };
+}
+
+// Function to validate NIDs within a registration context
+async function validateRegistrationNids(personalNid, spousesData) {
+  const errors = [];
+  const cleanPersonalNid = personalNid ? String(personalNid).replace(/\s+/g, '') : null;
+  
+  // Check personal NID for duplicates if provided
+  if (cleanPersonalNid) {
+    const personalCheck = await checkNidDuplicateInternal(cleanPersonalNid);
+    if (personalCheck.isDuplicate) {
+      errors.push({
+        field: 'personal.nid',
+        message: 'Personal NID already exists in the system',
+        details: personalCheck.details
+      });
+    }
+  }
+  
+  // Check spouse NIDs
+  if (spousesData && Array.isArray(spousesData)) {
+    const spouseNids = [];
+    
+    for (let i = 0; i < spousesData.length; i++) {
+      const spouse = spousesData[i];
+      const cleanSpouseNid = spouse.nid ? String(spouse.nid).replace(/\s+/g, '') : null;
+      
+      if (cleanSpouseNid) {
+        // Check if spouse NID matches personal NID
+        if (cleanPersonalNid && cleanSpouseNid === cleanPersonalNid) {
+          errors.push({
+            field: `spouses[${i}].nid`,
+            message: 'Spouse NID cannot be the same as personal NID',
+            spouseName: spouse.name
+          });
+        }
+        
+        // Check if spouse NID is duplicate with other spouses in current registration
+        if (spouseNids.includes(cleanSpouseNid)) {
+          errors.push({
+            field: `spouses[${i}].nid`,
+            message: 'Duplicate NID found among spouses in current registration',
+            spouseName: spouse.name
+          });
+        }
+        spouseNids.push(cleanSpouseNid);
+        
+        // Check if spouse NID exists in database
+        const spouseCheck = await checkNidDuplicateInternal(cleanSpouseNid);
+        if (spouseCheck.isDuplicate) {
+          errors.push({
+            field: `spouses[${i}].nid`,
+            message: 'Spouse NID already exists in the system',
+            spouseName: spouse.name,
+            details: spouseCheck.details
+          });
+        }
+      }
+    }
+  }
+  
+  return errors;
+}
 
 // Helper function to convert Data URL to Buffer for BLOB storage
 function dataUrlToBuffer(dataUrl) {
@@ -123,6 +341,32 @@ function dataUrlToBuffer(dataUrl) {
     console.error('Error converting Data URL to Buffer:', error);
     return null;
   }
+}
+
+// Helper function to calculate age from date of birth
+function calculateAge(dateOfBirth) {
+  if (!dateOfBirth) return null;
+  
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  
+  if (isNaN(birthDate.getTime())) return null;
+  
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDifference = today.getMonth() - birthDate.getMonth();
+  
+  // Adjust age if birthday hasn't occurred this year
+  if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  return age >= 0 ? age : null;
+}
+
+// Helper function to determine age group based on calculated age
+function getAgeGroup(age) {
+  if (age === null || age === undefined) return 'child'; // Default to child if age cannot be calculated
+  return age >= 18 ? 'adult' : 'child';
 }
 
 export const registerSlumDweller = async (req, res) => {
@@ -146,16 +390,27 @@ export const registerSlumDweller = async (req, res) => {
       });
     }
 
+    // Enhanced NID validation for registration
+    const nidValidationErrors = await validateRegistrationNids(personal.nid, spouses);
+    if (nidValidationErrors.length > 0) {
+      console.error('❌ NID validation failed:', nidValidationErrors);
+      return res.status(400).json({
+        status: "error",
+        message: "NID validation failed",
+        errors: nidValidationErrors
+      });
+    }
+
     await connection.beginTransaction();
 
     // Hash password
     const password_hash = await bcrypt.hash(personal.password, 10);
 
-    // Insert into slum_dwellers table
+    // Insert into slum_dwellers table (family_members will be calculated after family data is inserted)
     const dwellerSql = `
       INSERT INTO slum_dwellers 
-      (full_name, mobile, dob, gender, nid, education, occupation, income, area, district, division, family_members, password_hash, skills_1, skills_2, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+      (full_name, mobile, dob, gender, nid, education, occupation, income, area, district, division, password_hash, skills_1, skills_2, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     `;
 
     const dwellerValues = [
@@ -170,7 +425,6 @@ export const registerSlumDweller = async (req, res) => {
       personal.area || null,
       personal.district || null,
       personal.division || null,
-      personal.members || 0,
       password_hash,
       personal.skills_1 || 'None',
       personal.skills_2 || 'None'
@@ -223,10 +477,16 @@ export const registerSlumDweller = async (req, res) => {
         // Convert birth certificate Data URL to Buffer
         const certBuffer = dataUrlToBuffer(child.birthCertificate);
         
+        // Calculate age and determine age group
+        const childAge = calculateAge(child.dob);
+        const ageGroup = getAgeGroup(childAge);
+        
+        console.log(`👶 Child: ${child.name}, DOB: ${child.dob}, Age: ${childAge}, Age Group: ${ageGroup}`);
+        
         const childSql = `
           INSERT INTO children 
-          (slum_id, name, dob, gender, education, job, income, preferred_job, birth_certificate, birth_certificate_number, skills_1, skills_2)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          (slum_id, name, dob, gender, education, job, income, preferred_job, birth_certificate, birth_certificate_number, skills_1, skills_2, age_group)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const childValues = [
@@ -241,7 +501,8 @@ export const registerSlumDweller = async (req, res) => {
           certBuffer,
           child.birthCertificateNumber || null,
           child.skills_1 || 'None',
-          child.skills_2 || 'None'
+          child.skills_2 || 'None',
+          ageGroup
         ];
         await connection.query(childSql, childValues);
 
@@ -296,6 +557,20 @@ export const registerSlumDweller = async (req, res) => {
         }
       }
     }
+
+    // Calculate and update family_members count
+    // Family members = 1 (main dweller) + number of spouses + number of children
+    const spouseCount = spouses && Array.isArray(spouses) ? spouses.length : 0;
+    const childrenCount = children && Array.isArray(children) ? children.length : 0;
+    const totalFamilyMembers = 1 + spouseCount + childrenCount;
+
+    // Update the family_members field
+    await connection.query(
+      'UPDATE slum_dwellers SET family_members = ? WHERE id = ?',
+      [totalFamilyMembers, slumDwellerId]
+    );
+
+    console.log(`🔢 Family members calculated: ${totalFamilyMembers} (1 dweller + ${spouseCount} spouse(s) + ${childrenCount} children)`);
 
     await connection.commit();
 
@@ -622,6 +897,21 @@ export const updatePersonalInfo = async (req, res) => {
       });
     }
 
+    // Enhanced NID validation for updates
+    if (updates.nid) {
+      const cleanNid = String(updates.nid).replace(/\s+/g, '');
+      
+      // Check for NID duplicates excluding current user
+      const nidCheck = await checkNidDuplicateInternal(cleanNid, slumId);
+      if (nidCheck.isDuplicate) {
+        return res.status(400).json({
+          status: "error",
+          message: "NID already exists in the system",
+          details: nidCheck.details
+        });
+      }
+    }
+
     // Build dynamic update query
     const allowedFields = [
       'full_name', 'nid', 'dob', 'gender', 'education', 
@@ -686,6 +976,50 @@ export const updateSpouseInfo = async (req, res) => {
         status: "error",
         message: "Slum ID and Spouse ID are required."
       });
+    }
+
+    // Enhanced NID validation for spouse updates
+    if (updates.nid) {
+      const cleanNid = String(updates.nid).replace(/\s+/g, '');
+      
+      // Check for NID duplicates excluding current spouse
+      const nidCheck = await checkNidDuplicateInternal(cleanNid, slumId, spouseId);
+      if (nidCheck.isDuplicate) {
+        return res.status(400).json({
+          status: "error",
+          message: "NID already exists in the system",
+          details: nidCheck.details
+        });
+      }
+      
+      // Check if spouse NID matches the main dweller's NID
+      const [dwellerRows] = await pool.query(
+        'SELECT nid FROM slum_dwellers WHERE slum_code = ?',
+        [slumId]
+      );
+      
+      if (dwellerRows.length > 0 && dwellerRows[0].nid) {
+        const dwellerNid = String(dwellerRows[0].nid).replace(/\s+/g, '');
+        if (cleanNid === dwellerNid) {
+          return res.status(400).json({
+            status: "error",
+            message: "Spouse NID cannot be the same as main dweller's NID"
+          });
+        }
+      }
+      
+      // Check if spouse NID matches other spouses' NIDs
+      const [otherSpousesRows] = await pool.query(
+        'SELECT COUNT(*) as count FROM spouses WHERE slum_id = ? AND id != ? AND nid = ? AND status != "pending_remove"',
+        [slumId, spouseId, cleanNid]
+      );
+      
+      if (otherSpousesRows[0].count > 0) {
+        return res.status(400).json({
+          status: "error",
+          message: "NID already exists among other spouses"
+        });
+      }
     }
 
     // Build dynamic update query for spouse
@@ -762,12 +1096,30 @@ export const updateChildInfo = async (req, res) => {
     const updateFields = [];
     const updateValues = [];
     
+    // Check if date of birth is being updated to recalculate age_group
+    let shouldUpdateAgeGroup = false;
+    let newAgeGroup = null;
+    
     Object.keys(updates).forEach(key => {
       if (allowedFields.includes(key) && updates[key] !== undefined) {
         updateFields.push(`${key} = ?`);
         updateValues.push(updates[key]);
+        
+        // If date of birth is being updated, calculate new age group
+        if (key === 'dob' && updates[key]) {
+          const childAge = calculateAge(updates[key]);
+          newAgeGroup = getAgeGroup(childAge);
+          shouldUpdateAgeGroup = true;
+          console.log(`🔄 Child DOB updated, new age: ${childAge}, new age group: ${newAgeGroup}`);
+        }
       }
     });
+    
+    // Add age_group to update if DOB was changed
+    if (shouldUpdateAgeGroup && newAgeGroup) {
+      updateFields.push('age_group = ?');
+      updateValues.push(newAgeGroup);
+    }
     
     if (updateFields.length === 0) {
       return res.status(400).json({
@@ -790,9 +1142,13 @@ export const updateChildInfo = async (req, res) => {
       });
     }
     
+    const responseMessage = shouldUpdateAgeGroup 
+      ? `Child information updated successfully (age group: ${newAgeGroup})`
+      : "Child information updated successfully";
+    
     return res.json({
       status: "success",
-      message: "Child information updated successfully"
+      message: responseMessage
     });
     
   } catch (error) {

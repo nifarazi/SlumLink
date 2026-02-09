@@ -208,39 +208,6 @@
     }
   }
 
-  function setupFamilyMembersConstraints() {
-    const membersEl = document.querySelector('[name="members"]');
-    if (membersEl) {
-      membersEl.addEventListener('input', (e) => {
-        let value = parseInt(e.target.value);
-        // Ensure minimum value is 1
-        if (isNaN(value) || value < 1) {
-          e.target.value = '1';
-        }
-      });
-
-      // Prevent entering 0 or negative numbers
-      membersEl.addEventListener('keydown', (e) => {
-        // Allow navigation keys
-        if (['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-          return;
-        }
-        // If current value is empty and user tries to enter 0, prevent it
-        if (e.target.value === '' && e.key === '0') {
-          e.preventDefault();
-        }
-      });
-
-      membersEl.addEventListener('blur', (e) => {
-        // Ensure value is at least 1 when field loses focus
-        let value = parseInt(e.target.value);
-        if (isNaN(value) || value < 1) {
-          e.target.value = '1';
-        }
-      });
-    }
-  }
-
   function setupNidConstraints() {
     const nidEl = document.querySelector('[name="nidNumber"]');
     if (nidEl) {
@@ -303,7 +270,13 @@
 
   async function checkNidDuplicate(nidDigits) {
     const nidEl = document.querySelector('[name="nidNumber"]');
-    if (!nidEl || !nidDigits) return;
+    const nidField = nidEl?.closest('.field');
+    const errorEl = document.getElementById('nidError');
+    
+    if (!nidEl || !nidDigits) {
+      clearNidError(nidField, errorEl);
+      return;
+    }
 
     try {
       const response = await fetch('/api/slum-dweller/check-nid', {
@@ -316,6 +289,7 @@
 
       if (!response.ok) {
         console.log('NID check API not available, skipping duplicate check');
+        clearNidError(nidField, errorEl);
         return; // Gracefully handle API unavailability
       }
 
@@ -323,8 +297,10 @@
 
       if (result.status === 'success') {
         if (result.isDuplicate) {
+          showNidError(nidField, errorEl, 'This NID number already exists in the system');
           nidEl.setCustomValidity('Duplicate NID - This NID number already exists in the system');
         } else {
+          showNidSuccess(nidField, errorEl);
           // Clear any duplicate error, but preserve other validation errors
           const currentError = nidEl.validationMessage;
           if (currentError.includes('Duplicate NID')) {
@@ -334,11 +310,42 @@
       }
     } catch (error) {
       console.log('NID check service unavailable, proceeding without duplicate check');
+      clearNidError(nidField, errorEl);
       // Clear any existing duplicate validation errors when service is unavailable
       const currentError = nidEl.validationMessage;
       if (currentError && currentError.includes('Duplicate NID')) {
         nidEl.setCustomValidity('');
       }
+    }
+  }
+
+  function showNidError(nidField, errorEl, message) {
+    if (nidField) {
+      nidField.classList.add('has-error');
+      nidField.classList.remove('has-success');
+    }
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+    }
+  }
+
+  function showNidSuccess(nidField, errorEl) {
+    if (nidField) {
+      nidField.classList.remove('has-error');
+      nidField.classList.add('has-success');
+    }
+    if (errorEl) {
+      errorEl.style.display = 'none';
+    }
+  }
+
+  function clearNidError(nidField, errorEl) {
+    if (nidField) {
+      nidField.classList.remove('has-error', 'has-success');
+    }
+    if (errorEl) {
+      errorEl.style.display = 'none';
     }
   }
 
@@ -399,8 +406,6 @@
   initDropdowns();
   // Setup mobile input constraints
   setupMobileInputConstraints();
-  // Setup family members constraints
-  setupFamilyMembersConstraints();
   // Setup NID constraints
   setupNidConstraints();
   // Setup skill validation
