@@ -4,6 +4,7 @@ import {
   registerOrganization,
   getPendingNGOs,
   getActiveNGOs,
+  getLocalAuthorities,
   getNGODetails,
   getNGOLicense,
   approveNGO,
@@ -25,6 +26,9 @@ router.get("/pending", getPendingNGOs);
 
 // GET /api/ngo/active - Get all active NGOs
 router.get("/active", getActiveNGOs);
+
+// GET /api/ngo/local-authorities - Get all local authorities
+router.get("/local-authorities", getLocalAuthorities);
 
 // PUT /api/ngo/:orgId/approve - Approve NGO (specific before generic)
 router.put("/:orgId/approve", approveNGO);

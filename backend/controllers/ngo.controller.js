@@ -116,6 +116,32 @@ export const getActiveNGOs = async (req, res) => {
   }
 };
 
+// Get all local authorities (fixed IDs)
+export const getLocalAuthorities = async (req, res) => {
+  try {
+    const sql = `
+      SELECT org_id, org_name, email, phone, org_age, status, license_filename
+      FROM organizations
+      WHERE org_type = 'localauthority'
+        AND org_id BETWEEN 1001 AND 1008
+      ORDER BY org_id ASC
+    `;
+
+    const [authorities] = await pool.query(sql);
+
+    return res.json({
+      status: "success",
+      data: authorities,
+    });
+  } catch (err) {
+    console.error("Get Local Authorities Error:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while fetching local authorities.",
+    });
+  }
+};
+
 // Get single NGO details by ID
 export const getNGODetails = async (req, res) => {
   try {
