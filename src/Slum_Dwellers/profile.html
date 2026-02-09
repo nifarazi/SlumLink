@@ -86,6 +86,7 @@
               <div class="panel-actions">
                 <button id="editProfileBtn" class="btn primary" type="button">Edit Profile</button>
                 <button id="editMemberBtn" class="btn primary" type="button">Edit Member</button>
+                <button id="changePhoneBtn" class="btn outlined" type="button">Change Phone Number</button>
                 <button id="saveProfileBtn" class="btn primary" type="button" hidden>Save</button>
                 <button id="cancelEditBtn" class="btn outlined" type="button" hidden>Cancel</button>
                 <button id="changePasswordBtn" class="btn outlined" type="button">Change Password</button>
@@ -93,7 +94,7 @@
             </div>
             <div class="info-grid">
               <div class="info-row" data-field="full_name" data-editable="true"><span class="info-key">Full Name</span><span class="info-val">Hasan Mia</span></div>
-              <div class="info-row" data-field="mobile" data-editable="true"><span class="info-key">Phone Number</span><span class="info-val">+8801701513788</span></div>
+              <div class="info-row" data-field="mobile" data-editable="false"><span class="info-key">Phone Number</span><span class="info-val">+8801701513788</span></div>
               <div class="info-row" data-field="gender" data-editable="false"><span class="info-key">Gender</span><span class="info-val">Male</span></div>
               <div class="info-row" data-field="dob" data-editable="false"><span class="info-key">Date of Birth</span><span class="info-val">12 Jan 1988</span></div>
               <div class="info-row" data-field="occupation" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">Day Laborer</span></div>
@@ -115,6 +116,7 @@
                   <div class="spouse-name">Ayesha Begum</div>
                   <div class="card-actions">
                     <button class="btn primary edit-spouse-btn" type="button">Edit Profile</button>
+                    <button class="btn outlined change-spouse-phone-btn" type="button" data-spouse-id="1">Change Phone Number</button>
                     <button class="btn primary save-spouse-btn" type="button" hidden>Save</button>
                     <button class="btn outlined cancel-spouse-btn" type="button" hidden>Cancel</button>
                   </div>
@@ -123,7 +125,7 @@
                   <div class="info-row" data-field="name" data-editable="false"><span class="info-key">Name</span><span class="info-val">Ayesha Begum</span></div>
                   <div class="info-row" data-field="dob" data-editable="false"><span class="info-key">Date of Birth</span><span class="info-val">05 Mar 1990</span></div>
                   <div class="info-row" data-field="gender" data-editable="false"><span class="info-key">Gender</span><span class="info-val">Female</span></div>
-                  <div class="info-row" data-field="mobile" data-editable="true"><span class="info-key">Phone Number</span><span class="info-val">+8801701513799</span></div>
+                  <div class="info-row" data-field="mobile" data-editable="false"><span class="info-key">Phone Number</span><span class="info-val">+8801701513799</span></div>
                   <div class="info-row" data-field="education" data-editable="true"><span class="info-key">Education</span><span class="info-val">Primary School</span></div>
                   <div class="info-row" data-field="job" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">Home Maker</span></div>
                   <div class="info-row" data-field="income" data-editable="true" data-type="select"><span class="info-key">Income Range</span><span class="info-val">—</span></div>
@@ -320,6 +322,174 @@
         <button type="button" class="btn outlined" id="cancelConfirmationBtn">Cancel</button>
         <button type="button" class="btn primary" id="confirmSubmitBtn">Confirm</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Phone Number Change Modal -->
+  <div id="phoneChangeModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      
+      <!-- Step 1: Confirmation Dialog -->
+      <div id="phoneChangeStep1" class="phone-change-step">
+        <div class="modal-header">
+          <h3>Change Phone Number</h3>
+          <button type="button" class="close-btn" id="closePhoneChangeModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Do you want to change your phone number?</p>
+          <p class="text-warning">This action will require verification of both your current and new phone numbers.</p>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn outlined" id="phoneChangeCancelBtn">No</button>
+          <button type="button" class="btn primary" id="phoneChangeConfirmBtn">Yes</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Current Phone OTP Verification -->
+      <div id="phoneChangeStep2" class="phone-change-step" style="display: none;">
+        <div class="modal-header">
+          <h3>Verify Current Phone</h3>
+          <button type="button" class="close-btn" id="closePhoneChangeModal2">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>We've sent an OTP to your current phone number <strong id="currentPhoneMasked"></strong></p>
+          <div class="form-group">
+            <label for="currentPhoneOTP">Enter OTP:</label>
+            <input type="text" id="currentPhoneOTP" class="form-control" placeholder="Enter 6-digit OTP" maxlength="6">
+            <div id="currentOtpError" class="error-message" style="display: none;"></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn outlined" id="backToStep1Btn">Back</button>
+          <button type="button" class="btn primary" id="verifyCurrentOtpBtn">Verify OTP</button>
+        </div>
+      </div>
+
+      <!-- Step 3: New Phone Number Entry -->
+      <div id="phoneChangeStep3" class="phone-change-step" style="display: none;">
+        <div class="modal-header">
+          <h3>Enter New Phone Number</h3>
+          <button type="button" class="close-btn" id="closePhoneChangeModal3">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Current phone verification successful! Please enter your new phone number.</p>
+          <div class="form-group">
+            <label for="newPhoneNumber">New Phone Number:</label>
+            <input type="tel" id="newPhoneNumber" class="form-control" placeholder="01xxxxxxxxx" maxlength="11">
+            <small class="form-help">Enter 11 digits only (e.g., 01701234567)</small>
+            <div id="newPhoneError" class="error-message" style="display: none;"></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn outlined" id="backToStep2Btn">Back</button>
+          <button type="button" class="btn primary" id="sendNewPhoneOtpBtn">Send OTP</button>
+        </div>
+      </div>
+
+      <!-- Step 4: New Phone OTP Verification -->
+      <div id="phoneChangeStep4" class="phone-change-step" style="display: none;">
+        <div class="modal-header">
+          <h3>Verify New Phone</h3>
+          <button type="button" class="close-btn" id="closePhoneChangeModal4">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>We've sent an OTP to your new phone number <strong id="newPhoneMasked"></strong></p>
+          <div class="form-group">
+            <label for="newPhoneOTP">Enter OTP:</label>
+            <input type="text" id="newPhoneOTP" class="form-control" placeholder="Enter 6-digit OTP" maxlength="6">
+            <div id="newOtpError" class="error-message" style="display: none;"></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn outlined" id="backToStep3Btn">Back</button>
+          <button type="button" class="btn primary" id="verifyNewOtpBtn">Verify & Update</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Spouse Phone Number Change Modal -->
+  <div id="spousePhoneChangeModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      
+      <!-- Step 1: Confirmation Dialog -->
+      <div id="spousePhoneChangeStep1" class="phone-change-step">
+        <div class="modal-header">
+          <h3>Change Spouse Phone Number</h3>
+          <button type="button" class="close-btn" id="closeSpousePhoneChangeModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Do you want to change the phone number for <strong id="spouseNameForChange"></strong>?</p>
+          <p class="text-warning">This action will require verification of both the current and new phone numbers.</p>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn outlined" id="spousePhoneChangeCancelBtn">No</button>
+          <button type="button" class="btn primary" id="spousePhoneChangeConfirmBtn">Yes</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Current Phone OTP Verification -->
+      <div id="spousePhoneChangeStep2" class="phone-change-step" style="display: none;">
+        <div class="modal-header">
+          <h3>Verify Current Phone</h3>
+          <button type="button" class="close-btn" id="closeSpousePhoneChangeModal2">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>We've sent an OTP to the current phone number <strong id="spouseCurrentPhoneMasked"></strong></p>
+          <div class="form-group">
+            <label for="spouseCurrentPhoneOTP">Enter OTP:</label>
+            <input type="text" id="spouseCurrentPhoneOTP" class="form-control" placeholder="Enter 6-digit OTP" maxlength="6">
+            <div id="spouseCurrentOtpError" class="error-message" style="display: none;"></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn outlined" id="spouseBackToStep1Btn">Back</button>
+          <button type="button" class="btn primary" id="spouseVerifyCurrentOtpBtn">Verify OTP</button>
+        </div>
+      </div>
+
+      <!-- Step 3: New Phone Number Entry -->
+      <div id="spousePhoneChangeStep3" class="phone-change-step" style="display: none;">
+        <div class="modal-header">
+          <h3>Enter New Phone Number</h3>
+          <button type="button" class="close-btn" id="closeSpousePhoneChangeModal3">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Current phone verification successful! Please enter the new phone number.</p>
+          <div class="form-group">
+            <label for="spouseNewPhoneNumber">New Phone Number:</label>
+            <input type="tel" id="spouseNewPhoneNumber" class="form-control" placeholder="01xxxxxxxxx" maxlength="11">
+            <small class="form-help">Enter 11 digits only (e.g., 01701234567)</small>
+            <div id="spouseNewPhoneError" class="error-message" style="display: none;"></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn outlined" id="spouseBackToStep2Btn">Back</button>
+          <button type="button" class="btn primary" id="spouseSendNewPhoneOtpBtn">Send OTP</button>
+        </div>
+      </div>
+
+      <!-- Step 4: New Phone OTP Verification -->
+      <div id="spousePhoneChangeStep4" class="phone-change-step" style="display: none;">
+        <div class="modal-header">
+          <h3>Verify New Phone</h3>
+          <button type="button" class="close-btn" id="closeSpousePhoneChangeModal4">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>We've sent an OTP to the new phone number <strong id="spouseNewPhoneMasked"></strong></p>
+          <div class="form-group">
+            <label for="spouseNewPhoneOTP">Enter OTP:</label>
+            <input type="text" id="spouseNewPhoneOTP" class="form-control" placeholder="Enter 6-digit OTP" maxlength="6">
+            <div id="spouseNewOtpError" class="error-message" style="display: none;"></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn outlined" id="spouseBackToStep3Btn">Back</button>
+          <button type="button" class="btn primary" id="spouseVerifyNewOtpBtn">Verify & Update</button>
+        </div>
+      </div>
+
     </div>
   </div>
 

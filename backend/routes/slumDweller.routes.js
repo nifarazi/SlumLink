@@ -11,7 +11,16 @@ import {
   checkNidDuplicate,
   updatePersonalInfo,
   updateSpouseInfo,
-  updateChildInfo
+  updateChildInfo,
+  initPhoneChange,
+  verifyCurrentPhone,
+  sendNewPhoneOTP,
+  verifyNewPhoneAndUpdate,
+  initSpousePhoneChange,
+  verifySpouseCurrentPhone,
+  sendSpouseNewPhoneOTP,
+  verifySpouseNewPhoneAndUpdate,
+  changePassword
 } from "../controllers/slumDweller.controller.js";
 
 const router = express.Router();
@@ -48,6 +57,35 @@ router.put("/:slumId/spouse/:spouseId", updateSpouseInfo);
 
 // PUT /api/slum-dweller/:slumId/child/:childId - Update child information  
 router.put("/:slumId/child/:childId", updateChildInfo);
+
+// POST /api/slum-dweller/:slumCode/change-password - Change password
+router.post("/:slumCode/change-password", changePassword);
+
+// Phone number change endpoints
+// POST /api/slum-dweller/phone-change/init - Initialize phone change process
+router.post("/phone-change/init", initPhoneChange);
+
+// POST /api/slum-dweller/phone-change/verify-current - Verify current phone OTP
+router.post("/phone-change/verify-current", verifyCurrentPhone);
+
+// POST /api/slum-dweller/phone-change/new-phone - Send OTP to new phone
+router.post("/phone-change/new-phone", sendNewPhoneOTP);
+
+// POST /api/slum-dweller/phone-change/verify-new - Verify new phone and update
+router.post("/phone-change/verify-new", verifyNewPhoneAndUpdate);
+
+// Spouse phone number change endpoints
+// POST /api/slum-dweller/spouse-phone-change/init - Initialize spouse phone change process
+router.post("/spouse-phone-change/init", initSpousePhoneChange);
+
+// POST /api/slum-dweller/spouse-phone-change/verify-current - Verify spouse current phone OTP
+router.post("/spouse-phone-change/verify-current", verifySpouseCurrentPhone);
+
+// POST /api/slum-dweller/spouse-phone-change/new-phone - Send OTP to new spouse phone
+router.post("/spouse-phone-change/new-phone", sendSpouseNewPhoneOTP);
+
+// POST /api/slum-dweller/spouse-phone-change/verify-new - Verify new spouse phone and update
+router.post("/spouse-phone-change/verify-new", verifySpouseNewPhoneAndUpdate);
 
 // DELETE /api/slum-dweller/:id
 router.delete("/:id", rejectSlumDweller);
