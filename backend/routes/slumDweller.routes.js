@@ -9,6 +9,7 @@ import {
   rejectSlumDweller,
   getCurrentUserProfile,
   checkNidDuplicate,
+  checkBirthCertificateDuplicate,
   updatePersonalInfo,
   updateSpouseInfo,
   updateChildInfo,
@@ -33,6 +34,9 @@ router.post("/signin", signinSlumDweller);
 
 // POST /api/slum-dweller/check-nid - Check NID duplicate
 router.post("/check-nid", checkNidDuplicate);
+
+// POST /api/slum-dweller/check-birth-certificate - Check birth certificate duplicate
+router.post("/check-birth-certificate", checkBirthCertificateDuplicate);
 
 // GET /api/slum-dweller/pending
 router.get("/pending", getPendingSlumDwellers);

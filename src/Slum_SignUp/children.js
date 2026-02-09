@@ -15,6 +15,37 @@
   function safeJsonParse(raw, fallback){ try { return JSON.parse(raw); } catch { return fallback; } }
   function clearSegments(){ segments.innerHTML = ''; }
 
+  // Show error toast notification
+  function showErrorToast(message) {
+    // Remove any existing toast
+    const existing = document.querySelector('.error-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'error-toast';
+    toast.innerHTML = `<strong>Error</strong><div class="subtitle">${message}</div>`;
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #f44336;
+      color: white;
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 10000;
+      max-width: 400px;
+      font-family: inherit;
+    `;
+    document.body.appendChild(toast);
+
+    // Auto-dismiss after 4 seconds
+    setTimeout(() => {
+      toast.classList.add('toast-hide');
+      setTimeout(() => { try { toast.remove(); } catch {} }, 350);
+    }, 4000);
+  }
+
   function makeChildSegment(index){
     const wrap = document.createElement('div');
     wrap.className = 'child-segment';
@@ -138,6 +169,7 @@
         <label class="field span-2">
           <span>Birth Certificate Number</span>
           <input type="text" name="child_${index}_birth_certificate_number" inputmode="numeric" placeholder="Enter 17-digit birth certificate number" maxlength="17" />
+          <span class="field-error" id="birthCertError_${index}" style="display: none;"></span>
         </label>
         <label class="field span-2">
           <span>Birth Certificate (Upload)</span>
@@ -231,10 +263,25 @@
   }
 
   async function checkBirthCertificateDuplicate(certNumber, certEl) {
-    if (!certEl || !certNumber) return;
+    if (!certEl || !certNumber) {
+      clearBirthCertError(certEl);
+      return;
+    }
+
+    // Check against other birth certificate numbers on the same page
+    const allBirthCertNumbers = getAllBirthCertNumbers();
+    const currentFieldName = certEl.name;
+    
+    for (const [fieldName, certNum] of Object.entries(allBirthCertNumbers)) {
+      if (fieldName !== currentFieldName && certNum === certNumber) {
+        showBirthCertError(certEl, 'Duplicate birth certificate number found among children');
+        certEl.setCustomValidity('Duplicate birth certificate number found among children');
+        return;
+      }
+    }
 
     try {
-      const response = await fetch('/api/children/check-birth-certificate', {
+      const response = await fetch('/api/slum-dweller/check-birth-certificate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -244,6 +291,7 @@
 
       if (!response.ok) {
         console.log('Birth certificate check API not available, skipping duplicate check');
+        clearBirthCertError(certEl);
         return; // Gracefully handle API unavailability
       }
 
@@ -251,8 +299,10 @@
 
       if (result.status === 'success') {
         if (result.isDuplicate) {
+          showBirthCertError(certEl, 'This birth certificate number already exists in the system');
           certEl.setCustomValidity('Duplicate birth certificate number - This number already exists in the system');
         } else {
+          showBirthCertSuccess(certEl);
           // Clear any duplicate error, but preserve other validation errors
           const currentError = certEl.validationMessage;
           if (currentError.includes('Duplicate birth certificate number')) {
@@ -262,6 +312,7 @@
       }
     } catch (error) {
       console.log('Birth certificate check service unavailable, proceeding without duplicate check');
+      clearBirthCertError(certEl);
       // Clear any existing duplicate validation errors when service is unavailable
       const currentError = certEl.validationMessage;
       if (currentError && currentError.includes('Duplicate birth certificate number')) {
@@ -269,6 +320,64 @@
       }
     }
   }
+
+  function getAllBirthCertNumbers() {
+    const certNumbers = {};
+    const certInputs = segments.querySelectorAll('input[name*="_birth_certificate_number"]');
+    certInputs.forEach(input => {
+      const certNum = input.value.replace(/\D/g, '');
+      if (certNum && certNum.length === 17) {
+        certNumbers[input.name] = certNum;
+      }
+    });
+    return certNumbers;
+  }
+
+  function showBirthCertError(certEl, message) {
+    const certField = certEl?.closest('.field');
+    const fieldName = certEl.name;
+    const index = fieldName.match(/child_(\d+)_birth_certificate_number/)?.[1];
+    const errorEl = index ? document.getElementById(`birthCertError_${index}`) : null;
+    
+    if (certField) {
+      certField.classList.add('has-error');
+      certField.classList.remove('has-success');
+    }
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+    }
+  }
+
+  function showBirthCertSuccess(certEl) {
+    const certField = certEl?.closest('.field');
+    const fieldName = certEl.name;
+    const index = fieldName.match(/child_(\d+)_birth_certificate_number/)?.[1];
+    const errorEl = index ? document.getElementById(`birthCertError_${index}`) : null;
+    
+    if (certField) {
+      certField.classList.remove('has-error');
+      certField.classList.add('has-success');
+    }
+    if (errorEl) {
+      errorEl.style.display = 'none';
+    }
+  }
+
+  function clearBirthCertError(certEl) {
+    const certField = certEl?.closest('.field');
+    const fieldName = certEl?.name;
+    const index = fieldName?.match(/child_(\d+)_birth_certificate_number/)?.[1];
+    const errorEl = index ? document.getElementById(`birthCertError_${index}`) : null;
+    
+    if (certField) {
+      certField.classList.remove('has-error', 'has-success');
+    }
+    if (errorEl) {
+      errorEl.style.display = 'none';
+    }
+  }
+
 
   function setupBirthCertificateConstraints() {
     const birthCertInputs = segments.querySelectorAll('input[name*="_birth_certificate_number"]');
@@ -345,12 +454,17 @@
         el.setCustomValidity('');
       }
     });
-    // Password match check
+    // Password length check
     const pwd = frm.querySelector('[name="account_password"]');
     const cfm = frm.querySelector('[name="account_confirm"]');
+    if (pwd && pwd.value && pwd.value.length < 8) {
+      pwd.setCustomValidity('Password length need to minimum 8');
+      if (!firstInvalid) firstInvalid = pwd;
+    }
+    // Password match check
     if (pwd && cfm && pwd.value && cfm.value && pwd.value !== cfm.value) {
       cfm.setCustomValidity('Passwords do not match');
-      firstInvalid = cfm;
+      if (!firstInvalid) firstInvalid = cfm;
     }
     if (firstInvalid) { firstInvalid.reportValidity(); firstInvalid.focus(); return false; }
     return true;
@@ -532,7 +646,7 @@
       const entered = boxes.map((b, i) => ({ num: numbers[i], code: (b.value||'').trim() }));
       const allOk = entered.every(e => map[e.num] && map[e.num] === e.code);
       if (!allOk){
-        alert('Invalid OTP.');
+        showErrorToast('OTP does not match');
         return;
       }
       // OTP verified: send data to backend

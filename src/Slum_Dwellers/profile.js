@@ -512,6 +512,7 @@ function formatDate(dateStr) {
                 <div class="info-row" data-field="name" data-editable="false"><span class="info-key">Name</span><span class="info-val">${c.name || '—'}</span></div>
                 <div class="info-row" data-field="dob" data-editable="false"><span class="info-key">Date of Birth</span><span class="info-val">${formatDate(c.dob)}</span></div>
                 <div class="info-row" data-field="gender" data-editable="false"><span class="info-key">Gender</span><span class="info-val">${c.gender || '—'}</span></div>
+                <div class="info-row" data-field="birth_certificate_number" data-editable="false"><span class="info-key">Birth Certificate Number</span><span class="info-val">${c.birth_certificate_number || '—'}</span></div>
                 <div class="info-row" data-field="education" data-editable="true"><span class="info-key">Education</span><span class="info-val">${c.education || '—'}</span></div>
                 <div class="info-row" data-field="job" data-editable="true"><span class="info-key">Occupation</span><span class="info-val">${c.job || '—'}</span></div>
                 <div class="info-row" data-field="skills_1" data-editable="true"><span class="info-key">Skills 1</span><span class="info-val">${c.skills_1 || 'None'}</span></div>
