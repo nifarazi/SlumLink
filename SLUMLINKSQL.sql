@@ -693,3 +693,7 @@ ALTER TABLE complaints
 ADD COLUMN division VARCHAR(150),
 ADD COLUMN district VARCHAR(150),
 ADD COLUMN area VARCHAR(150);
+
+-- Remove the old location column from complaints table
+ALTER TABLE complaints
+DROP COLUMN location;

@@ -30,9 +30,9 @@ export const createComplaint = async (req, res) => {
       });
     }
 
-    // Get slum dweller's location (area)
+    // Get slum dweller's location information (division, district, area)
     const [dwellerRows] = await pool.query(
-      'SELECT area FROM slum_dwellers WHERE slum_code = ? AND status = ?',
+      'SELECT division, district, area FROM slum_dwellers WHERE slum_code = ? AND status = ?',
       [slum_id, 'accepted']
     );
 
@@ -43,7 +43,10 @@ export const createComplaint = async (req, res) => {
       });
     }
 
-    const location = dwellerRows[0].area || 'Not specified';
+    const dwellerLocation = dwellerRows[0];
+    const division = dwellerLocation.division || 'Not specified';
+    const district = dwellerLocation.district || 'Not specified';
+    const area = dwellerLocation.area || 'Not specified';
 
     // Convert attachment Data URL to Buffer
     const attachmentBuffer = dataUrlToBuffer(attachment);
@@ -66,10 +69,10 @@ export const createComplaint = async (req, res) => {
     // Insert complaint into database
     const sql = `
       INSERT INTO complaints 
-      (slum_id, title, category, description, location, 
+      (slum_id, title, category, description, division, district, area,
        attachment_filename, attachment_mimetype, attachment_size, attachment_file, 
        status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), NOW())
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), NOW())
     `;
 
     const values = [
@@ -77,7 +80,9 @@ export const createComplaint = async (req, res) => {
       title,
       category,
       description,
-      location,
+      division,
+      district,
+      area,
       filename,
       mimetype,
       attachmentBuffer.length,
@@ -90,7 +95,9 @@ export const createComplaint = async (req, res) => {
       complaint_id: result.insertId,
       slum_id,
       title,
-      location
+      division,
+      district,
+      area
     });
 
     return res.status(201).json({
@@ -101,7 +108,9 @@ export const createComplaint = async (req, res) => {
         slum_id,
         title,
         category,
-        location,
+        division,
+        district,
+        area,
         status: 'pending',
         created_at: new Date().toISOString()
       }
@@ -123,7 +132,7 @@ export const getComplaintsBySlumId = async (req, res) => {
     const { slum_id } = req.params;
 
     const [complaints] = await pool.query(
-      `SELECT complaint_id, slum_id, title, category, description, location, 
+      `SELECT complaint_id, slum_id, title, category, description, division, district, area, 
               status, responded_by, created_at, updated_at,
               attachment_filename, attachment_mimetype, attachment_size
        FROM complaints 
@@ -194,7 +203,7 @@ export const getAllComplaints = async (req, res) => {
     const { status } = req.query;
 
     let sql = `
-      SELECT complaint_id, slum_id, title, category, description, location, 
+      SELECT complaint_id, slum_id, title, category, description, division, district, area, 
              status, responded_by, created_at, updated_at,
              attachment_filename, attachment_mimetype, attachment_size
       FROM complaints
