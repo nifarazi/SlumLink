@@ -1720,31 +1720,17 @@ function showToast(title, message, type = 'success') {
         <label><span>Education</span></label>
         <select name="spouse_add_${index}_education">
           <option value="">Select education</option>
-          <option value="No Formal Education">No Formal Education</option>
-          <option value="Primary (Class 1-5)">Primary (Class 1-5)</option>
-          <option value="Secondary (Class 6-10)">Secondary (Class 6-10)</option>
-          <option value="Higher Secondary (Class 11-12)">Higher Secondary (Class 11-12)</option>
+          <option value="None">None</option>
+          <option value="Primary">Primary</option>
+          <option value="Secondary">Secondary</option>
+          <option value="HSC">HSC</option>
+          <option value="Diploma">Diploma</option>
           <option value="Graduate">Graduate</option>
-          <option value="Post Graduate">Post Graduate</option>
         </select>
       </div>
       <div class="modal-field">
         <label><span>Occupation</span></label>
-        <select name="spouse_add_${index}_occupation">
-          <option value="">Select occupation</option>
-          <option value="Unemployed">Unemployed</option>
-          <option value="Day Laborer">Day Laborer</option>
-          <option value="Rickshaw/Van Puller">Rickshaw/Van Puller</option>
-          <option value="Domestic Worker">Domestic Worker</option>
-          <option value="Factory Worker">Factory Worker</option>
-          <option value="Small Business">Small Business</option>
-          <option value="Driver">Driver</option>
-          <option value="Security Guard">Security Guard</option>
-          <option value="Construction Worker">Construction Worker</option>
-          <option value="Street Vendor">Street Vendor</option>
-          <option value="Tailor">Tailor</option>
-          <option value="Other">Other</option>
-        </select>
+        <input type="text" name="spouse_add_${index}_occupation" placeholder="Enter occupation" />
       </div>
       <div class="modal-field">
         <label><span>Skills 1</span></label>
@@ -1817,11 +1803,10 @@ function showToast(title, message, type = 'success') {
         <select name="spouse_add_${index}_income">
           <option value="">Select income range</option>
           <option value="No Income">No Income</option>
-          <option value="Less than 5,000 BDT">Less than 5,000 BDT</option>
-          <option value="5,000 - 10,000 BDT">5,000 - 10,000 BDT</option>
-          <option value="10,001 - 15,000 BDT">10,001 - 15,000 BDT</option>
-          <option value="15,001 - 20,000 BDT">15,001 - 20,000 BDT</option>
-          <option value="Above 20,000 BDT">Above 20,000 BDT</option>
+          <option value="Less than ৳3,000">Less than ৳3,000</option>
+          <option value="৳3,000 – ৳5,000">৳3,000 – ৳5,000</option>
+          <option value="৳5,001 – ৳9,999">৳5,001 – ৳9,999</option>
+          <option value="৳10,000 and above">৳10,000 and above</option>
         </select>
       </div>
       <div class="modal-field">
@@ -1870,28 +1855,17 @@ function showToast(title, message, type = 'success') {
         <label><span>Education</span></label>
         <select name="child_add_${index}_education">
           <option value="">Select education</option>
-          <option value="Not Applicable (Too Young)">Not Applicable (Too Young)</option>
-          <option value="No Formal Education">No Formal Education</option>
-          <option value="Primary (Class 1-5)">Primary (Class 1-5)</option>
-          <option value="Secondary (Class 6-10)">Secondary (Class 6-10)</option>
-          <option value="Higher Secondary (Class 11-12)">Higher Secondary (Class 11-12)</option>
+          <option value="None">None</option>
+          <option value="Primary">Primary</option>
+          <option value="Secondary">Secondary</option>
+          <option value="HSC">HSC</option>
+          <option value="Diploma">Diploma</option>
           <option value="Graduate">Graduate</option>
-          <option value="Post Graduate">Post Graduate</option>
         </select>
       </div>
       <div class="modal-field">
         <label><span>Occupation</span></label>
-        <select name="child_add_${index}_occupation">
-          <option value="">Select occupation</option>
-          <option value="Not Applicable (Too Young)">Not Applicable (Too Young)</option>
-          <option value="Student">Student</option>
-          <option value="Unemployed">Unemployed</option>
-          <option value="Day Laborer">Day Laborer</option>
-          <option value="Domestic Worker">Domestic Worker</option>
-          <option value="Factory Worker">Factory Worker</option>
-          <option value="Small Business">Small Business</option>
-          <option value="Other">Other</option>
-        </select>
+        <input type="text" name="child_add_${index}_occupation" placeholder="Enter occupation" />
       </div>
       <div class="modal-field">
         <label><span>Skills 1</span></label>
@@ -1964,29 +1938,15 @@ function showToast(title, message, type = 'success') {
         <select name="child_add_${index}_income">
           <option value="">Select income range</option>
           <option value="No Income">No Income</option>
-          <option value="Less than 5,000 BDT">Less than 5,000 BDT</option>
-          <option value="5,000 - 10,000 BDT">5,000 - 10,000 BDT</option>
-          <option value="10,001 - 15,000 BDT">10,001 - 15,000 BDT</option>
-          <option value="15,001 - 20,000 BDT">15,001 - 20,000 BDT</option>
-          <option value="Above 20,000 BDT">Above 20,000 BDT</option>
+          <option value="Less than ৳3,000">Less than ৳3,000</option>
+          <option value="৳3,000 – ৳5,000">৳3,000 – ৳5,000</option>
+          <option value="৳5,001 – ৳9,999">৳5,001 – ৳9,999</option>
+          <option value="৳10,000 and above">৳10,000 and above</option>
         </select>
       </div>
       <div class="modal-field">
         <label><span>Preferred Job</span></label>
-        <select name="child_add_${index}_preferred_job">
-          <option value="">Select preferred job</option>
-          <option value="Not Applicable (Too Young)">Not Applicable (Too Young)</option>
-          <option value="Any Available Work">Any Available Work</option>
-          <option value="Skilled Labor">Skilled Labor</option>
-          <option value="Factory Work">Factory Work</option>
-          <option value="Driving">Driving</option>
-          <option value="Tailoring">Tailoring</option>
-          <option value="Domestic Work">Domestic Work</option>
-          <option value="Small Business">Small Business</option>
-          <option value="Office/Clerical">Office/Clerical</option>
-          <option value="Teaching/Tutoring">Teaching/Tutoring</option>
-          <option value="Other">Other</option>
-        </select>
+        <input type="text" name="child_add_${index}_preferred_job" placeholder="Enter preferred job" />
       </div>
       <div class="modal-field">
         <label><span>Birth Certificate</span></label>
@@ -2761,7 +2721,7 @@ function showToast(title, message, type = 'success') {
         if (educationInput && !educationInput.value) {
           addFieldError(educationInput, 'This field is required');
         }
-        if (occupationInput && !occupationInput.value) {
+        if (occupationInput && !occupationInput.value.trim()) {
           addFieldError(occupationInput, 'This field is required');
         }
         if (incomeInput && !incomeInput.value) {
@@ -2819,13 +2779,13 @@ function showToast(title, message, type = 'success') {
         if (educationInput && !educationInput.value) {
           addFieldError(educationInput, 'This field is required');
         }
-        if (occupationInput && !occupationInput.value) {
+        if (occupationInput && !occupationInput.value.trim()) {
           addFieldError(occupationInput, 'This field is required');
         }
         if (incomeInput && !incomeInput.value) {
           addFieldError(incomeInput, 'This field is required');
         }
-        if (preferredJobInput && !preferredJobInput.value) {
+        if (preferredJobInput && !preferredJobInput.value.trim()) {
           addFieldError(preferredJobInput, 'This field is required');
         }
         if (certInput && (!certInput.files || certInput.files.length === 0)) {
@@ -2970,23 +2930,307 @@ function showToast(title, message, type = 'success') {
         console.error('Error updating member statuses:', error);
         showToast('Error', 'An error occurred while processing your request.', 'error');
       }
-    } else {
-      // Handle add action (keep existing logic)
-      const { app, idx } = getCurrentUserApp();
-      if (app && idx !== -1) {
-        if (!app.data) app.data = {};
-        app.data.pendingEditMember = true;
-        const apps = safeJsonParse(sessionStorage.getItem('SLUMLINK_APPLICATIONS'), []);
-        apps[idx] = app;
-        sessionStorage.setItem('SLUMLINK_APPLICATIONS', JSON.stringify(apps));
+    } else if (pendingAction === 'add') {
+      await handleAddMembersSubmission();
+    }
+  });
+
+  // Handle add members submission with OTP verification
+  async function handleAddMembersSubmission() {
+    try {
+      const currentUser = getCurrentUser();
+      if (!currentUser) {
+        showToast('Error', 'User session not found. Please login again.', 'error');
+        return;
+      }
+
+      const spouseCount = parseInt(spouseAddCount?.value, 10) || 0;
+      const childCount = parseInt(childrenAddCount?.value, 10) || 0;
+
+      // Arrays to store spouse mobile numbers for OTP
+      const spouseMobiles = [];
+
+      // First, add all children (no OTP required)
+      for (let i = 1; i <= childCount; i++) {
+        const childData = {
+          name: form.querySelector(`[name="child_add_${i}_name"]`)?.value,
+          dob: form.querySelector(`[name="child_add_${i}_dob"]`)?.value,
+          gender: form.querySelector(`[name="child_add_${i}_gender"]`)?.value,
+          birth_certificate_number: form.querySelector(`[name="child_add_${i}_birth_certificate_number"]`)?.value?.replace(/\s+/g, ''),
+          education: form.querySelector(`[name="child_add_${i}_education"]`)?.value,
+          job: form.querySelector(`[name="child_add_${i}_occupation"]`)?.value,
+          skills_1: form.querySelector(`[name="child_add_${i}_skills_1"]`)?.value,
+          skills_2: form.querySelector(`[name="child_add_${i}_skills_2"]`)?.value,
+          income: form.querySelector(`[name="child_add_${i}_income"]`)?.value,
+          preferred_job: form.querySelector(`[name="child_add_${i}_preferred_job"]`)?.value
+        };
+
+        // Create FormData for child with file upload
+        const childFormData = new FormData();
+        childFormData.append('childData', JSON.stringify(childData));
+        
+        const childCertFile = form.querySelector(`[name="child_add_${i}_certificate"]`)?.files[0];
+        if (childCertFile) {
+          childFormData.append('birth_certificate', childCertFile);
+        }
+
+        // Add child to database
+        const childResponse = await fetch(`/api/slum-dweller/${currentUser.slum_code}/add-child`, {
+          method: 'POST',
+          body: childFormData
+        });
+
+        if (!childResponse.ok) {
+          const error = await childResponse.json();
+          throw new Error(error.message || 'Failed to add child');
+        }
+      }
+
+      // Then, add all spouses
+      for (let i = 1; i <= spouseCount; i++) {
+        const spouseData = {
+          name: form.querySelector(`[name="spouse_add_${i}_name"]`)?.value,
+          dob: form.querySelector(`[name="spouse_add_${i}_dob"]`)?.value,
+          gender: form.querySelector(`[name="spouse_add_${i}_gender"]`)?.value,
+          nid: form.querySelector(`[name="spouse_add_${i}_nid"]`)?.value?.replace(/\s+/g, ''),
+          mobile: form.querySelector(`[name="spouse_add_${i}_mobile"]`)?.value,
+          education: form.querySelector(`[name="spouse_add_${i}_education"]`)?.value,
+          job: form.querySelector(`[name="spouse_add_${i}_occupation"]`)?.value,
+          skills_1: form.querySelector(`[name="spouse_add_${i}_skills_1"]`)?.value,
+          skills_2: form.querySelector(`[name="spouse_add_${i}_skills_2"]`)?.value,
+          income: form.querySelector(`[name="spouse_add_${i}_income"]`)?.value
+        };
+
+        // Create FormData for spouse with file upload
+        const spouseFormData = new FormData();
+        spouseFormData.append('spouseData', JSON.stringify(spouseData));
+        
+        const spouseCertFile = form.querySelector(`[name="spouse_add_${i}_certificate"]`)?.files[0];
+        if (spouseCertFile) {
+          spouseFormData.append('marriage_certificate', spouseCertFile);
+        }
+
+        // Prepare spouse addition (validate and get spouse key) without database insertion
+        const spouseResponse = await fetch(`/api/slum-dweller/${currentUser.slum_code}/prepare-spouse-add`, {
+          method: 'POST',
+          body: spouseFormData
+        });
+
+        if (!spouseResponse.ok) {
+          const error = await spouseResponse.json();
+          throw new Error(error.message || 'Failed to prepare spouse addition');
+        }
+
+        const spouseResult = await spouseResponse.json();
+        spouseMobiles.push({
+          mobile: spouseData.mobile,
+          name: spouseData.name,
+          spouseKey: spouseResult.data.spouseKey // Store spouse key for OTP verification
+        });
       }
 
       hideConfirmationModal();
       closeModal();
-      showToast('Success', 'Your Request Has Been Sent For Verification');
-      updateEditMemberButtonState();
+
+      // If there are spouses, start OTP verification process
+      if (spouseMobiles.length > 0) {
+        showSpouseOTPVerificationModal(spouseMobiles);
+      } else {
+        // Only children were added
+        showMemberRemovalSuccessToast();
+        updateEditMemberButtonState();
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      }
+
+    } catch (error) {
+      console.error('Error adding members:', error);
+      showToast('Error', 'Failed to add members: ' + error.message, 'error');
     }
-  });
+  }
+
+  // Spouse OTP Verification Modal functionality
+  function showSpouseOTPVerificationModal(spouseMobiles) {
+    // Create modal if it doesn't exist
+    let otpModal = document.getElementById('spouseOTPModal');
+    if (!otpModal) {
+      createSpouseOTPModal();
+      otpModal = document.getElementById('spouseOTPModal');
+    }
+
+    const modalContent = otpModal.querySelector('.spouse-otp-content');
+    let currentSpouseIndex = 0;
+    let verifiedSpouses = 0;
+
+    function showSpouseOTPStep(index) {
+      if (index >= spouseMobiles.length) {
+        // All spouses verified
+        hideSpouseOTPModal();
+        showMemberRemovalSuccessToast();
+        updateEditMemberButtonState();
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+        return;
+      }
+
+      const spouse = spouseMobiles[index];
+      modalContent.innerHTML = `
+        <h3>Spouse Verification ${index + 1} of ${spouseMobiles.length}</h3>
+        <div class="spouse-info">
+          <p><strong>Name:</strong> ${spouse.name}</p>
+          <p><strong>Mobile:</strong> ${spouse.mobile}</p>
+        </div>
+        <div class="otp-step">
+          <p>An OTP has been sent to the spouse's mobile number for verification.</p>
+          <div class="modal-field">
+            <label><span>Enter OTP</span></label>
+            <input type="text" id="spouseOTP_${index}" maxlength="6" placeholder="Enter 6-digit OTP" />
+            <span class="field-error" id="spouseOTPError_${index}" style="display: none; color: #d32f2f; font-size: 0.875rem; margin-top: 0.25rem;"></span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn outlined" onclick="hideSpouseOTPModal()">Cancel</button>
+          <button type="button" class="btn primary" id="verifySpouseOTP_${index}">Verify</button>
+          <button type="button" class="btn outlined" id="resendSpouseOTP_${index}">Resend OTP</button>
+        </div>
+      `;
+
+      // Send OTP automatically
+      sendSpouseOTP(spouse);
+
+      // Add event listeners
+      document.getElementById(`verifySpouseOTP_${index}`).addEventListener('click', () => verifySpouseOTP(index, spouse));
+      document.getElementById(`resendSpouseOTP_${index}`).addEventListener('click', () => sendSpouseOTP(spouse));
+    }
+
+    async function sendSpouseOTP(spouse) {
+      try {
+        const response = await fetch('/api/slum-dweller/spouse-add-otp/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            mobile: spouse.mobile,
+            spouseName: spouse.name,
+            spouseKey: spouse.spouseKey // Pass spouse key for validation
+          })
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to send OTP');
+        }
+
+        console.log('OTP sent to spouse:', spouse.mobile);
+      } catch (error) {
+        console.error('Error sending spouse OTP:', error);
+        document.getElementById(`spouseOTPError_${currentSpouseIndex}`).textContent = 'Failed to send OTP: ' + error.message;
+        document.getElementById(`spouseOTPError_${currentSpouseIndex}`).style.display = 'block';
+      }
+    }
+
+    async function verifySpouseOTP(index, spouse) {
+      const otpInput = document.getElementById(`spouseOTP_${index}`);
+      const errorEl = document.getElementById(`spouseOTPError_${index}`);
+      const otp = otpInput.value.trim();
+
+      // Clear previous errors
+      errorEl.style.display = 'none';
+
+      if (!otp) {
+        errorEl.textContent = 'Please enter the OTP';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      if (otp.length !== 6) {
+        errorEl.textContent = 'OTP must be 6 digits';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/slum-dweller/spouse-add-otp/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            mobile: spouse.mobile,
+            otp: otp,
+            spouseKey: spouse.spouseKey // Pass spouse key instead of spouse ID
+          })
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.message || 'Invalid OTP');
+        }
+
+        // OTP verified successfully, move to next spouse
+        currentSpouseIndex++;
+        verifiedSpouses++;
+        showSpouseOTPStep(currentSpouseIndex);
+
+      } catch (error) {
+        console.error('Error verifying spouse OTP:', error);
+        errorEl.textContent = error.message;
+        errorEl.style.display = 'block';
+      }
+    }
+
+    // Show modal and start with first spouse
+    otpModal.style.display = 'flex';
+    showSpouseOTPStep(0);
+  }
+
+  function createSpouseOTPModal() {
+    const modal = document.createElement('div');
+    modal.id = 'spouseOTPModal';
+    modal.className = 'modal';
+    modal.style.cssText = `
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      align-items: center;
+      justify-content: center;
+    `;
+
+    modal.innerHTML = `
+      <div class="modal-content" style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+        <div class="spouse-otp-content">
+          <!-- Content will be populated dynamically -->
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        hideSpouseOTPModal();
+      }
+    });
+  }
+
+  function hideSpouseOTPModal() {
+    const modal = document.getElementById('spouseOTPModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  // Make function globally available
+  window.hideSpouseOTPModal = hideSpouseOTPModal;
 })();
 
 // ===================
@@ -3117,7 +3361,7 @@ function showToast(title, message, type = 'success') {
   }
 
   // API Base URL
-  const API_BASE = 'http://localhost:5001/api';
+  const API_BASE = 'http://localhost:5002/api';
 
   // Step 1: Initial confirmation
   changePhoneBtn.addEventListener('click', showModal);
@@ -3464,7 +3708,7 @@ function showToast(title, message, type = 'success') {
   }
 
   // API Base URL
-  const API_BASE = 'http://localhost:5001/api';
+  const API_BASE = 'http://localhost:5002/api';
 
   // Event delegation for change spouse phone buttons
   document.addEventListener('click', (e) => {

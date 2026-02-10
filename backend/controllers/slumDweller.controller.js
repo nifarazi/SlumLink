@@ -1,6 +1,6 @@
 import pool from "../db.js";
 import bcrypt from "bcrypt";
-import { sendSMS, createVerificationMessage } from "../utils/sms.js";
+import { sendSMS, createVerificationMessage, createOTPMessage } from "../utils/sms.js";
 
 // Signin controller for slum dwellers using slum_code and password
 export const signinSlumDweller = async (req, res) => {
@@ -1912,5 +1912,566 @@ export const updateChildStatus = async (req, res) => {
     });
   } finally {
     connection.release();
+  }
+};
+
+// Prepare spouse addition - validate and send OTP without database insertion
+export const prepareSpouseAdd = async (req, res) => {
+  const { slumCode } = req.params;
+  const connection = await pool.getConnection();
+
+  try {
+    // Verify the slum dweller exists and is active
+    const [dwellerRows] = await connection.query(
+      'SELECT id, slum_code FROM slum_dwellers WHERE slum_code = ? AND status = ?',
+      [slumCode, 'accepted']
+    );
+
+    if (!dwellerRows || dwellerRows.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Slum dweller not found or not active"
+      });
+    }
+
+    // Parse spouse data from FormData
+    let spouseData;
+    try {
+      spouseData = JSON.parse(req.body.spouseData);
+    } catch (error) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid spouse data format"
+      });
+    }
+
+    // Trim spaces from NID
+    if (spouseData.nid) {
+      spouseData.nid = spouseData.nid.replace(/\s+/g, '');
+    }
+
+    // Check for NID duplicate
+    const nidDuplicateCheck = await checkNidDuplicateInternal(
+      spouseData.nid,
+      slumCode,
+      null,
+      'spouse_add'
+    );
+
+    if (nidDuplicateCheck.isDuplicate) {
+      return res.status(400).json({
+        status: "error",
+        message: nidDuplicateCheck.message
+      });
+    }
+
+    // Handle file upload (binary data for LONGBLOB)
+    let marriage_certificate = null;
+    if (req.file && req.file.buffer) {
+      marriage_certificate = req.file.buffer;
+    }
+
+    // Store spouse data temporarily for OTP verification
+    if (!global.pendingSpouseData) {
+      global.pendingSpouseData = new Map();
+    }
+
+    const spouseKey = `spouse_${slumCode}_${spouseData.mobile}_${Date.now()}`;
+    global.pendingSpouseData.set(spouseKey, {
+      slumCode: slumCode,
+      spouseData: spouseData,
+      marriage_certificate: marriage_certificate,
+      expiry: Date.now() + 10 * 60 * 1000 // 10 minutes
+    });
+
+    console.log('✅ Spouse data prepared for OTP verification:', spouseKey);
+
+    return res.json({
+      status: "success",
+      message: "Spouse data validated. Ready for OTP verification.",
+      data: {
+        spouseKey: spouseKey,
+        mobile: spouseData.mobile,
+        name: spouseData.name
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Error preparing spouse add:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to prepare spouse addition",
+      error: error.message
+    });
+  } finally {
+    connection.release();
+  }
+};
+
+// Add spouse with pending_add status (kept for backward compatibility if needed)
+export const addSpouse = async (req, res) => {
+  const { slumCode } = req.params;
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // Verify the slum dweller exists and is active
+    const [dwellerRows] = await connection.query(
+      'SELECT id, slum_code FROM slum_dwellers WHERE slum_code = ? AND status = ?',
+      [slumCode, 'accepted']
+    );
+
+    if (!dwellerRows || dwellerRows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({
+        status: "error",
+        message: "Slum dweller not found or not active"
+      });
+    }
+
+    // Parse spouse data from FormData
+    let spouseData;
+    try {
+      spouseData = JSON.parse(req.body.spouseData);
+    } catch (error) {
+      await connection.rollback();
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid spouse data format"
+      });
+    }
+
+    // Trim spaces from NID
+    if (spouseData.nid) {
+      spouseData.nid = spouseData.nid.replace(/\s+/g, '');
+    }
+
+    // Check for NID duplicate
+    const nidDuplicateCheck = await checkNidDuplicateInternal(
+      spouseData.nid,
+      slumCode,
+      null,
+      'spouse_add'
+    );
+
+    if (nidDuplicateCheck.isDuplicate) {
+      await connection.rollback();
+      return res.status(400).json({
+        status: "error",
+        message: nidDuplicateCheck.message
+      });
+    }
+
+    // Handle file upload (binary data for LONGBLOB)
+    let marriage_certificate = null;
+    if (req.file && req.file.buffer) {
+      marriage_certificate = req.file.buffer;
+    }
+
+    // Insert spouse with pending_add status
+    const [insertResult] = await connection.query(
+      `INSERT INTO spouses 
+       (slum_id, name, dob, gender, nid, mobile, education, job, skills_1, skills_2, income, 
+        marriage_certificate, status, created_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [
+        slumCode,
+        spouseData.name,
+        spouseData.dob,
+        spouseData.gender,
+        spouseData.nid,
+        spouseData.mobile,
+        spouseData.education,
+        spouseData.job,
+        spouseData.skills_1,
+        spouseData.skills_2,
+        spouseData.income,
+        marriage_certificate,
+        'pending_add'
+      ]
+    );
+
+    await connection.commit();
+
+    console.log('✅ Spouse added with pending_add status:', insertResult.insertId);
+
+    return res.json({
+      status: "success",
+      message: "Spouse added successfully with pending verification",
+      data: {
+        spouseId: insertResult.insertId
+      }
+    });
+
+  } catch (error) {
+    await connection.rollback();
+    console.error("❌ Error adding spouse:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to add spouse",
+      error: error.message
+    });
+  } finally {
+    connection.release();
+  }
+};
+
+// Add child with pending_add status
+export const addChild = async (req, res) => {
+  const { slumCode } = req.params;
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // Verify the slum dweller exists and is active
+    const [dwellerRows] = await connection.query(
+      'SELECT id, slum_code FROM slum_dwellers WHERE slum_code = ? AND status = ?',
+      [slumCode, 'accepted']
+    );
+
+    if (!dwellerRows || dwellerRows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({
+        status: "error",
+        message: "Slum dweller not found or not active"
+      });
+    }
+
+    // Parse child data from FormData
+    let childData;
+    try {
+      childData = JSON.parse(req.body.childData);
+    } catch (error) {
+      await connection.rollback();
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid child data format"
+      });
+    }
+
+    // Check for birth certificate duplicate if provided
+    if (childData.birth_certificate_number) {
+      const cleanCertNumber = String(childData.birth_certificate_number).replace(/\s+/g, '');
+      
+      // Validate 17-digit format
+      if (!/^\d{17}$/.test(cleanCertNumber)) {
+        await connection.rollback();
+        return res.status(400).json({
+          status: "error",
+          message: "Birth certificate number must be exactly 17 digits"
+        });
+      }
+
+      // Update childData with cleaned number
+      childData.birth_certificate_number = cleanCertNumber;
+
+      // Check if birth certificate number already exists
+      const [existingRows] = await connection.query(
+        'SELECT COUNT(*) as count FROM children WHERE birth_certificate_number = ?',
+        [cleanCertNumber]
+      );
+
+      if (existingRows[0].count > 0) {
+        await connection.rollback();
+        return res.status(400).json({
+          status: "error",
+          message: "Birth certificate number already exists in the system"
+        });
+      }
+    }
+
+    // Handle file upload (binary data for LONGBLOB)
+    let birth_certificate = null;
+    if (req.file && req.file.buffer) {
+      birth_certificate = req.file.buffer;
+    }
+
+    // Calculate age and determine age group
+    const childAge = calculateAge(childData.dob);
+    const ageGroup = getAgeGroup(childAge);
+
+    console.log(`👶 Child: ${childData.name}, DOB: ${childData.dob}, Age: ${childAge}, Age Group: ${ageGroup}`);
+
+    // Insert child with pending_add status
+    const [insertResult] = await connection.query(
+      `INSERT INTO children 
+       (slum_id, name, dob, gender, birth_certificate_number, education, job, skills_1, skills_2, 
+        income, preferred_job, birth_certificate, age_group, status, created_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [
+        slumCode,
+        childData.name,
+        childData.dob,
+        childData.gender,
+        childData.birth_certificate_number || null,
+        childData.education,
+        childData.job,
+        childData.skills_1,
+        childData.skills_2,
+        childData.income,
+        childData.preferred_job,
+        birth_certificate,
+        ageGroup,
+        'pending_add'
+      ]
+    );
+
+    await connection.commit();
+
+    console.log('✅ Child added with pending_add status:', insertResult.insertId);
+
+    return res.json({
+      status: "success",
+      message: "Child added successfully with pending verification",
+      data: {
+        childId: insertResult.insertId
+      }
+    });
+
+  } catch (error) {
+    await connection.rollback();
+    console.error("❌ Error adding child:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to add child",
+      error: error.message
+    });
+  } finally {
+    connection.release();
+  }
+};
+
+// Send OTP to spouse mobile for add verification
+export const sendSpouseAddOTP = async (req, res) => {
+  try {
+    const { mobile, spouseName, spouseKey } = req.body;
+
+    if (!mobile || !spouseName) {
+      return res.status(400).json({
+        status: "error",
+        message: "Mobile number and spouse name are required"
+      });
+    }
+
+    // If spouseKey is provided, verify it exists in pendingSpouseData
+    if (spouseKey) {
+      if (!global.pendingSpouseData) {
+        global.pendingSpouseData = new Map();
+      }
+
+      const pendingData = global.pendingSpouseData.get(spouseKey);
+      if (!pendingData) {
+        return res.status(400).json({
+          status: "error",
+          message: "Invalid or expired spouse preparation data. Please restart the process."
+        });
+      }
+
+      // Check if data has expired
+      if (Date.now() > pendingData.expiry) {
+        global.pendingSpouseData.delete(spouseKey);
+        return res.status(400).json({
+          status: "error",
+          message: "Spouse preparation data has expired. Please restart the process."
+        });
+      }
+    }
+
+    // Validate mobile number format
+    const mobileRegex = /^[0-9]{11}$/;
+    if (!mobileRegex.test(mobile)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid mobile number format. Must be 11 digits."
+      });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otpMessage = createOTPMessage(otp, spouseName, 'spouse verification');
+
+    // Store OTP in temporary storage (in production, use Redis or database)
+    const otpKey = `spouse_add_otp_${mobile}`;
+    if (!global.otpStorage) {
+      global.otpStorage = new Map();
+    }
+    
+    global.otpStorage.set(otpKey, {
+      otp: otp.toString(),
+      expiry: Date.now() + 5 * 60 * 1000, // 5 minutes
+      mobile: mobile,
+      spouseName: spouseName,
+      spouseKey: spouseKey // Link OTP to spouse preparation data
+    });
+
+    // Send OTP via SMS
+    const smsResult = await sendSMS(mobile, otpMessage);
+
+    if (!smsResult) {
+      return res.status(500).json({
+        status: "error",
+        message: "Failed to send OTP. Please check the mobile number and try again."
+      });
+    }
+
+    console.log(`✅ Spouse add OTP sent to ${mobile} for ${spouseName}`);
+
+    return res.json({
+      status: "success",
+      message: "OTP sent successfully to spouse mobile number",
+      data: {
+        maskedPhone: mobile.replace(/(\d{3})\d{5}(\d{3})/, '$1*****$2')
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Error sending spouse add OTP:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to send OTP",
+      error: error.message
+    });
+  }
+};
+
+// Verify spouse add OTP
+export const verifySpouseAddOTP = async (req, res) => {
+  try {
+    const { mobile, otp, spouseKey } = req.body;
+
+    if (!mobile || !otp) {
+      return res.status(400).json({
+        status: "error",
+        message: "Mobile number and OTP are required"
+      });
+    }
+
+    // Check OTP from temporary storage
+    const otpKey = `spouse_add_otp_${mobile}`;
+    if (!global.otpStorage) {
+      global.otpStorage = new Map();
+    }
+
+    const storedOtpData = global.otpStorage.get(otpKey);
+
+    if (!storedOtpData) {
+      return res.status(400).json({
+        status: "error",
+        message: "OTP not found or expired. Please request a new OTP."
+      });
+    }
+
+    // Check OTP expiry
+    if (Date.now() > storedOtpData.expiry) {
+      global.otpStorage.delete(otpKey);
+      return res.status(400).json({
+        status: "error",
+        message: "OTP has expired. Please request a new OTP."
+      });
+    }
+
+    // Verify OTP
+    if (storedOtpData.otp !== otp.toString()) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid OTP. Please check and try again."
+      });
+    }
+
+    // Get the spouseKey from either request body or stored OTP data
+    const actualSpouseKey = spouseKey || storedOtpData.spouseKey;
+    
+    if (!actualSpouseKey) {
+      return res.status(400).json({
+        status: "error",
+        message: "Spouse preparation data not found. Please restart the process."
+      });
+    }
+
+    // Get spouse data from temporary storage
+    if (!global.pendingSpouseData) {
+      global.pendingSpouseData = new Map();
+    }
+
+    const pendingData = global.pendingSpouseData.get(actualSpouseKey);
+    if (!pendingData) {
+      return res.status(400).json({
+        status: "error",
+        message: "Spouse preparation data not found or expired. Please restart the process."
+      });
+    }
+
+    // Check if pending data has expired
+    if (Date.now() > pendingData.expiry) {
+      global.pendingSpouseData.delete(actualSpouseKey);
+      return res.status(400).json({
+        status: "error",
+        message: "Spouse preparation data has expired. Please restart the process."
+      });
+    }
+
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      // Insert the spouse data after successful OTP verification with pending_add status
+      const [insertResult] = await connection.query(
+        `INSERT INTO spouses 
+         (slum_id, name, dob, gender, nid, mobile, education, job, skills_1, skills_2, income, 
+          marriage_certificate, status, created_at) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+        [
+          pendingData.slumCode,
+          pendingData.spouseData.name,
+          pendingData.spouseData.dob,
+          pendingData.spouseData.gender,
+          pendingData.spouseData.nid,
+          pendingData.spouseData.mobile,
+          pendingData.spouseData.education,
+          pendingData.spouseData.job,
+          pendingData.spouseData.skills_1,
+          pendingData.spouseData.skills_2,
+          pendingData.spouseData.income,
+          pendingData.marriage_certificate,
+          'pending_add' // Insert with pending_add status after OTP verification
+        ]
+      );
+
+      await connection.commit();
+
+      // Clear both OTP and pending data from storage
+      global.otpStorage.delete(otpKey);
+      global.pendingSpouseData.delete(actualSpouseKey);
+
+      console.log('✅ Spouse add OTP verified and spouse inserted successfully with pending_add status for:', mobile, 'ID:', insertResult.insertId);
+
+      return res.json({
+        status: "success",
+        message: "Spouse verification completed and added successfully with pending status",
+        data: {
+          spouseId: insertResult.insertId
+        }
+      });
+
+    } catch (dbError) {
+      await connection.rollback();
+      console.error("❌ Database error during spouse insertion:", dbError);
+      return res.status(500).json({
+        status: "error",
+        message: "Failed to add spouse to database after verification"
+      });
+    } finally {
+      connection.release();
+    }
+
+  } catch (error) {
+    console.error("❌ Error verifying spouse add OTP:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to verify OTP",
+      error: error.message
+    });
   }
 };
