@@ -34,3 +34,9 @@ export function createVerificationMessage(slumCode) {
   return `SlumLink account verification completed successfully. Please log in using your registered credentials. Slum ID: ${slumCode}.
 SlumLink`;
 }
+
+// Create OTP message for spouse verification during add member process
+export function createOTPMessage(otp, spouseName, verificationType = 'spouse verification') {
+  return `Your SlumLink OTP for ${verificationType} is: ${otp}. Valid for 5 minutes. Name: ${spouseName}. Do not share this code.
+- SlumLink`;
+}

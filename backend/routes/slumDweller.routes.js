@@ -24,7 +24,12 @@ import {
   verifySpouseCurrentPhone,
   sendSpouseNewPhoneOTP,
   verifySpouseNewPhoneAndUpdate,
-  changePassword
+  changePassword,
+  addSpouse,
+  prepareSpouseAdd,
+  addChild,
+  sendSpouseAddOTP,
+  verifySpouseAddOTP
 } from "../controllers/slumDweller.controller.js";
 
 const router = express.Router();
@@ -99,6 +104,21 @@ router.post("/spouse-phone-change/new-phone", sendSpouseNewPhoneOTP);
 
 // POST /api/slum-dweller/spouse-phone-change/verify-new - Verify new spouse phone and update
 router.post("/spouse-phone-change/verify-new", verifySpouseNewPhoneAndUpdate);
+
+// POST /api/slum-dweller/:slumCode/prepare-spouse-add - Prepare spouse addition with validation and OTP
+router.post("/:slumCode/prepare-spouse-add", upload.single('marriage_certificate'), prepareSpouseAdd);
+
+// POST /api/slum-dweller/:slumCode/add-spouse - Add spouse with pending_add status  
+router.post("/:slumCode/add-spouse", upload.single('marriage_certificate'), addSpouse);
+
+// POST /api/slum-dweller/:slumCode/add-child - Add child with pending_add status
+router.post("/:slumCode/add-child", upload.single('birth_certificate'), addChild);
+
+// POST /api/slum-dweller/spouse-add-otp/send - Send OTP for spouse verification
+router.post("/spouse-add-otp/send", sendSpouseAddOTP);
+
+// POST /api/slum-dweller/spouse-add-otp/verify - Verify spouse add OTP
+router.post("/spouse-add-otp/verify", verifySpouseAddOTP);
 
 // DELETE /api/slum-dweller/:id
 router.delete("/:id", rejectSlumDweller);
