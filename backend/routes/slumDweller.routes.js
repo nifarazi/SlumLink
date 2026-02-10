@@ -1,4 +1,5 @@
 import express from "express";
+import upload from "../middleware/upload.js";
 import { 
   registerSlumDweller,
   signinSlumDweller,
@@ -13,6 +14,8 @@ import {
   updatePersonalInfo,
   updateSpouseInfo,
   updateChildInfo,
+  updateSpouseStatus,
+  updateChildStatus,
   initPhoneChange,
   verifyCurrentPhone,
   sendNewPhoneOTP,
@@ -59,8 +62,14 @@ router.put("/:slumId/personal", updatePersonalInfo);
 // PUT /api/slum-dweller/:slumId/spouse/:spouseId - Update spouse information
 router.put("/:slumId/spouse/:spouseId", updateSpouseInfo);
 
+// PATCH /api/slum-dweller/:slumId/spouse/:spouseId/status - Update spouse status
+router.patch("/:slumId/spouse/:spouseId/status", upload.single('divorce_certificate'), updateSpouseStatus);
+
 // PUT /api/slum-dweller/:slumId/child/:childId - Update child information  
 router.put("/:slumId/child/:childId", updateChildInfo);
+
+// PATCH /api/slum-dweller/:slumId/child/:childId/status - Update child status
+router.patch("/:slumId/child/:childId/status", upload.single('death_certificate'), updateChildStatus);
 
 // POST /api/slum-dweller/:slumCode/change-password - Change password
 router.post("/:slumCode/change-password", changePassword);
