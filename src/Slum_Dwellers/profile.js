@@ -1,4 +1,23 @@
 (function () {
+  // Global error handler for audio-related AbortErrors
+  window.addEventListener('error', (event) => {
+    if (event.message && event.message.includes('play() request was interrupted')) {
+      console.warn('🔇 Audio AbortError caught and handled:', event.message);
+      event.preventDefault(); // Prevent the error from appearing in console
+      return true;
+    }
+  });
+
+  // Handle unhandled promise rejections for audio
+  window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason && event.reason.name === 'AbortError') {
+      console.warn('🔇 Audio AbortError promise rejection caught and handled:', event.reason);
+      event.preventDefault();
+    }
+  });
+})();
+
+(function () {
   // Sidebar routing: navigate to Complaint Status when clicked
   const nav = document.querySelector('.nav');
   if (!nav) return;
@@ -119,8 +138,8 @@ function showProfileUpdateToast() {
   }, 2500);
 }
 
-// Show success toast for application submitted
-function showApplicationSubmittedToast() {
+// Show success toast for member removal submission
+function showMemberRemovalSuccessToast() {
   // Remove any existing toast
   const existing = document.querySelector('.profile-toast');
   if (existing) existing.remove();
@@ -135,7 +154,7 @@ function showApplicationSubmittedToast() {
     '</span>',
     '<div class="toast-content">',
       '<strong>Success</strong>',
-      '<div class="subtitle">Your application has been submitted successfully</div>',
+      '<div class="subtitle">Your Request Has Been Sent For Verification</div>',
     '</div>'
   ].join('');
   document.body.appendChild(toast);
@@ -531,6 +550,12 @@ function formatDate(dateStr) {
         spouses,
         children
       };
+      
+      console.log('✅ Profile data loaded successfully:', {
+        resident: resident.full_name,
+        spousesCount: spouses.length,
+        childrenCount: children.length
+      });
     })
     .catch((err) => {
       console.error('Failed to load profile data:', err);
@@ -1398,6 +1423,31 @@ function showPasswordChangeSuccessAndLogout() {
   }, 2000);
 }
 
+// Toast notification function
+function showToast(title, message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  if (type === 'success') {
+    toast.style.background = '#4CAF50';
+  } else if (type === 'error') {
+    toast.style.background = '#f44336';
+  }
+  
+  toast.innerHTML = `
+    <div class="toast-title">${title}</div>
+    <div class="toast-message">${message}</div>
+  `;
+  
+  document.body.appendChild(toast);
+  
+  // Remove toast after 4 seconds
+  setTimeout(() => {
+    if (toast && toast.parentNode) {
+      toast.parentNode.removeChild(toast);
+    }
+  }, 4000);
+}
+
 // Edit Member Modal Logic
 (function () {
   const modal = document.getElementById('editMemberModal');
@@ -1410,10 +1460,8 @@ function showPasswordChangeSuccessAndLogout() {
   const memberActionSelect = document.getElementById('memberAction');
   const removeMembersSection = document.getElementById('removeMembersSection');
   const addMembersSection = document.getElementById('addMembersSection');
-  const spouseRemoveCount = document.getElementById('spouseRemoveCount');
-  const childrenRemoveCount = document.getElementById('childrenRemoveCount');
-  const spouseRemovalForms = document.getElementById('spouseRemovalForms');
-  const childrenRemovalForms = document.getElementById('childrenRemovalForms');
+  const spouseRemovalList = document.getElementById('spouseRemovalList');
+  const childrenRemovalList = document.getElementById('childrenRemovalList');
   
   // Add members elements
   const spouseAddCount = document.getElementById('spouseAddCount');
@@ -1445,93 +1493,194 @@ function showPasswordChangeSuccessAndLogout() {
   // Initial check on page load
   updateEditMemberButtonState();
 
-  // Get current user's spouse and children count
-  function getMemberCounts() {
+  // Get current user's spouse and children data
+  function getMemberData() {
+    // Use the data fetched from backend API stored in window.__profileData
+    // instead of stale localStorage data
+    if (window.__profileData) {
+      const spouses = window.__profileData.spouses || [];
+      const children = window.__profileData.children || [];
+      return { spouses, children };
+    }
+    
+    // Fallback to localStorage data if API data not available yet
     const { app } = getCurrentUserApp();
-    const spouseCount = app?.data?.marital?.spouses?.length || 0;
-    const childrenCount = app?.data?.children?.children?.length || 0;
-    return { spouseCount, childrenCount };
+    const spouses = app?.data?.marital?.spouses || [];
+    const children = app?.data?.children?.children || [];
+    return { spouses, children };
   }
 
-  // Populate spouse count dropdown
-  function populateSpouseCountDropdown() {
-    const { spouseCount } = getMemberCounts();
-    spouseRemoveCount.innerHTML = '';
-    for (let i = 0; i <= spouseCount; i++) {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = i;
-      if (i === 0) opt.selected = true;
-      spouseRemoveCount.appendChild(opt);
-    }
-  }
-
-  // Populate children count dropdown
-  function populateChildrenCountDropdown() {
-    const { childrenCount } = getMemberCounts();
-    childrenRemoveCount.innerHTML = '';
-    for (let i = 0; i <= childrenCount; i++) {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = i;
-      if (i === 0) opt.selected = true;
-      childrenRemoveCount.appendChild(opt);
-    }
-  }
-
-  // Create spouse removal form
-  function createSpouseRemovalForm(index) {
+  // Create spouse removal card
+  function createSpouseRemovalCard(spouse, index) {
+    const isPendingRemove = spouse.status === 'pending_remove';
     const card = document.createElement('div');
-    card.className = 'removal-card';
-    card.innerHTML = `
-      <p class="removal-card-title">Spouse ${index} Details</p>
-      <div class="modal-field">
-        <label><span>Name</span></label>
-        <input type="text" name="spouse_remove_${index}_name" class="modal-input" placeholder="Enter spouse name" />
-      </div>
-      <div class="modal-field">
-        <label><span>Divorce Certificate</span></label>
-        <div class="file-input-wrapper">
-          <input type="file" name="spouse_remove_${index}_certificate" accept=".pdf,image/*" />
+    card.className = `member-removal-card ${isPendingRemove ? 'pending-remove' : ''}`;
+    
+    if (isPendingRemove) {
+      // Simplified view for pending removal - only show name, phone, and status
+      card.innerHTML = `
+        <div class="member-removal-card-header">
+          <input type="checkbox" 
+                 class="member-removal-checkbox spouse-checkbox" 
+                 data-spouse-id="${spouse.id}" 
+                 checked disabled />
+          <div class="member-info">
+            <div class="member-name">${spouse.name || 'N/A'}</div>
+            <div class="member-detail">Phone: ${spouse.mobile || 'N/A'}</div>
+            <div class="member-status">Requested for Removal</div>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    } else {
+      // Full view for active members with file upload
+      card.innerHTML = `
+        <div class="member-removal-card-header">
+          <input type="checkbox" 
+                 class="member-removal-checkbox spouse-checkbox" 
+                 data-spouse-id="${spouse.id}" />
+          <div class="member-info">
+            <div class="member-name">${spouse.name || 'N/A'}</div>
+            <div class="member-detail">Phone: ${spouse.mobile || 'N/A'}</div>
+          </div>
+        </div>
+        <div class="removal-file-section">
+          <label class="removal-file-label">Divorce Certificate (Required)</label>
+          <input type="file" 
+                 class="removal-file-input" 
+                 name="spouse_${spouse.id}_certificate" 
+                 accept=".pdf,.jpg,.jpeg,.png" />
+        </div>
+      `;
+    }
+    
     return card;
   }
 
-  // Create children removal form
-  function createChildrenRemovalForm(index) {
+  // Create children removal card
+  function createChildRemovalCard(child, index) {
+    const isPendingRemove = child.status === 'pending_remove';
     const card = document.createElement('div');
-    card.className = 'removal-card';
-    card.innerHTML = `
-      <p class="removal-card-title">Child ${index} Details</p>
-      <div class="modal-field">
-        <label><span>Name</span></label>
-        <input type="text" name="child_remove_${index}_name" class="modal-input" placeholder="Enter child name" />
-      </div>
-      <div class="modal-field">
-        <label><span>Death Certificate</span></label>
-        <div class="file-input-wrapper">
-          <input type="file" name="child_remove_${index}_certificate" accept=".pdf,image/*" />
+    card.className = `member-removal-card ${isPendingRemove ? 'pending-remove' : ''}`;
+    
+    if (isPendingRemove) {
+      // Simplified view for pending removal - only show name, birth certificate, and status
+      card.innerHTML = `
+        <div class="member-removal-card-header">
+          <input type="checkbox" 
+                 class="member-removal-checkbox child-checkbox" 
+                 data-child-id="${child.id}" 
+                 checked disabled />
+          <div class="member-info">
+            <div class="member-name">${child.name || 'N/A'}</div>
+            <div class="member-detail">Birth Certificate: ${child.birth_certificate_number || 'N/A'}</div>
+            <div class="member-status">Requested for Removal</div>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    } else {
+      // Full view for active members with file upload
+      card.innerHTML = `
+        <div class="member-removal-card-header">
+          <input type="checkbox" 
+                 class="member-removal-checkbox child-checkbox" 
+                 data-child-id="${child.id}" />
+          <div class="member-info">
+            <div class="member-name">${child.name || 'N/A'}</div>
+            <div class="member-detail">Birth Certificate: ${child.birth_certificate_number || 'N/A'}</div>
+          </div>
+        </div>
+        <div class="removal-file-section">
+          <label class="removal-file-label">Death Certificate (Required)</label>
+          <input type="file" 
+                 class="removal-file-input" 
+                 name="child_${child.id}_certificate" 
+                 accept=".pdf,.jpg,.jpeg,.png" />
+        </div>
+      `;
+    }
+    
     return card;
   }
 
-  // Render spouse removal forms
-  function renderSpouseRemovalForms(count) {
-    spouseRemovalForms.innerHTML = '';
-    for (let i = 1; i <= count; i++) {
-      spouseRemovalForms.appendChild(createSpouseRemovalForm(i));
+  // Populate spouse removal list
+  function populateSpouseRemovalList() {
+    const { spouses } = getMemberData();
+    
+    console.log('🔍 Populating spouse removal list:', spouses);
+    
+    spouseRemovalList.innerHTML = '';
+    
+    if (spouses.length === 0) {
+      spouseRemovalList.innerHTML = '<div class="no-members">No spouses to remove</div>';
+      return;
+    }
+    
+    spouses.forEach((spouse, index) => {
+      const card = createSpouseRemovalCard(spouse, index);
+      spouseRemovalList.appendChild(card);
+    });
+    
+    // Add checkbox event listeners
+    const checkboxes = spouseRemovalList.querySelectorAll('.spouse-checkbox');
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', handleSpouseCheckboxChange);
+    });
+  }
+
+  // Populate children removal list
+  function populateChildrenRemovalList() {
+    const { children } = getMemberData();
+    
+    console.log('🔍 Populating children removal list:', children);
+    
+    childrenRemovalList.innerHTML = '';
+    
+    if (children.length === 0) {
+      childrenRemovalList.innerHTML = '<div class="no-members">No children to remove</div>';
+      return;
+    }
+    
+    children.forEach((child, index) => {
+      const card = createChildRemovalCard(child, index);
+      childrenRemovalList.appendChild(card);
+    });
+    
+    // Add checkbox event listeners
+    const checkboxes = childrenRemovalList.querySelectorAll('.child-checkbox');
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', handleChildCheckboxChange);
+    });
+  }
+
+  // Handle spouse checkbox change
+  function handleSpouseCheckboxChange(e) {
+    const checkbox = e.target;
+    const card = checkbox.closest('.member-removal-card');
+    const fileSection = card.querySelector('.removal-file-section');
+    
+    if (checkbox.checked) {
+      fileSection.classList.add('show');
+    } else {
+      fileSection.classList.remove('show');
+      // Clear file input when unchecked
+      const fileInput = fileSection.querySelector('.removal-file-input');
+      if (fileInput) fileInput.value = '';
     }
   }
 
-  // Render children removal forms
-  function renderChildrenRemovalForms(count) {
-    childrenRemovalForms.innerHTML = '';
-    for (let i = 1; i <= count; i++) {
-      childrenRemovalForms.appendChild(createChildrenRemovalForm(i));
+  // Handle child checkbox change
+  function handleChildCheckboxChange(e) {
+    const checkbox = e.target;
+    const card = checkbox.closest('.member-removal-card');
+    const fileSection = card.querySelector('.removal-file-section');
+    
+    if (checkbox.checked) {
+      fileSection.classList.add('show');
+    } else {
+      fileSection.classList.remove('show');
+      // Clear file input when unchecked
+      const fileInput = fileSection.querySelector('.removal-file-input');
+      if (fileInput) fileInput.value = '';
     }
   }
 
@@ -1564,7 +1713,8 @@ function showPasswordChangeSuccessAndLogout() {
       </div>
       <div class="modal-field">
         <label><span>NID</span></label>
-        <input type="text" name="spouse_add_${index}_nid" placeholder="Enter NID number" />
+        <input type="text" name="spouse_add_${index}_nid" placeholder="Enter NID number" inputmode="numeric" maxlength="20" />
+        <span class="field-error" id="spouseAddNidError_${index}" style="display: none; color: #d32f2f; font-size: 0.875rem; margin-top: 0.25rem;"></span>
       </div>
       <div class="modal-field">
         <label><span>Education</span></label>
@@ -1598,11 +1748,69 @@ function showPasswordChangeSuccessAndLogout() {
       </div>
       <div class="modal-field">
         <label><span>Skills 1</span></label>
-        <input type="text" name="spouse_add_${index}_skills_1" placeholder="Enter first skill" />
+        <select name="spouse_add_${index}_skills_1" class="spouse-add-skill-1">
+          <option value="">Select skill</option>
+          <option value="None">None</option>
+          <option value="Tailoring">Tailoring</option>
+          <option value="Embroidery">Embroidery</option>
+          <option value="Housekeeping">Housekeeping</option>
+          <option value="Cooking">Cooking</option>
+          <option value="Caregiving">Caregiving</option>
+          <option value="Delivery">Delivery</option>
+          <option value="Driver">Driver</option>
+          <option value="Rickshaw">Rickshaw</option>
+          <option value="Electric Helper">Electric Helper</option>
+          <option value="Electrician">Electrician</option>
+          <option value="Plumbing Helper">Plumbing Helper</option>
+          <option value="Plumber">Plumber</option>
+          <option value="Masonry Helper">Masonry Helper</option>
+          <option value="Welding Helper">Welding Helper</option>
+          <option value="Welding">Welding</option>
+          <option value="Carpentry">Carpentry</option>
+          <option value="Barbering">Barbering</option>
+          <option value="Beauty Parlor">Beauty Parlor</option>
+          <option value="Mobile Servicing">Mobile Servicing</option>
+          <option value="Electronics Repair">Electronics Repair</option>
+          <option value="Sales">Sales</option>
+          <option value="Typing">Typing</option>
+          <option value="MS Office">MS Office</option>
+          <option value="Data Entry">Data Entry</option>
+          <option value="Tutoring">Tutoring</option>
+          <option value="Security Guard">Security Guard</option>
+        </select>
       </div>
       <div class="modal-field">
         <label><span>Skills 2</span></label>
-        <input type="text" name="spouse_add_${index}_skills_2" placeholder="Enter second skill" />
+        <select name="spouse_add_${index}_skills_2" class="spouse-add-skill-2">
+          <option value="">Select skill</option>
+          <option value="None">None</option>
+          <option value="Tailoring">Tailoring</option>
+          <option value="Embroidery">Embroidery</option>
+          <option value="Housekeeping">Housekeeping</option>
+          <option value="Cooking">Cooking</option>
+          <option value="Caregiving">Caregiving</option>
+          <option value="Delivery">Delivery</option>
+          <option value="Driver">Driver</option>
+          <option value="Rickshaw">Rickshaw</option>
+          <option value="Electric Helper">Electric Helper</option>
+          <option value="Electrician">Electrician</option>
+          <option value="Plumbing Helper">Plumbing Helper</option>
+          <option value="Plumber">Plumber</option>
+          <option value="Masonry Helper">Masonry Helper</option>
+          <option value="Welding Helper">Welding Helper</option>
+          <option value="Welding">Welding</option>
+          <option value="Carpentry">Carpentry</option>
+          <option value="Barbering">Barbering</option>
+          <option value="Beauty Parlor">Beauty Parlor</option>
+          <option value="Mobile Servicing">Mobile Servicing</option>
+          <option value="Electronics Repair">Electronics Repair</option>
+          <option value="Sales">Sales</option>
+          <option value="Typing">Typing</option>
+          <option value="MS Office">MS Office</option>
+          <option value="Data Entry">Data Entry</option>
+          <option value="Tutoring">Tutoring</option>
+          <option value="Security Guard">Security Guard</option>
+        </select>
       </div>
       <div class="modal-field">
         <label><span>Income Range</span></label>
@@ -1618,7 +1826,7 @@ function showPasswordChangeSuccessAndLogout() {
       </div>
       <div class="modal-field">
         <label><span>Mobile Number</span></label>
-        <input type="tel" name="spouse_add_${index}_mobile" placeholder="Enter mobile number" />
+        <input type="tel" name="spouse_add_${index}_mobile" placeholder="Enter mobile number" inputmode="numeric" maxlength="11" pattern="[0-9]{11}" />
       </div>
       <div class="modal-field">
         <label><span>Marriage Certificate</span></label>
@@ -1654,6 +1862,11 @@ function showPasswordChangeSuccessAndLogout() {
         </select>
       </div>
       <div class="modal-field">
+        <label><span>Birth Certificate Number</span></label>
+        <input type="text" name="child_add_${index}_birth_certificate_number" placeholder="Enter 17-digit birth certificate number" inputmode="numeric" maxlength="17" />
+        <span class="field-error" id="childAddBirthCertError_${index}" style="display: none; color: #d32f2f; font-size: 0.875rem; margin-top: 0.25rem;"></span>
+      </div>
+      <div class="modal-field">
         <label><span>Education</span></label>
         <select name="child_add_${index}_education">
           <option value="">Select education</option>
@@ -1682,11 +1895,69 @@ function showPasswordChangeSuccessAndLogout() {
       </div>
       <div class="modal-field">
         <label><span>Skills 1</span></label>
-        <input type="text" name="child_add_${index}_skills_1" placeholder="Enter first skill" />
+        <select name="child_add_${index}_skills_1" class="child-add-skill-1">
+          <option value="">Select skill</option>
+          <option value="None">None</option>
+          <option value="Tailoring">Tailoring</option>
+          <option value="Embroidery">Embroidery</option>
+          <option value="Housekeeping">Housekeeping</option>
+          <option value="Cooking">Cooking</option>
+          <option value="Caregiving">Caregiving</option>
+          <option value="Delivery">Delivery</option>
+          <option value="Driver">Driver</option>
+          <option value="Rickshaw">Rickshaw</option>
+          <option value="Electric Helper">Electric Helper</option>
+          <option value="Electrician">Electrician</option>
+          <option value="Plumbing Helper">Plumbing Helper</option>
+          <option value="Plumber">Plumber</option>
+          <option value="Masonry Helper">Masonry Helper</option>
+          <option value="Welding Helper">Welding Helper</option>
+          <option value="Welding">Welding</option>
+          <option value="Carpentry">Carpentry</option>
+          <option value="Barbering">Barbering</option>
+          <option value="Beauty Parlor">Beauty Parlor</option>
+          <option value="Mobile Servicing">Mobile Servicing</option>
+          <option value="Electronics Repair">Electronics Repair</option>
+          <option value="Sales">Sales</option>
+          <option value="Typing">Typing</option>
+          <option value="MS Office">MS Office</option>
+          <option value="Data Entry">Data Entry</option>
+          <option value="Tutoring">Tutoring</option>
+          <option value="Security Guard">Security Guard</option>
+        </select>
       </div>
       <div class="modal-field">
         <label><span>Skills 2</span></label>
-        <input type="text" name="child_add_${index}_skills_2" placeholder="Enter second skill" />
+        <select name="child_add_${index}_skills_2" class="child-add-skill-2">
+          <option value="">Select skill</option>
+          <option value="None">None</option>
+          <option value="Tailoring">Tailoring</option>
+          <option value="Embroidery">Embroidery</option>
+          <option value="Housekeeping">Housekeeping</option>
+          <option value="Cooking">Cooking</option>
+          <option value="Caregiving">Caregiving</option>
+          <option value="Delivery">Delivery</option>
+          <option value="Driver">Driver</option>
+          <option value="Rickshaw">Rickshaw</option>
+          <option value="Electric Helper">Electric Helper</option>
+          <option value="Electrician">Electrician</option>
+          <option value="Plumbing Helper">Plumbing Helper</option>
+          <option value="Plumber">Plumber</option>
+          <option value="Masonry Helper">Masonry Helper</option>
+          <option value="Welding Helper">Welding Helper</option>
+          <option value="Welding">Welding</option>
+          <option value="Carpentry">Carpentry</option>
+          <option value="Barbering">Barbering</option>
+          <option value="Beauty Parlor">Beauty Parlor</option>
+          <option value="Mobile Servicing">Mobile Servicing</option>
+          <option value="Electronics Repair">Electronics Repair</option>
+          <option value="Sales">Sales</option>
+          <option value="Typing">Typing</option>
+          <option value="MS Office">MS Office</option>
+          <option value="Data Entry">Data Entry</option>
+          <option value="Tutoring">Tutoring</option>
+          <option value="Security Guard">Security Guard</option>
+        </select>
       </div>
       <div class="modal-field">
         <label><span>Income Range</span></label>
@@ -1734,6 +2005,10 @@ function showPasswordChangeSuccessAndLogout() {
     for (let i = 1; i <= count; i++) {
       spouseAddForms.appendChild(createSpouseAddForm(i));
     }
+    // Setup constraints for newly created forms
+    setupSpouseAddMobileConstraints();
+    setupSpouseAddNidConstraints();
+    setupSpouseAddSkillValidation();
   }
 
   // Render children add forms
@@ -1743,6 +2018,9 @@ function showPasswordChangeSuccessAndLogout() {
     for (let i = 1; i <= count; i++) {
       childrenAddForms.appendChild(createChildAddForm(i));
     }
+    // Setup constraints for newly created forms
+    setupChildrenAddBirthCertificateConstraints();
+    setupChildrenAddSkillValidation();
   }
 
   const openModal = () => {
@@ -1755,12 +2033,10 @@ function showPasswordChangeSuccessAndLogout() {
     errorEl.hidden = true;
     removeMembersSection.hidden = true;
     addMembersSection.hidden = true;
-    spouseRemovalForms.innerHTML = '';
-    childrenRemovalForms.innerHTML = '';
+    spouseRemovalList.innerHTML = '';
+    childrenRemovalList.innerHTML = '';
     if (spouseAddForms) spouseAddForms.innerHTML = '';
     if (childrenAddForms) childrenAddForms.innerHTML = '';
-    populateSpouseCountDropdown();
-    populateChildrenCountDropdown();
   };
 
   const closeModal = () => {
@@ -1791,6 +2067,9 @@ function showPasswordChangeSuccessAndLogout() {
     if (action === 'remove') {
       removeMembersSection.hidden = false;
       addMembersSection.hidden = true;
+      // Populate removal lists with current data
+      populateSpouseRemovalList();
+      populateChildrenRemovalList();
     } else if (action === 'add') {
       removeMembersSection.hidden = true;
       addMembersSection.hidden = false;
@@ -1800,32 +2079,530 @@ function showPasswordChangeSuccessAndLogout() {
     }
   });
 
-  // Handle spouse count change
-  spouseRemoveCount?.addEventListener('change', () => {
-    const count = parseInt(spouseRemoveCount.value, 10) || 0;
-    renderSpouseRemovalForms(count);
-  });
-
-  // Handle children count change
-  childrenRemoveCount?.addEventListener('change', () => {
-    const count = parseInt(childrenRemoveCount.value, 10) || 0;
-    renderChildrenRemovalForms(count);
-  });
-
   // Handle spouse add count change
   spouseAddCount?.addEventListener('input', () => {
     let count = parseInt(spouseAddCount.value, 10) || 0;
     if (count < 0) count = 0;
     if (count > 10) count = 10;
+    spouseAddCount.value = count; // Update display to sanitized value
     renderSpouseAddForms(count);
   });
+
+  // ===================
+  // SPOUSE ADD CONSTRAINTS AND VALIDATION
+  // ===================
+
+  // Mobile input constraints for spouse add forms
+  function setupSpouseAddMobileConstraints() {
+    const mobileInputs = spouseAddForms?.querySelectorAll('input[name*="mobile"]') || [];
+    mobileInputs.forEach(mobileEl => {
+      // Remove existing listeners to avoid duplicates
+      mobileEl.removeEventListener('input', handleSpouseAddMobileInput);
+      mobileEl.removeEventListener('keypress', handleSpouseAddMobileKeypress);
+      
+      // Add new listeners
+      mobileEl.addEventListener('input', handleSpouseAddMobileInput);
+      mobileEl.addEventListener('keypress', handleSpouseAddMobileKeypress);
+    });
+  }
+
+  function handleSpouseAddMobileInput(e) {
+    // Remove any non-digit characters
+    let value = e.target.value.replace(/\D/g, '');
+    // Limit to 11 digits
+    if (value.length > 11) {
+      value = value.substring(0, 11);
+    }
+    e.target.value = value;
+  }
+
+  function handleSpouseAddMobileKeypress(e) {
+    // Prevent non-numeric input
+    if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+    }
+  }
+
+  // NID input constraints for spouse add forms
+  function setupSpouseAddNidConstraints() {
+    const nidInputs = spouseAddForms?.querySelectorAll('input[name*="nid"]') || [];
+    nidInputs.forEach(nidEl => {
+      // Remove existing listeners to avoid duplicates
+      nidEl.removeEventListener('input', handleSpouseAddNidInput);
+      nidEl.removeEventListener('keypress', handleSpouseAddNidKeypress);
+      nidEl.removeEventListener('blur', handleSpouseAddNidBlur);
+      
+      // Add new listeners
+      nidEl.addEventListener('input', handleSpouseAddNidInput);
+      nidEl.addEventListener('keypress', handleSpouseAddNidKeypress);
+      nidEl.addEventListener('blur', handleSpouseAddNidBlur);
+    });
+  }
+
+  function handleSpouseAddNidInput(e) {
+    // Remove any non-digit characters
+    let value = e.target.value.replace(/\D/g, '');
+    
+    // Limit to 17 digits maximum
+    if (value.length > 17) {
+      value = value.substring(0, 17);
+    }
+    
+    // Format with spaces every 4 digits for display
+    let formatted = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+    e.target.value = formatted;
+    
+    // Custom validation for min/max length
+    const digitCount = value.length;
+    if (digitCount > 0 && digitCount < 10) {
+      e.target.setCustomValidity(`NID number must be at least 10 digits (currently ${digitCount})`);
+    } else if (digitCount > 17) {
+      e.target.setCustomValidity('NID number cannot exceed 17 digits');
+    } else {
+      e.target.setCustomValidity('');
+    }
+
+    // Clear previous debounce timer
+    if (e.target.debounceTimer) {
+      clearTimeout(e.target.debounceTimer);
+    }
+    
+    // Debounce API call for duplicate check (only if valid length)
+    if (digitCount >= 10 && digitCount <= 17) {
+      e.target.debounceTimer = setTimeout(() => {
+        checkSpouseAddNidDuplicate(value, e.target);
+      }, 500); // Wait 500ms after user stops typing
+    } else {
+      // Clear error display if length is invalid
+      clearSpouseAddNidError(e.target);
+    }
+  }
+
+  function handleSpouseAddNidKeypress(e) {
+    // Prevent non-numeric input
+    if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+      e.preventDefault();
+    }
+  }
+
+  function handleSpouseAddNidBlur(e) {
+    const digits = e.target.value.replace(/\D/g, '');
+    if (digits.length > 0 && digits.length < 10) {
+      e.target.setCustomValidity(`NID number must be at least 10 digits (currently ${digits.length})`);
+      e.target.reportValidity();
+    } else if (digits.length >= 10 && digits.length <= 17) {
+      // Final check on blur
+      checkSpouseAddNidDuplicate(digits, e.target);
+    }
+  }
+
+  async function checkSpouseAddNidDuplicate(nidDigits, nidEl) {
+    if (!nidEl || !nidDigits) {
+      clearSpouseAddNidError(nidEl);
+      return;
+    }
+
+    // Check against current user's personal NID
+    const currentUser = getCurrentUser();
+    if (currentUser?.nid) {
+      const personalNid = String(currentUser.nid).replace(/\s+/g, '');
+      const currentNid = String(nidDigits).replace(/\s+/g, '');
+      if (personalNid === currentNid) {
+        showSpouseAddNidError(nidEl, 'Spouse NID cannot be the same as your personal NID');
+        nidEl.setCustomValidity('Spouse NID cannot be the same as your personal NID');
+        return;
+      }
+    }
+
+    // Check against current user's existing spouse NIDs from profile data
+    if (window.__profileData?.spouses) {
+      const currentNid = String(nidDigits).replace(/\s+/g, '');
+      for (const spouse of window.__profileData.spouses) {
+        if (spouse.nid) {
+          const existingNid = String(spouse.nid).replace(/\s+/g, '');
+          if (existingNid === currentNid) {
+            showSpouseAddNidError(nidEl, 'This NID already belongs to an existing spouse');
+            nidEl.setCustomValidity('This NID already belongs to an existing spouse');
+            return;
+          }
+        }
+      }
+    }
+
+    // Check against other spouse NIDs on the same form
+    const allSpouseAddNids = getAllSpouseAddNids();
+    const currentNid = String(nidDigits).replace(/\s+/g, '');
+    const currentFieldName = nidEl.name;
+    
+    for (const [fieldName, nid] of Object.entries(allSpouseAddNids)) {
+      if (fieldName !== currentFieldName && nid === currentNid) {
+        showSpouseAddNidError(nidEl, 'Duplicate NID found among added spouses');
+        nidEl.setCustomValidity('Duplicate NID found among added spouses');
+        return;
+      }
+    }
+
+    try {
+      const response = await fetch('/api/slum-dweller/check-nid', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nid: nidDigits })
+      });
+
+      if (!response.ok) {
+        console.log('NID check API not available, skipping duplicate check');
+        clearSpouseAddNidError(nidEl);
+        return; // Gracefully handle API unavailability
+      }
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        if (result.isDuplicate) {
+          showSpouseAddNidError(nidEl, 'This NID number already exists in the system');
+          nidEl.setCustomValidity('Duplicate NID - This NID number already exists in the system');
+        } else {
+          showSpouseAddNidSuccess(nidEl);
+          // Clear any duplicate error, but preserve other validation errors
+          const currentError = nidEl.validationMessage;
+          if (currentError.includes('Duplicate NID') || currentError.includes('Spouse NID') || currentError.includes('already exists') || currentError.includes('already belongs')) {
+            nidEl.setCustomValidity('');
+          }
+        }
+      }
+    } catch (error) {
+      console.log('NID check service unavailable, proceeding without duplicate check');
+      clearSpouseAddNidError(nidEl);
+      // Clear any existing duplicate validation errors when service is unavailable
+      const currentError = nidEl.validationMessage;
+      if (currentError && (currentError.includes('Duplicate NID') || currentError.includes('Spouse NID') || currentError.includes('already exists') || currentError.includes('already belongs'))) {
+        nidEl.setCustomValidity('');
+      }
+    }
+  }
+
+  function getAllSpouseAddNids() {
+    const nids = {};
+    const nidInputs = spouseAddForms?.querySelectorAll('input[name*="nid"]') || [];
+    nidInputs.forEach(input => {
+      const nid = input.value.replace(/\s+/g, '');
+      if (nid) {
+        nids[input.name] = nid;
+      }
+    });
+    return nids;
+  }
+
+  function showSpouseAddNidError(nidEl, message) {
+    const nidField = nidEl?.closest('.modal-field');
+    const fieldName = nidEl.name;
+    const index = fieldName.match(/spouse_add_(\d+)_nid/)?.[1];
+    const errorEl = index ? document.getElementById(`spouseAddNidError_${index}`) : null;
+    
+    if (nidField) {
+      nidField.classList.add('has-error');
+      nidField.classList.remove('has-success');
+    }
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+    }
+  }
+
+  function showSpouseAddNidSuccess(nidEl) {
+    const nidField = nidEl?.closest('.modal-field');
+    const fieldName = nidEl.name;
+    const index = fieldName.match(/spouse_add_(\d+)_nid/)?.[1];
+    const errorEl = index ? document.getElementById(`spouseAddNidError_${index}`) : null;
+    
+    if (nidField) {
+      nidField.classList.remove('has-error');
+      nidField.classList.add('has-success');
+    }
+    if (errorEl) {
+      errorEl.style.display = 'none';
+    }
+  }
+
+  function clearSpouseAddNidError(nidEl) {
+    const nidField = nidEl?.closest('.modal-field');
+    const fieldName = nidEl?.name;
+    const index = fieldName?.match(/spouse_add_(\d+)_nid/)?.[1];
+    const errorEl = index ? document.getElementById(`spouseAddNidError_${index}`) : null;
+    
+    if (nidField) {
+      nidField.classList.remove('has-error', 'has-success');
+    }
+    if (errorEl) {
+      errorEl.style.display = 'none';
+    }
+  }
+
+  // Skills validation for spouse add forms
+  function setupSpouseAddSkillValidation() {
+    const skillSets = [];
+    for (let i = 1; i <= 10; i++) {
+      const skill1 = spouseAddForms?.querySelector(`[name="spouse_add_${i}_skills_1"]`);
+      const skill2 = spouseAddForms?.querySelector(`[name="spouse_add_${i}_skills_2"]`);
+      if (skill1 && skill2) {
+        skillSets.push({ skill1, skill2, index: i });
+      }
+    }
+
+    skillSets.forEach(({ skill1, skill2, index }) => {
+      const validateSkills = () => {
+        const val1 = skill1.value;
+        const val2 = skill2.value;
+        if (val1 && val2 && val1 === val2 && val1 !== 'None' && val1 !== '') {
+          skill2.setCustomValidity('Skill 1 and Skill 2 cannot be the same');
+        } else {
+          skill1.setCustomValidity('');
+          skill2.setCustomValidity('');
+        }
+      };
+      
+      skill1.addEventListener('change', validateSkills);
+      skill2.addEventListener('change', validateSkills);
+    });
+  }
 
   // Handle children add count change
   childrenAddCount?.addEventListener('input', () => {
     let count = parseInt(childrenAddCount.value, 10) || 0;
     if (count < 0) count = 0;
+    childrenAddCount.value = count; // Update display to sanitized value
     renderChildrenAddForms(count);
   });
+
+  // ===================
+  // CHILDREN ADD CONSTRAINTS AND VALIDATION
+  // ===================
+
+  // Birth Certificate Number constraints for children add forms
+  function setupChildrenAddBirthCertificateConstraints() {
+    const birthCertInputs = childrenAddForms?.querySelectorAll('input[name*="birth_certificate_number"]') || [];
+    birthCertInputs.forEach(certEl => {
+      // Remove existing listeners to avoid duplicates
+      certEl.removeEventListener('input', handleChildAddBirthCertificateInput);
+      certEl.removeEventListener('keypress', handleChildAddBirthCertificateKeypress);
+      certEl.removeEventListener('blur', handleChildAddBirthCertificateBlur);
+      
+      // Add new listeners
+      certEl.addEventListener('input', handleChildAddBirthCertificateInput);
+      certEl.addEventListener('keypress', handleChildAddBirthCertificateKeypress);
+      certEl.addEventListener('blur', handleChildAddBirthCertificateBlur);
+    });
+  }
+
+  function handleChildAddBirthCertificateInput(e) {
+    // Remove any non-digit characters
+    let value = e.target.value.replace(/\D/g, '');
+    
+    // Limit to 17 digits exactly
+    if (value.length > 17) {
+      value = value.substring(0, 17);
+    }
+    
+    e.target.value = value;
+    
+    // Custom validation for exact length
+    const digitCount = value.length;
+    if (digitCount > 0 && digitCount !== 17) {
+      e.target.setCustomValidity(`Birth certificate number must be exactly 17 digits (currently ${digitCount})`);
+    } else if (digitCount === 17) {
+      e.target.setCustomValidity('');
+      // Clear previous debounce timer
+      if (e.target.debounceTimer) {
+        clearTimeout(e.target.debounceTimer);
+      }
+      // Debounce API call for duplicate check
+      e.target.debounceTimer = setTimeout(() => {
+        checkChildAddBirthCertificateDuplicate(value, e.target);
+      }, 500); // Wait 500ms after user stops typing
+    } else {
+      e.target.setCustomValidity('');
+      // Clear error display if not complete
+      clearChildAddBirthCertError(e.target);
+    }
+  }
+
+  function handleChildAddBirthCertificateKeypress(e) {
+    // Prevent non-numeric input
+    if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+    }
+  }
+
+  function handleChildAddBirthCertificateBlur(e) {
+    const digits = e.target.value.replace(/\D/g, '');
+    if (digits.length > 0 && digits.length !== 17) {
+      e.target.setCustomValidity(`Birth certificate number must be exactly 17 digits (currently ${digits.length})`);
+      e.target.reportValidity();
+    } else if (digits.length === 17) {
+      // Final check on blur
+      checkChildAddBirthCertificateDuplicate(digits, e.target);
+    }
+  }
+
+  async function checkChildAddBirthCertificateDuplicate(certNumber, certEl) {
+    if (!certEl || !certNumber) {
+      clearChildAddBirthCertError(certEl);
+      return;
+    }
+
+    // Check against current user's existing children birth certificates from profile data
+    if (window.__profileData?.children) {
+      for (const child of window.__profileData.children) {
+        if (child.birth_certificate_number) {
+          const existingCert = String(child.birth_certificate_number).replace(/\D/g, '');
+          if (existingCert === certNumber) {
+            showChildAddBirthCertError(certEl, 'This birth certificate number already belongs to an existing child');
+            certEl.setCustomValidity('This birth certificate number already belongs to an existing child');
+            return;
+          }
+        }
+      }
+    }
+
+    // Check against other birth certificate numbers on the same form
+    const allChildAddBirthCerts = getAllChildAddBirthCerts();
+    const currentFieldName = certEl.name;
+    
+    for (const [fieldName, certNum] of Object.entries(allChildAddBirthCerts)) {
+      if (fieldName !== currentFieldName && certNum === certNumber) {
+        showChildAddBirthCertError(certEl, 'Duplicate birth certificate number found among added children');
+        certEl.setCustomValidity('Duplicate birth certificate number found among added children');
+        return;
+      }
+    }
+
+    try {
+      const response = await fetch('/api/slum-dweller/check-birth-certificate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ birth_certificate_number: certNumber })
+      });
+
+      if (!response.ok) {
+        console.log('Birth certificate check API not available, skipping duplicate check');
+        clearChildAddBirthCertError(certEl);
+        return; // Gracefully handle API unavailability
+      }
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        if (result.isDuplicate) {
+          showChildAddBirthCertError(certEl, 'This birth certificate number already exists in the system');
+          certEl.setCustomValidity('Duplicate birth certificate number - This number already exists in the system');
+        } else {
+          showChildAddBirthCertSuccess(certEl);
+          // Clear any duplicate error, but preserve other validation errors
+          const currentError = certEl.validationMessage;
+          if (currentError.includes('Duplicate birth certificate number') || currentError.includes('already belongs') || currentError.includes('already exists')) {
+            certEl.setCustomValidity('');
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Birth certificate check service unavailable, proceeding without duplicate check');
+      clearChildAddBirthCertError(certEl);
+      // Clear any existing duplicate validation errors when service is unavailable
+      const currentError = certEl.validationMessage;
+      if (currentError && (currentError.includes('Duplicate birth certificate number') || currentError.includes('already belongs') || currentError.includes('already exists'))) {
+        certEl.setCustomValidity('');
+      }
+    }
+  }
+
+  function getAllChildAddBirthCerts() {
+    const certNumbers = {};
+    const certInputs = childrenAddForms?.querySelectorAll('input[name*="birth_certificate_number"]') || [];
+    certInputs.forEach(input => {
+      const certNum = input.value.replace(/\D/g, '');
+      if (certNum && certNum.length === 17) {
+        certNumbers[input.name] = certNum;
+      }
+    });
+    return certNumbers;
+  }
+
+  function showChildAddBirthCertError(certEl, message) {
+    const certField = certEl?.closest('.modal-field');
+    const fieldName = certEl.name;
+    const index = fieldName.match(/child_add_(\d+)_birth_certificate_number/)?.[1];
+    const errorEl = index ? document.getElementById(`childAddBirthCertError_${index}`) : null;
+    
+    if (certField) {
+      certField.classList.add('has-error');
+      certField.classList.remove('has-success');
+    }
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+    }
+  }
+
+  function showChildAddBirthCertSuccess(certEl) {
+    const certField = certEl?.closest('.modal-field');
+    const fieldName = certEl.name;
+    const index = fieldName.match(/child_add_(\d+)_birth_certificate_number/)?.[1];
+    const errorEl = index ? document.getElementById(`childAddBirthCertError_${index}`) : null;
+    
+    if (certField) {
+      certField.classList.remove('has-error');
+      certField.classList.add('has-success');
+    }
+    if (errorEl) {
+      errorEl.style.display = 'none';
+    }
+  }
+
+  function clearChildAddBirthCertError(certEl) {
+    const certField = certEl?.closest('.modal-field');
+    const fieldName = certEl?.name;
+    const index = fieldName?.match(/child_add_(\d+)_birth_certificate_number/)?.[1];
+    const errorEl = index ? document.getElementById(`childAddBirthCertError_${index}`) : null;
+    
+    if (certField) {
+      certField.classList.remove('has-error', 'has-success');
+    }
+    if (errorEl) {
+      errorEl.style.display = 'none';
+    }
+  }
+
+  // Skills validation for children add forms
+  function setupChildrenAddSkillValidation() {
+    const skillSets = [];
+    for (let i = 1; i <= 10; i++) {
+      const skill1 = childrenAddForms?.querySelector(`[name="child_add_${i}_skills_1"]`);
+      const skill2 = childrenAddForms?.querySelector(`[name="child_add_${i}_skills_2"]`);
+      if (skill1 && skill2) {
+        skillSets.push({ skill1, skill2, index: i });
+      }
+    }
+
+    skillSets.forEach(({ skill1, skill2, index }) => {
+      const validateSkills = () => {
+        const val1 = skill1.value;
+        const val2 = skill2.value;
+        if (val1 && val2 && val1 === val2 && val1 !== 'None' && val1 !== '') {
+          skill2.setCustomValidity('Skill 1 and Skill 2 cannot be the same');
+        } else {
+          skill1.setCustomValidity('');
+          skill2.setCustomValidity('');
+        }
+      };
+      
+      skill1.addEventListener('change', validateSkills);
+      skill2.addEventListener('change', validateSkills);
+    });
+  }
 
   // Form submission with validation
   form.addEventListener('submit', (e) => {
@@ -1845,107 +2622,74 @@ function showPasswordChangeSuccessAndLogout() {
     }
 
     if (action === 'remove') {
-      const spouseCount = parseInt(spouseRemoveCount.value, 10) || 0;
-      const childCount = parseInt(childrenRemoveCount.value, 10) || 0;
+      // Get checked spouses and children
+      const checkedSpouses = [];
+      const checkedChildren = [];
+      
+      spouseRemovalList.querySelectorAll('.spouse-checkbox:checked').forEach(checkbox => {
+        const spouseId = checkbox.dataset.spouseId;
+        const card = checkbox.closest('.member-removal-card');
+        const fileInput = card.querySelector('.removal-file-input');
+        
+        // Skip if disabled (pending_remove)
+        if (!checkbox.disabled) {
+          checkedSpouses.push({
+            id: spouseId,
+            fileInput: fileInput
+          });
+        }
+      });
+      
+      childrenRemovalList.querySelectorAll('.child-checkbox:checked').forEach(checkbox => {
+        const childId = checkbox.dataset.childId;
+        const card = checkbox.closest('.member-removal-card');
+        const fileInput = card.querySelector('.removal-file-input');
+        
+        // Skip if disabled (pending_remove)
+        if (!checkbox.disabled) {
+          checkedChildren.push({
+            id: childId,
+            fileInput: fileInput
+          });
+        }
+      });
 
-      if (spouseCount === 0 && childCount === 0) {
+      if (checkedSpouses.length === 0 && checkedChildren.length === 0) {
         errorEl.textContent = 'Please select at least one spouse or child to remove.';
         errorEl.hidden = false;
         return;
       }
 
-      // Get actual spouse and children names from user data
-      const { app } = getCurrentUserApp();
-      const actualSpouseNames = (app?.data?.marital?.spouses || []).map(s => (s.name || '').toLowerCase().trim());
-      const actualChildrenNames = (app?.data?.children?.children || []).map(c => (c.name || '').toLowerCase().trim());
-
+      // Validate file uploads for checked members
       let hasError = false;
       let firstErrorField = null;
 
-      // Validate spouse removal forms
-      for (let i = 1; i <= spouseCount; i++) {
-        const nameInput = form.querySelector(`[name="spouse_remove_${i}_name"]`);
-        const certInput = form.querySelector(`[name="spouse_remove_${i}_certificate"]`);
-
-        if (nameInput && !nameInput.value.trim()) {
-          nameInput.classList.add('field-error');
-          const errorText = document.createElement('div');
-          errorText.className = 'field-error-text';
-          errorText.textContent = 'This field is required';
-          nameInput.parentNode.appendChild(errorText);
-          if (!firstErrorField) firstErrorField = nameInput;
-          hasError = true;
-        } else if (nameInput && nameInput.value.trim()) {
-          // Validate that the name exists in actual spouse names
-          const enteredName = nameInput.value.trim().toLowerCase();
-          if (!actualSpouseNames.includes(enteredName)) {
-            nameInput.classList.add('field-error');
-            const errorText = document.createElement('div');
-            errorText.className = 'field-error-text';
-            errorText.textContent = 'Invalid name';
-            nameInput.parentNode.appendChild(errorText);
-            if (!firstErrorField) firstErrorField = nameInput;
-            hasError = true;
-          }
-        }
-
-        if (certInput && (!certInput.files || certInput.files.length === 0)) {
-          certInput.classList.add('field-error');
-          const errorText = document.createElement('div');
-          errorText.className = 'field-error-text';
-          errorText.textContent = 'This field is required';
-          certInput.parentNode.appendChild(errorText);
-          if (!firstErrorField) firstErrorField = certInput;
+      // Validate spouse certificates
+      checkedSpouses.forEach(spouse => {
+        if (!spouse.fileInput.files || spouse.fileInput.files.length === 0) {
+          spouse.fileInput.classList.add('field-error');
+          if (!firstErrorField) firstErrorField = spouse.fileInput;
           hasError = true;
         }
-      }
+      });
 
-      // Validate children removal forms
-      for (let i = 1; i <= childCount; i++) {
-        const nameInput = form.querySelector(`[name="child_remove_${i}_name"]`);
-        const certInput = form.querySelector(`[name="child_remove_${i}_certificate"]`);
-
-        if (nameInput && !nameInput.value.trim()) {
-          nameInput.classList.add('field-error');
-          const errorText = document.createElement('div');
-          errorText.className = 'field-error-text';
-          errorText.textContent = 'This field is required';
-          nameInput.parentNode.appendChild(errorText);
-          if (!firstErrorField) firstErrorField = nameInput;
-          hasError = true;
-        } else if (nameInput && nameInput.value.trim()) {
-          // Validate that the name exists in actual children names
-          const enteredName = nameInput.value.trim().toLowerCase();
-          if (!actualChildrenNames.includes(enteredName)) {
-            nameInput.classList.add('field-error');
-            const errorText = document.createElement('div');
-            errorText.className = 'field-error-text';
-            errorText.textContent = 'Invalid name';
-            nameInput.parentNode.appendChild(errorText);
-            if (!firstErrorField) firstErrorField = nameInput;
-            hasError = true;
-          }
-        }
-
-        if (certInput && (!certInput.files || certInput.files.length === 0)) {
-          certInput.classList.add('field-error');
-          const errorText = document.createElement('div');
-          errorText.className = 'field-error-text';
-          errorText.textContent = 'This field is required';
-          certInput.parentNode.appendChild(errorText);
-          if (!firstErrorField) firstErrorField = certInput;
+      // Validate children certificates
+      checkedChildren.forEach(child => {
+        if (!child.fileInput.files || child.fileInput.files.length === 0) {
+          child.fileInput.classList.add('field-error');
+          if (!firstErrorField) firstErrorField = child.fileInput;
           hasError = true;
         }
-      }
+      });
 
       if (hasError) {
-        errorEl.textContent = 'Please fill in all required fields correctly.';
+        errorEl.textContent = 'Please upload required certificates for selected members.';
         errorEl.hidden = false;
         if (firstErrorField) firstErrorField.focus();
         return;
       }
 
-      // All validations passed - show confirmation modal
+      // Show confirmation modal
       showConfirmationModal('remove');
     }
 
@@ -2000,6 +2744,19 @@ function showPasswordChangeSuccessAndLogout() {
         }
         if (nidInput && !nidInput.value.trim()) {
           addFieldError(nidInput, 'This field is required');
+        } else if (nidInput && nidInput.value.trim()) {
+          // Validate NID format and length
+          const nidDigits = nidInput.value.replace(/\D/g, '');
+          if (nidDigits.length < 10) {
+            addFieldError(nidInput, `NID number must be at least 10 digits (currently ${nidDigits.length})`);
+          } else if (nidDigits.length > 17) {
+            addFieldError(nidInput, 'NID number cannot exceed 17 digits');
+          }
+          // Check for validation errors from duplicate check
+          const currentError = nidInput.validationMessage;
+          if (currentError && (currentError.includes('Duplicate NID') || currentError.includes('Spouse NID') || currentError.includes('already exists') || currentError.includes('already belongs'))) {
+            addFieldError(nidInput, currentError);
+          }
         }
         if (educationInput && !educationInput.value) {
           addFieldError(educationInput, 'This field is required');
@@ -2012,6 +2769,12 @@ function showPasswordChangeSuccessAndLogout() {
         }
         if (mobileInput && !mobileInput.value.trim()) {
           addFieldError(mobileInput, 'This field is required');
+        } else if (mobileInput && mobileInput.value.trim()) {
+          // Validate mobile number format
+          const mobileDigits = mobileInput.value.replace(/\D/g, '');
+          if (mobileDigits.length !== 11) {
+            addFieldError(mobileInput, 'Mobile number must be exactly 11 digits');
+          }
         }
         if (certInput && (!certInput.files || certInput.files.length === 0)) {
           addFieldError(certInput, 'This field is required');
@@ -2023,6 +2786,7 @@ function showPasswordChangeSuccessAndLogout() {
         const nameInput = form.querySelector(`[name="child_add_${i}_name"]`);
         const dobInput = form.querySelector(`[name="child_add_${i}_dob"]`);
         const genderInput = form.querySelector(`[name="child_add_${i}_gender"]`);
+        const birthCertInput = form.querySelector(`[name="child_add_${i}_birth_certificate_number"]`);
         const educationInput = form.querySelector(`[name="child_add_${i}_education"]`);
         const occupationInput = form.querySelector(`[name="child_add_${i}_occupation"]`);
         const incomeInput = form.querySelector(`[name="child_add_${i}_income"]`);
@@ -2037,6 +2801,20 @@ function showPasswordChangeSuccessAndLogout() {
         }
         if (genderInput && !genderInput.value) {
           addFieldError(genderInput, 'This field is required');
+        }
+        if (birthCertInput && !birthCertInput.value.trim()) {
+          addFieldError(birthCertInput, 'This field is required');
+        } else if (birthCertInput && birthCertInput.value.trim()) {
+          // Validate birth certificate format and length
+          const birthCertDigits = birthCertInput.value.replace(/\D/g, '');
+          if (birthCertDigits.length !== 17) {
+            addFieldError(birthCertInput, `Birth certificate number must be exactly 17 digits (currently ${birthCertDigits.length})`);
+          }
+          // Check for validation errors from duplicate check
+          const currentError = birthCertInput.validationMessage;
+          if (currentError && (currentError.includes('Duplicate birth certificate number') || currentError.includes('already exists') || currentError.includes('already belongs'))) {
+            addFieldError(birthCertInput, currentError);
+          }
         }
         if (educationInput && !educationInput.value) {
           addFieldError(educationInput, 'This field is required');
@@ -2097,21 +2875,117 @@ function showPasswordChangeSuccessAndLogout() {
     }
   });
 
-  confirmSubmitBtn?.addEventListener('click', () => {
-    // Save pending edit member flag to user's application
-    const { app, idx } = getCurrentUserApp();
-    if (app && idx !== -1) {
-      if (!app.data) app.data = {};
-      app.data.pendingEditMember = true;
-      const apps = safeJsonParse(sessionStorage.getItem('SLUMLINK_APPLICATIONS'), []);
-      apps[idx] = app;
-      sessionStorage.setItem('SLUMLINK_APPLICATIONS', JSON.stringify(apps));
-    }
+  confirmSubmitBtn?.addEventListener('click', async () => {
+    if (pendingAction === 'remove') {
+      try {
+        // Get current user
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+          showToast('Error', 'User session not found. Please login again.', 'error');
+          return;
+        }
 
-    hideConfirmationModal();
-    closeModal();
-    showApplicationSubmittedToast();
-    updateEditMemberButtonState();
+        // Get checked spouses and children that are not disabled
+        const checkedSpouses = [];
+        const checkedChildren = [];
+        
+        spouseRemovalList.querySelectorAll('.spouse-checkbox:checked:not(:disabled)').forEach(checkbox => {
+          checkedSpouses.push(checkbox.dataset.spouseId);
+        });
+        
+        childrenRemovalList.querySelectorAll('.child-checkbox:checked:not(:disabled)').forEach(checkbox => {
+          checkedChildren.push(checkbox.dataset.childId);
+        });
+
+        // Update status to 'pending_remove' for checked members
+        const updatePromises = [];
+
+        // Update spouse statuses with file uploads
+        for (const spouseId of checkedSpouses) {
+          const spouseCard = spouseRemovalList.querySelector(`[data-spouse-id="${spouseId}"]`).closest('.member-removal-card');
+          const fileInput = spouseCard.querySelector('.removal-file-input');
+          
+          const formData = new FormData();
+          formData.append('status', 'pending_remove');
+          if (fileInput.files[0]) {
+            formData.append('divorce_certificate', fileInput.files[0]);
+          }
+          
+          const updatePromise = fetch(`/api/slum-dweller/${currentUser.slum_code}/spouse/${spouseId}/status`, {
+            method: 'PATCH',
+            body: formData
+          });
+          updatePromises.push(updatePromise);
+        }
+
+        // Update children statuses with file uploads
+        for (const childId of checkedChildren) {
+          const childCard = childrenRemovalList.querySelector(`[data-child-id="${childId}"]`).closest('.member-removal-card');
+          const fileInput = childCard.querySelector('.removal-file-input');
+          
+          const formData = new FormData();
+          formData.append('status', 'pending_remove');
+          if (fileInput.files[0]) {
+            formData.append('death_certificate', fileInput.files[0]);
+          }
+          
+          const updatePromise = fetch(`/api/slum-dweller/${currentUser.slum_code}/child/${childId}/status`, {
+            method: 'PATCH',
+            body: formData
+          });
+          updatePromises.push(updatePromise);
+        }
+
+        // Wait for all updates to complete
+        const responses = await Promise.all(updatePromises);
+        
+        // Check if all updates were successful
+        const allSuccessful = responses.every(response => response.ok);
+        
+        if (allSuccessful) {
+          // Save pending edit member flag to user's application
+          const { app, idx } = getCurrentUserApp();
+          if (app && idx !== -1) {
+            if (!app.data) app.data = {};
+            app.data.pendingEditMember = true;
+            const apps = safeJsonParse(sessionStorage.getItem('SLUMLINK_APPLICATIONS'), []);
+            apps[idx] = app;
+            sessionStorage.setItem('SLUMLINK_APPLICATIONS', JSON.stringify(apps));
+          }
+
+          hideConfirmationModal();
+          closeModal();
+          showMemberRemovalSuccessToast();
+          updateEditMemberButtonState();
+          
+          // Automatically refresh the page after showing success toast
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000);
+        } else {
+          showToast('Error', 'Failed to update member statuses. Please try again.', 'error');
+        }
+        
+      } catch (error) {
+        console.error('Error updating member statuses:', error);
+        showToast('Error', 'An error occurred while processing your request.', 'error');
+      }
+    } else {
+      // Handle add action (keep existing logic)
+      const { app, idx } = getCurrentUserApp();
+      if (app && idx !== -1) {
+        if (!app.data) app.data = {};
+        app.data.pendingEditMember = true;
+        const apps = safeJsonParse(sessionStorage.getItem('SLUMLINK_APPLICATIONS'), []);
+        apps[idx] = app;
+        sessionStorage.setItem('SLUMLINK_APPLICATIONS', JSON.stringify(apps));
+      }
+
+      hideConfirmationModal();
+      closeModal();
+      showToast('Success', 'Your Request Has Been Sent For Verification');
+      updateEditMemberButtonState();
+    }
   });
 })();
 

@@ -665,16 +665,16 @@ export const getSlumDwellerById = async (req, res) => {
     const resident = dwellerRows[0];
     const slumCode = resident.slum_code;
 
-    // Get spouses
+    // Get spouses (only active and pending_remove, exclude pending_add)
     const [spouseRows] = await connection.query(
-      'SELECT * FROM spouses WHERE slum_id = ?',
-      [slumCode]
+      'SELECT * FROM spouses WHERE slum_id = ? AND status IN (?, ?)',
+      [slumCode, 'active', 'pending_remove']
     );
 
-    // Get children
+    // Get children (only active and pending_remove, exclude pending_add)
     const [childrenRows] = await connection.query(
-      'SELECT * FROM children WHERE slum_id = ?',
-      [slumCode]
+      'SELECT * FROM children WHERE slum_id = ? AND status IN (?, ?)',
+      [slumCode, 'active', 'pending_remove']
     );
 
     console.log('👤 Retrieved resident:', resident.full_name);
@@ -1766,5 +1766,151 @@ export const changePassword = async (req, res) => {
       status: "error",
       message: "Server error while changing password."
     });
+  }
+};
+
+// Update spouse status (for removal requests)
+export const updateSpouseStatus = async (req, res) => {
+  const { slumId, spouseId } = req.params;
+  const { status } = req.body;
+  
+  const connection = await pool.getConnection();
+  
+  try {
+    // Validate status value
+    const allowedStatuses = ['active', 'pending_remove', 'removed'];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid status value. Allowed values: active, pending_remove, removed"
+      });
+    }
+
+    // Check if spouse exists and belongs to the slum dweller
+    const [spouseRows] = await connection.query(
+      'SELECT id FROM spouses WHERE id = ? AND slum_id = ?',
+      [spouseId, slumId]
+    );
+
+    if (spouseRows.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Spouse not found or does not belong to this slum dweller"
+      });
+    }
+
+    let updateQuery = 'UPDATE spouses SET status = ?, updated_at = NOW()';
+    let updateParams = [status];
+
+    // Handle file upload if provided
+    if (req.file) {
+      const divorceFile = req.file;
+      updateQuery += ', divorce_certificate = ?';
+      updateParams.push(divorceFile.buffer);
+      console.log(`📁 Divorce certificate uploaded for spouse ${spouseId}`);
+    }
+
+    updateQuery += ' WHERE id = ? AND slum_id = ?';
+    updateParams.push(spouseId, slumId);
+
+    // Update spouse status and certificate
+    const [result] = await connection.query(updateQuery, updateParams);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Failed to update spouse status"
+      });
+    }
+
+    console.log(`✅ Spouse ${spouseId} status updated to '${status}' for slum dweller ${slumId}`);
+
+    return res.json({
+      status: "success",
+      message: `Spouse status updated to '${status}' successfully`
+    });
+
+  } catch (error) {
+    console.error("❌ Error updating spouse status:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to update spouse status",
+      error: error.message
+    });
+  } finally {
+    connection.release();
+  }
+};
+
+// Update child status (for removal requests)
+export const updateChildStatus = async (req, res) => {
+  const { slumId, childId } = req.params;
+  const { status } = req.body;
+  
+  const connection = await pool.getConnection();
+  
+  try {
+    // Validate status value
+    const allowedStatuses = ['active', 'pending_remove', 'removed'];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid status value. Allowed values: active, pending_remove, removed"
+      });
+    }
+
+    // Check if child exists and belongs to the slum dweller
+    const [childRows] = await connection.query(
+      'SELECT id FROM children WHERE id = ? AND slum_id = ?',
+      [childId, slumId]
+    );
+
+    if (childRows.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Child not found or does not belong to this slum dweller"
+      });
+    }
+
+    let updateQuery = 'UPDATE children SET status = ?, updated_at = NOW()';
+    let updateParams = [status];
+
+    // Handle file upload if provided
+    if (req.file) {
+      const deathFile = req.file;
+      updateQuery += ', death_certificate = ?';
+      updateParams.push(deathFile.buffer);
+      console.log(`📁 Death certificate uploaded for child ${childId}`);
+    }
+
+    updateQuery += ' WHERE id = ? AND slum_id = ?';
+    updateParams.push(childId, slumId);
+
+    // Update child status and certificate
+    const [result] = await connection.query(updateQuery, updateParams);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Failed to update child status"
+      });
+    }
+
+    console.log(`✅ Child ${childId} status updated to '${status}' for slum dweller ${slumId}`);
+
+    return res.json({
+      status: "success",
+      message: `Child status updated to '${status}' successfully`
+    });
+
+  } catch (error) {
+    console.error("❌ Error updating child status:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to update child status",
+      error: error.message
+    });
+  } finally {
+    connection.release();
   }
 };

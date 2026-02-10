@@ -604,6 +604,33 @@ select.info-input {
   margin-top: 4px;
 }
 
+/* NID validation states */
+.has-error input,
+.has-error .modal-input,
+.has-error .info-input {
+  border-color: #d32f2f !important;
+  background-color: #fbebee !important;
+}
+
+.has-success input,
+.has-success .modal-input,
+.has-success .info-input {
+  border-color: #2e7d32 !important;
+  background-color: #e8f5e8 !important;
+}
+
+.has-error input:focus,
+.has-error .modal-input:focus,
+.has-error .info-input:focus {
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.15) !important;
+}
+
+.has-success input:focus,
+.has-success .modal-input:focus,
+.has-success .info-input:focus {
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15) !important;
+}
+
 .modal-input {
   width: 100%;
   padding: 12px 14px;
@@ -746,4 +773,138 @@ select.info-input {
 #changePhoneBtn:hover {
   background: #A4624D;
   color: white;
+}
+
+/* Member Removal List Styles */
+.member-removal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.removal-instruction {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.member-removal-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.member-removal-card.pending-remove {
+  opacity: 0.6;
+  background: #f9f9f9;
+  border-color: #ccc;
+}
+
+.member-removal-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.member-removal-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #A4624D;
+  cursor: pointer;
+}
+
+.member-removal-checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-name {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.member-detail {
+  font-size: 14px;
+  color: #666;
+}
+
+.member-status {
+  font-size: 13px;
+  color: #d97706;
+  font-weight: 500;
+  font-style: italic;
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: rgba(217, 119, 6, 0.1);
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.removal-file-section {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed #A4624D;
+  border-radius: 6px;
+  background: #faf9f8;
+  display: none;
+}
+
+.removal-file-section.show {
+  display: block;
+}
+
+.removal-file-label {
+  display: block;
+  font-weight: 500;
+  color: #A4624D;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.removal-file-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.removal-file-input:focus {
+  outline: none;
+  border-color: #A4624D;
+  box-shadow: 0 0 0 2px rgba(164, 98, 77, 0.1);
+}
+
+/* Toast notification styles */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #4CAF50;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  animation: slideInRight 0.3s ease;
+  min-width: 300px;
+}
+
+.toast-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.toast-message {
+  font-size: 14px;
+  opacity: 0.9;
 }
