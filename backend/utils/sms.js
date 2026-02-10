@@ -16,14 +16,17 @@ export async function sendSMS(number, message) {
     
     // Use GET method as per the existing implementation
     const response = await fetch(url, { method: 'GET' });
+    const responseText = await response.text();
     
     if (response.ok) {
       console.log('📱 SMS sent successfully to:', number);
+      console.log('📱 SMS provider response:', responseText);
       return true;
-    } else {
-      console.error('❌ SMS send failed:', response.status, response.statusText);
-      return false;
     }
+
+    console.error('❌ SMS send failed:', response.status, response.statusText);
+    console.error('❌ SMS provider response:', responseText);
+    return false;
   } catch (error) {
     console.error('❌ SMS send error:', error);
     return false;

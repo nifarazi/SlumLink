@@ -110,6 +110,45 @@ function getCurrentUser() {
   return currentRaw ? safeJsonParse(currentRaw, null) : null;
 }
 
+const API_BASES = Array.from(new Set([
+  `${window.location.origin}/api`,
+  'http://localhost:5001/api',
+  'http://localhost:5002/api'
+])).filter(Boolean);
+
+async function fetchWithFallback(path, options) {
+  let lastResponse = null;
+
+  for (const base of API_BASES) {
+    try {
+      const response = await fetch(`${base}${path}`, options);
+      lastResponse = response;
+
+      if (response.ok) return response;
+
+      if (response.status !== 404) return response;
+    } catch (error) {
+      lastResponse = null;
+    }
+  }
+
+  if (lastResponse) return lastResponse;
+  throw new Error('Network error while contacting the server.');
+}
+
+async function extractErrorMessage(response, fallbackMessage) {
+  const contentType = response?.headers?.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    try {
+      const error = await response.json();
+      return error.message || fallbackMessage;
+    } catch {
+      return fallbackMessage;
+    }
+  }
+  return fallbackMessage;
+}
+
 // Show success toast for profile updates
 function showProfileUpdateToast() {
   // Remove any existing toast
@@ -2975,14 +3014,14 @@ function showToast(title, message, type = 'success') {
         }
 
         // Add child to database
-        const childResponse = await fetch(`/api/slum-dweller/${currentUser.slum_code}/add-child`, {
+        const childResponse = await fetchWithFallback(`/slum-dweller/${currentUser.slum_code}/add-child`, {
           method: 'POST',
           body: childFormData
         });
 
         if (!childResponse.ok) {
-          const error = await childResponse.json();
-          throw new Error(error.message || 'Failed to add child');
+          const message = await extractErrorMessage(childResponse, 'Failed to add child');
+          throw new Error(message);
         }
       }
 
@@ -3011,14 +3050,14 @@ function showToast(title, message, type = 'success') {
         }
 
         // Prepare spouse addition (validate and get spouse key) without database insertion
-        const spouseResponse = await fetch(`/api/slum-dweller/${currentUser.slum_code}/prepare-spouse-add`, {
+        const spouseResponse = await fetchWithFallback(`/slum-dweller/${currentUser.slum_code}/prepare-spouse-add`, {
           method: 'POST',
           body: spouseFormData
         });
 
         if (!spouseResponse.ok) {
-          const error = await spouseResponse.json();
-          throw new Error(error.message || 'Failed to prepare spouse addition');
+          const message = await extractErrorMessage(spouseResponse, 'Failed to prepare spouse addition');
+          throw new Error(message);
         }
 
         const spouseResult = await spouseResponse.json();
@@ -3125,6 +3164,14 @@ function showToast(title, message, type = 'success') {
         }
 
         console.log('OTP sent to spouse:', spouse.mobile);
+        if (result?.data?.testOtp) {
+          const infoEl = document.getElementById(`spouseOTPError_${currentSpouseIndex}`);
+          if (infoEl) {
+            infoEl.textContent = `Test OTP (SMS disabled): ${result.data.testOtp}`;
+            infoEl.style.display = 'block';
+            infoEl.style.color = '#2d7a3d';
+          }
+        }
       } catch (error) {
         console.error('Error sending spouse OTP:', error);
         document.getElementById(`spouseOTPError_${currentSpouseIndex}`).textContent = 'Failed to send OTP: ' + error.message;
