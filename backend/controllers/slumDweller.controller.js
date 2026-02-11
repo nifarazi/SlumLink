@@ -1,6 +1,6 @@
 import pool from "../db.js";
 import bcrypt from "bcrypt";
-import { sendSMS, createVerificationMessage, createOTPMessage } from "../utils/sms.js";
+import { sendSMS, createVerificationMessage, createOTPMessage, createSpouseAddedMessage, createSpouseRemovedMessage } from "../utils/sms.js";
 
 // Signin controller for slum dwellers using slum_code and password
 export const signinSlumDweller = async (req, res) => {
@@ -2214,19 +2214,26 @@ export const reviewSpouseUpdate = async (req, res) => {
       });
     }
 
-    const [rows] = await connection.query(
-      'SELECT id, status FROM spouses WHERE id = ? AND slum_id = ?',
+    // Get spouse and slum dweller information for SMS notifications
+    const [spouseRows] = await connection.query(
+      `SELECT s.id, s.status, s.name, s.mobile, sd.full_name as slum_dweller_name
+       FROM spouses s 
+       JOIN slum_dwellers sd ON s.slum_id = sd.slum_code 
+       WHERE s.id = ? AND s.slum_id = ?`,
       [spouseId, slumId]
     );
 
-    if (rows.length === 0) {
+    if (spouseRows.length === 0) {
       return res.status(404).json({
         status: "error",
         message: "Spouse not found or does not belong to this slum dweller"
       });
     }
 
-    const currentStatus = rows[0].status;
+    const spouseInfo = spouseRows[0];
+    const currentStatus = spouseInfo.status;
+    const spouseMobile = spouseInfo.mobile;
+    const slumDwellerName = spouseInfo.slum_dweller_name;
 
     if (!['pending_add', 'pending_remove'].includes(currentStatus)) {
       return res.status(400).json({
@@ -2235,17 +2242,26 @@ export const reviewSpouseUpdate = async (req, res) => {
       });
     }
 
+    let smsMessage = '';
+    let sendSMSNotification = false;
+
     if (currentStatus === 'pending_add') {
       if (action === 'approve') {
         await connection.query(
           'UPDATE spouses SET status = ?, updated_at = NOW() WHERE id = ? AND slum_id = ?',
           ['active', spouseId, slumId]
         );
+        // Send SMS notification to spouse about being added
+        if (spouseMobile) {
+          smsMessage = createSpouseAddedMessage(spouseInfo.name, slumDwellerName);
+          sendSMSNotification = true;
+        }
       } else {
         await connection.query(
           'DELETE FROM spouses WHERE id = ? AND slum_id = ?',
           [spouseId, slumId]
         );
+        // No SMS for rejection of add request
       }
     }
 
@@ -2255,11 +2271,32 @@ export const reviewSpouseUpdate = async (req, res) => {
           'DELETE FROM spouses WHERE id = ? AND slum_id = ?',
           [spouseId, slumId]
         );
+        // Send SMS notification to spouse about being removed
+        if (spouseMobile) {
+          smsMessage = createSpouseRemovedMessage(spouseInfo.name, slumDwellerName);
+          sendSMSNotification = true;
+        }
       } else {
         await connection.query(
           'UPDATE spouses SET status = ?, updated_at = NOW() WHERE id = ? AND slum_id = ?',
           ['active', spouseId, slumId]
         );
+        // No SMS for rejection of remove request
+      }
+    }
+
+    // Send SMS notification if applicable
+    if (sendSMSNotification && smsMessage) {
+      try {
+        const smsResult = await sendSMS(spouseMobile, smsMessage);
+        if (smsResult) {
+          console.log(`📱 SMS sent to spouse (${spouseMobile}) for ${currentStatus} ${action} operation`);
+        } else {
+          console.warn(`⚠️ Failed to send SMS to spouse (${spouseMobile}) for ${currentStatus} ${action} operation`);
+        }
+      } catch (smsError) {
+        console.error(`❌ SMS sending error for spouse (${spouseMobile}):`, smsError);
+        // Don't fail the entire operation if SMS fails
       }
     }
 
