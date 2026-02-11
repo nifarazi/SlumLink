@@ -43,3 +43,15 @@ export function createOTPMessage(otp, spouseName, verificationType = 'spouse ver
   return `Your SlumLink OTP for ${verificationType} is: ${otp}. Valid for 5 minutes. Name: ${spouseName}. Do not share this code.
 - SlumLink`;
 }
+
+// Create spouse addition approval message
+export function createSpouseAddedMessage(spouseName, slumDwellerName) {
+  return `${spouseName} has been added as spouse by ${slumDwellerName}. For any query, contact SlumLink.
+- SlumLink`;
+}
+
+// Create spouse removal message  
+export function createSpouseRemovedMessage(spouseName, slumDwellerName) {
+  return `${spouseName} has been removed as spouse by ${slumDwellerName}. For any query, contact SlumLink.
+- SlumLink`;
+}

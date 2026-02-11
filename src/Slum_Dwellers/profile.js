@@ -489,8 +489,13 @@ function formatDate(dateStr) {
     })
     .then((data) => {
       const resident = data.resident || {};
-      const spouses = data.spouses || [];
-      const children = data.children || [];
+      // Filter spouses and children to only show those with 'active' or 'pending_delete' status
+      const spouses = (data.spouses || []).filter(s => 
+        s.status === 'active' || s.status === 'pending_delete'
+      );
+      const children = (data.children || []).filter(c => 
+        c.status === 'active' || c.status === 'pending_delete'
+      );
 
       // Render Personal Information
       if (personalGrid) {
