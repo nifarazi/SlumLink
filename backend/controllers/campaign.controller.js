@@ -386,15 +386,17 @@ export async function getAllCampaigns(req, res) {
     connection = await db.getConnection();
 
     let sql = `
-      SELECT campaign_id, org_id, title, category, division, district, slum_area,
-             start_date, end_date, start_time, target_gender, age_group,
-             education_required, skills_required, description, status, created_at, updated_at
-      FROM campaigns
+      SELECT c.campaign_id, c.org_id, c.title, c.category, c.division, c.district, c.slum_area,
+             c.start_date, c.end_date, c.start_time, c.target_gender, c.age_group,
+             c.education_required, c.skills_required, c.description, c.status, c.created_at, c.updated_at,
+             o.org_name, o.org_type
+      FROM campaigns c
+      LEFT JOIN organizations o ON o.org_id = c.org_id
     `;
     const params = [];
 
     if (org_id) {
-      sql += ` WHERE org_id = ? `;
+      sql += ` WHERE c.org_id = ? `;
       params.push(Number(org_id));
     }
 
