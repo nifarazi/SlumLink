@@ -243,8 +243,8 @@ export async function addDistributionEntry(req, res) {
 
     const [ins] = await conn.execute(
       `INSERT INTO distribution_entries
-       (session_id, campaign_id, org_id, family_code, quantity, comment, verification_method)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       (session_id, campaign_id, org_id, family_code, quantity, comment, verification_method, round_no)
+       VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
       [
         sessionId,
         sess.campaign_id,
