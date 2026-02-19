@@ -17,6 +17,7 @@ import campaignRoutes from "./routes/campaign.routes.js";
 import distributionRoutes from "./routes/distribution.routes.js";
 import aidTypeRoutes from "./routes/aidType.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,6 +71,7 @@ app.use("/api/campaigns", campaignRoutes);
 app.use("/api", distributionRoutes); // /distribution-sessions + /distribution/families/:code/snapshot
 app.use("/api", aidTypeRoutes);      // /aid-types
 app.use("/api", notificationRoutes); // /notifications/:slumCode and related endpoints
+app.use("/api", dashboardRoutes);    // /dashboard/stats/:org_id
 
 // Health check
 app.get("/api/health", (req, res) => {
