@@ -33,23 +33,23 @@
     </section>
 
     <section class="stats-grid" aria-label="Stats">
-      <article class="stat-card clickable" data-toast="View detailed report: People Helped">
-        <div class="stat-num">10,248</div>
-        <div class="stat-label">People helped</div>
+      <article class="stat-card clickable" data-toast="View detailed report: Families Helped">
+        <div class="stat-num" id="familiesHelpedNum">—</div>
+        <div class="stat-label">Families helped</div>
       </article>
 
       <article class="stat-card clickable" data-toast="View detailed report: Areas Covered">
-        <div class="stat-num">28</div>
+        <div class="stat-num" id="areasCoveredNum">—</div>
         <div class="stat-label">Areas covered</div>
       </article>
 
       <article class="stat-card clickable" data-toast="View detailed report: Completed Campaigns">
-        <div class="stat-num">5</div>
+        <div class="stat-num" id="completedCampaignsNum">—</div>
         <div class="stat-label">Completed campaigns</div>
       </article>
 
       <article class="stat-card clickable" data-toast="View detailed report: Active Campaigns">
-        <div class="stat-num">3</div>
+        <div class="stat-num" id="activeCampaignsNum">—</div>
         <div class="stat-label">Active campaigns</div>
       </article>
     </section>
@@ -97,14 +97,7 @@
           </div>
         </div>
 
-        <div class="aid-list">
-          <div class="aid-item clickable" data-toast="Opening Winter Blanket Drive Details">
-            <div class="aid-title">Winter Blanket Drive</div>
-            <div class="aid-meta">Mirpur • 120 families assisted</div>
-            <div class="aid-date">Jan 15, 2025</div>
-          </div>
-          <!-- keep the rest as-is -->
-        </div>
+        <div class="aid-list" id="recentAidList"></div>
       </section>
     </section>
   </main>
