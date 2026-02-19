@@ -12,7 +12,7 @@ function toast(msg){
 document.getElementById("qaAnalytics")?.addEventListener("click", (e)=>{
   e.preventDefault();
   e.stopPropagation();
-  window.location.href = "./ngoanalytics-dashboard.html";
+  window.location.href = "./ngo-analytics-overview.html";
 });
 
 document.getElementById("qaCreateCampaign")?.addEventListener("click", (e)=>{
