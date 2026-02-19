@@ -427,3 +427,103 @@ export async function getFamilySnapshotAllHistory(req, res) {
     if (conn) conn.release();
   }
 }
+
+/**
+ * ✅ NEW: GET /api/campaigns/:campaignId/distribution-history
+ * Returns date-wise distribution records for a completed campaign
+ */
+export async function getCampaignDistributionHistory(req, res) {
+  let conn;
+  try {
+    const campaignId = Number(req.params.campaignId);
+    if (!Number.isInteger(campaignId) || campaignId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid campaignId" });
+    }
+
+    conn = await db.getConnection();
+
+    // Get campaign details
+    const [campRows] = await conn.execute(
+      `SELECT * FROM campaigns WHERE campaign_id = ? LIMIT 1`,
+      [campaignId]
+    );
+
+    if (!campRows.length) {
+      return res.status(404).json({ success: false, message: "Campaign not found" });
+    }
+
+    const campaign = campRows[0];
+
+    // Get all distributions for this campaign grouped by date
+    const [distributions] = await conn.execute(
+      `SELECT
+        DATE(de.distributed_at) AS distribution_date,
+        de.family_code,
+        sd.full_name,
+        sd.family_members,
+        at.name AS aid_type,
+        de.quantity,
+        o.org_name,
+        COUNT(DISTINCT de.family_code) OVER (PARTITION BY DATE(de.distributed_at)) AS families_on_date,
+        SUM(sd.family_members) OVER (PARTITION BY DATE(de.distributed_at)) AS people_on_date
+      FROM distribution_entries de
+      JOIN distribution_sessions ds ON ds.session_id = de.session_id
+      JOIN campaigns c ON c.campaign_id = ds.campaign_id
+      JOIN organizations o ON o.org_id = ds.org_id
+      JOIN slum_dwellers sd ON sd.slum_code = de.family_code
+      JOIN aid_types at ON at.aid_type_id = ds.aid_type_id
+      WHERE c.campaign_id = ?
+      ORDER BY de.distributed_at ASC`,
+      [campaignId]
+    );
+
+    // Group by date
+    const groupedByDate = {};
+    distributions.forEach(d => {
+      const dateStr = d.distribution_date;
+      if (!groupedByDate[dateStr]) {
+        groupedByDate[dateStr] = {
+          date: dateStr,
+          distributions: [],
+          uniqueFamilies: new Set(),
+          familiesOnDate: d.families_on_date || 0,
+          peopleOnDate: d.people_on_date || 0
+        };
+      }
+      groupedByDate[dateStr].distributions.push({
+        family_code: d.family_code,
+        family_head: d.full_name,
+        aid_type: d.aid_type,
+        quantity: d.quantity,
+        org_name: d.org_name
+      });
+      groupedByDate[dateStr].uniqueFamilies.add(d.family_code);
+    });
+
+    // Convert to array format
+    const history = Object.values(groupedByDate).map(day => ({
+      date: day.date,
+      families_count: day.uniqueFamilies.size,
+      people_count: day.peopleOnDate,
+      distributions: day.distributions
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        campaign_id: campaignId,
+        campaign_title: campaign.title,
+        history: history
+      }
+    });
+  } catch (error) {
+    console.error("Error retrieving campaign distribution history:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve distribution history",
+      error: error.message,
+    });
+  } finally {
+    if (conn) conn.release();
+  }
+}
