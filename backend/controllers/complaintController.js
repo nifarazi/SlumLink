@@ -1,15 +1,26 @@
 // backend/controllers/complaintController.js
 import pool from "../db.js"; // Make sure this exports a MySQL pool
 
-// 1️⃣ Get counts per category
+// 1️⃣ Get counts per category (with optional division filter for local authorities)
 export const getComplaintCounts = async (req, res) => {
   try {
-    const [rows] = await pool.query(`
+    const { division } = req.query;
+    
+    let query = `
       SELECT category, COUNT(*) AS total,
              SUM(status='pending') AS pendingCount
       FROM complaints
-      GROUP BY category
-    `);
+    `;
+    const params = [];
+    
+    if (division) {
+      query += ` WHERE division = ?`;
+      params.push(division);
+    }
+    
+    query += ` GROUP BY category`;
+    
+    const [rows] = await pool.query(query, params);
 
     const categories = {};
     let pendingCount = 0;
@@ -26,19 +37,27 @@ export const getComplaintCounts = async (req, res) => {
   }
 };
 
-// 2️⃣ Get all complaints by category
+// 2️⃣ Get all complaints by category (with optional division filter)
 export const getComplaintsByCategory = async (req, res) => {
   try {
-    const { category } = req.query;
+    const { category, division } = req.query;
     if (!category) return res.status(400).json({ error: "Category is required" });
 
-    const [rows] = await pool.query(
-      `SELECT complaint_id, slum_id, title, description, status 
-       FROM complaints 
-       WHERE category = ? 
-       ORDER BY created_at DESC`,
-      [category]
-    );
+    let query = `
+      SELECT complaint_id, slum_id, title, description, status 
+      FROM complaints 
+      WHERE category = ?
+    `;
+    const params = [category];
+    
+    if (division) {
+      query += ` AND division = ?`;
+      params.push(division);
+    }
+    
+    query += ` ORDER BY created_at DESC`;
+    
+    const [rows] = await pool.query(query, params);
 
     res.json(rows);
   } catch (err) {

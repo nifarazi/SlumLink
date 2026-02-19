@@ -91,7 +91,18 @@ document.getElementById("backBtn").onclick = () => location.href = "./local-dash
 
 async function fetchComplaintCounts(){
   try{
-    const res = await fetch("/api/complaints/counts");
+    // Get division from localStorage session
+    const sessionRaw = localStorage.getItem("SLUMLINK_SESSION");
+    const session = sessionRaw ? JSON.parse(sessionRaw) : {};
+    const division = session.division || "";
+    
+    // Build URL with division parameter
+    let url = "/api/complaints/counts";
+    if (division) {
+      url += `?division=${encodeURIComponent(division)}`;
+    }
+    
+    const res = await fetch(url);
     const data = await res.json();
     const categories = data.categories || {};
 
@@ -99,9 +110,10 @@ async function fetchComplaintCounts(){
       const cat = card.dataset.category;
       card.querySelector(".count").textContent = `(${categories[cat] || 0})`;
 
-      // Go to complaints page for that category
+      // Go to complaints page for that category, passing division
       card.onclick = () => {
-        window.location.href = `/src/localauthority/complaints.html?category=${encodeURIComponent(cat)}`;
+        const url = `/src/localauthority/complaints.html?category=${encodeURIComponent(cat)}`;
+        window.location.href = url;
       };
     });
   }catch(err){console.error(err);}

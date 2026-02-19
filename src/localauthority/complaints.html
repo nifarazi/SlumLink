@@ -222,7 +222,18 @@ function normalizeStatus(dbStatus){
 
 async function fetchComplaints(){
   try{
-    const res = await fetch(`/api/complaints?category=${encodeURIComponent(category)}`);
+    // Get division from localStorage session
+    const sessionRaw = localStorage.getItem("SLUMLINK_SESSION");
+    const session = sessionRaw ? JSON.parse(sessionRaw) : {};
+    const division = session.division || "";
+    
+    // Build URL with category and optional division parameter
+    let url = `/api/complaints?category=${encodeURIComponent(category)}`;
+    if (division) {
+      url += `&division=${encodeURIComponent(division)}`;
+    }
+    
+    const res = await fetch(url);
     const data = await res.json();
 
     allComplaints = (data || []).map(c => ({
