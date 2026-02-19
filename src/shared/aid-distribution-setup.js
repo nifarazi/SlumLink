@@ -437,6 +437,15 @@ async function loadEligibleFamilies(campaignId) {
     await table.load(campaignId);
     await table.loadCampaignDetails(campaignId);
     table.render();
+    // Store globally so distribution session can access it
+    window.eligibleFamiliesTable = table;
+    // Also store in localStorage for persistence across page navigation
+    if (table.data?.families) {
+      localStorage.setItem(
+        "slumlink_eligible_families",
+        JSON.stringify(table.data.families)
+      );
+    }
   } catch (err) {
     console.error("Error loading eligible families:", err);
     container.innerHTML = `<div class="families-section"><p style="color:red;">Error loading eligible families: ${err.message}</p></div>`;
