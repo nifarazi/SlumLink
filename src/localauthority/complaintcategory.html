@@ -106,13 +106,37 @@ async function fetchComplaintCounts(){
     const data = await res.json();
     const categories = data.categories || {};
 
+    // Collect all cards with their counts
+    const cards = [];
     document.querySelectorAll(".category-card").forEach(card=>{
       const cat = card.dataset.category;
-      card.querySelector(".count").textContent = `(${categories[cat] || 0})`;
+      const count = categories[cat] || 0;
+      cards.push({ card, category: cat, count });
+    });
+
+    // Sort: descending by count, then ascending by category name (alphabetically)
+    // Special case: "Others" always appears last when sorting alphabetically
+    cards.sort((a, b) => {
+      if (b.count !== a.count) {
+        return b.count - a.count; // Descending by count
+      }
+      // When counts are equal, sort alphabetically but put "Others" last
+      if (a.category === "Others") return 1; // a comes after
+      if (b.category === "Others") return -1; // b comes first
+      return a.category.localeCompare(b.category); // Ascending alphabetically
+    });
+
+    // Reorder cards in the grid and set counts
+    const grid = document.querySelector(".categories-grid");
+    cards.forEach(({card, category, count}) => {
+      card.querySelector(".count").textContent = `(${count})`;
+      
+      // Re-append to grid to reorder
+      grid.appendChild(card);
 
       // Go to complaints page for that category, passing division
       card.onclick = () => {
-        const url = `/src/localauthority/complaints.html?category=${encodeURIComponent(cat)}`;
+        const url = `/src/localauthority/complaints.html?category=${encodeURIComponent(category)}`;
         window.location.href = url;
       };
     });
