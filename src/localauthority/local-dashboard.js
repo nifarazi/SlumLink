@@ -95,7 +95,7 @@ function renderRecent(list) {
 // Navigation (your existing)
 document.getElementById("qaAnalytics")?.addEventListener("click", (e) => {
   e.preventDefault(); e.stopPropagation();
-  window.location.href = "./analytics-dashboard.html";
+  window.location.href = "./local-analytics.html";
 });
 
 document.getElementById("qaCreateCampaign")?.addEventListener("click", (e) => {
