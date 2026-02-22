@@ -158,17 +158,38 @@ class CampaignDistributionHistory {
   }
 
   formatDate(dateStr) {
-    try {
-      const d = new Date(dateStr + 'T00:00:00');
-      return d.toLocaleDateString('en-US', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
+    if (!dateStr) return "—";
+
+    // if backend sends Date object or something non-string
+    if (typeof dateStr !== "string") {
+      const d0 = new Date(dateStr);
+      if (!isNaN(d0.getTime())) return d0.toLocaleDateString("en-US", {
+        weekday: "short", year: "numeric", month: "short", day: "numeric"
       });
-    } catch {
-      return dateStr;
+      return String(dateStr);
     }
+
+    const s = dateStr.trim();
+
+    // If already "YYYY-MM-DD" -> safe
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+      const d = new Date(s + "T00:00:00");
+      if (!isNaN(d.getTime())) return d.toLocaleDateString("en-US", {
+        weekday: "short", year: "numeric", month: "short", day: "numeric"
+      });
+      return s;
+    }
+
+    // If ISO like "2026-02-12T00:00:00.000Z" -> parse directly (DON'T append)
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString("en-US", {
+        weekday: "short", year: "numeric", month: "short", day: "numeric"
+      });
+    }
+
+    // last fallback: show raw
+    return s;
   }
 
   escapeHtml(text) {

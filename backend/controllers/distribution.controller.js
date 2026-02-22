@@ -432,6 +432,8 @@ export async function getFamilySnapshotAllHistory(req, res) {
  * ✅ NEW: GET /api/campaigns/:campaignId/distribution-history
  * Returns date-wise distribution records for a completed campaign
  */
+// ✅ GET /api/campaigns/:campaignId/distribution-history
+// Returns date-wise distribution records for a campaign (works for completed too)
 export async function getCampaignDistributionHistory(req, res) {
   let conn;
   try {
@@ -442,78 +444,101 @@ export async function getCampaignDistributionHistory(req, res) {
 
     conn = await db.getConnection();
 
-    // Get campaign details
+    // campaign info
     const [campRows] = await conn.execute(
-      `SELECT * FROM campaigns WHERE campaign_id = ? LIMIT 1`,
+      `SELECT campaign_id, title, status FROM campaigns WHERE campaign_id = ? LIMIT 1`,
       [campaignId]
     );
-
     if (!campRows.length) {
       return res.status(404).json({ success: false, message: "Campaign not found" });
     }
-
     const campaign = campRows[0];
 
-    // Get all distributions for this campaign grouped by date
-    const [distributions] = await conn.execute(
-      `SELECT
-        DATE(de.distributed_at) AS distribution_date,
-        de.family_code,
-        sd.full_name,
-        sd.family_members,
-        at.name AS aid_type,
-        de.quantity,
-        o.org_name,
-        COUNT(DISTINCT de.family_code) OVER (PARTITION BY DATE(de.distributed_at)) AS families_on_date,
-        SUM(sd.family_members) OVER (PARTITION BY DATE(de.distributed_at)) AS people_on_date
-      FROM distribution_entries de
-      JOIN distribution_sessions ds ON ds.session_id = de.session_id
-      JOIN campaigns c ON c.campaign_id = ds.campaign_id
-      JOIN organizations o ON o.org_id = ds.org_id
-      JOIN slum_dwellers sd ON sd.slum_code = de.family_code
-      JOIN aid_types at ON at.aid_type_id = ds.aid_type_id
-      WHERE c.campaign_id = ?
-      ORDER BY de.distributed_at ASC`,
+    // ✅ 1) Day-wise totals (NO double counting)
+    // - families_count: distinct families on that date
+    // - people_count: sum of family_members for DISTINCT families on that date
+    const [dayTotals] = await conn.execute(
+      `
+      SELECT
+        x.distribution_date AS date,
+        COUNT(*) AS families_count,
+        COALESCE(SUM(x.family_members), 0) AS people_count
+      FROM (
+        SELECT
+          DATE(de.distributed_at) AS distribution_date,
+          de.family_code,
+          COALESCE(sd.family_members, 0) AS family_members
+        FROM distribution_entries de
+        LEFT JOIN slum_dwellers sd ON sd.slum_code = de.family_code
+        WHERE de.campaign_id = ?
+        GROUP BY DATE(de.distributed_at), de.family_code
+      ) x
+      GROUP BY x.distribution_date
+      ORDER BY x.distribution_date ASC
+      `,
       [campaignId]
     );
 
-    // Group by date
-    const groupedByDate = {};
-    distributions.forEach(d => {
-      const dateStr = d.distribution_date;
-      if (!groupedByDate[dateStr]) {
-        groupedByDate[dateStr] = {
-          date: dateStr,
-          distributions: [],
-          uniqueFamilies: new Set(),
-          familiesOnDate: d.families_on_date || 0,
-          peopleOnDate: d.people_on_date || 0
-        };
-      }
-      groupedByDate[dateStr].distributions.push({
-        family_code: d.family_code,
-        family_head: d.full_name,
-        aid_type: d.aid_type,
-        quantity: d.quantity,
-        org_name: d.org_name
-      });
-      groupedByDate[dateStr].uniqueFamilies.add(d.family_code);
-    });
+    // ✅ 2) Detail rows (table entries)
+    const [detailRows] = await conn.execute(
+      `
+      SELECT
+        DATE(de.distributed_at) AS distribution_date,
+        de.family_code,
+        sd.full_name AS family_head,
+        at.name AS aid_type,
+        de.quantity,
+        o.org_name
+      FROM distribution_entries de
+      JOIN distribution_sessions ds ON ds.session_id = de.session_id
+      JOIN organizations o ON o.org_id = ds.org_id
+      JOIN aid_types at ON at.aid_type_id = ds.aid_type_id
+      LEFT JOIN slum_dwellers sd ON sd.slum_code = de.family_code
+      WHERE de.campaign_id = ?
+      ORDER BY de.distributed_at ASC, de.entry_id ASC
+      `,
+      [campaignId]
+    );
 
-    // Convert to array format
-    const history = Object.values(groupedByDate).map(day => ({
-      date: day.date,
-      families_count: day.uniqueFamilies.size,
-      people_count: day.peopleOnDate,
-      distributions: day.distributions
-    }));
+    // ✅ build history array the frontend expects
+    const map = new Map();
+    for (const d of dayTotals) {
+      map.set(String(d.date), {
+        date: String(d.date),
+        families_count: Number(d.families_count || 0),
+        people_count: Number(d.people_count || 0),
+        distributions: []
+      });
+    }
+
+    for (const r of detailRows) {
+      const key = String(r.distribution_date);
+      if (!map.has(key)) {
+        map.set(key, {
+          date: key,
+          families_count: 0,
+          people_count: 0,
+          distributions: []
+        });
+      }
+      map.get(key).distributions.push({
+        family_code: r.family_code,
+        family_head: r.family_head || "—",
+        aid_type: r.aid_type || "—",
+        quantity: r.quantity ?? null,
+        org_name: r.org_name || "—"
+      });
+    }
+
+    const history = Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
 
     return res.status(200).json({
       success: true,
       data: {
-        campaign_id: campaignId,
+        campaign_id: campaign.campaign_id,
         campaign_title: campaign.title,
-        history: history
+        campaign_status: campaign.status,
+        history
       }
     });
   } catch (error) {
@@ -523,6 +548,53 @@ export async function getCampaignDistributionHistory(req, res) {
       message: "Failed to retrieve distribution history",
       error: error.message,
     });
+  } finally {
+    if (conn) conn.release();
+  }
+}
+
+// ✅ GET /api/campaigns/:campaignId/impact
+export async function getCampaignImpact(req, res) {
+  let conn;
+  try {
+    const campaignId = Number(req.params.campaignId);
+    if (!Number.isInteger(campaignId) || campaignId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid campaignId" });
+    }
+
+    conn = await db.getConnection();
+
+    const [rows] = await conn.execute(
+      `
+      SELECT
+        COUNT(*) AS families_helped,
+        COALESCE(SUM(x.family_members), 0) AS people_helped
+      FROM (
+        SELECT
+          de.family_code,
+          COALESCE(sd.family_members, 0) AS family_members
+        FROM distribution_entries de
+        LEFT JOIN slum_dwellers sd ON sd.slum_code = de.family_code
+        WHERE de.campaign_id = ?
+        GROUP BY de.family_code
+      ) x
+      `,
+      [campaignId]
+    );
+
+    const out = rows?.[0] || { families_helped: 0, people_helped: 0 };
+
+    return res.json({
+      success: true,
+      data: {
+        families_helped: Number(out.families_helped || 0),
+        people_helped: Number(out.people_helped || 0),
+        beneficiaries: Number(out.people_helped || 0) // ✅ backward compatible with your frontend
+      }
+    });
+  } catch (e) {
+    console.error("getCampaignImpact error:", e);
+    return res.status(500).json({ success: false, message: "Failed to load impact", error: e.message });
   } finally {
     if (conn) conn.release();
   }
