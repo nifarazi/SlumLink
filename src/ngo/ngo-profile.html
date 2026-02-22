@@ -53,11 +53,6 @@
         </div>
 
         <div class="info-row">
-          <h2 class="info-title">Date of Account Creation</h2>
-          <p class="info-text" id="createdAtDisplay">Loading...</p>
-        </div>
-
-        <div class="info-row">
           <h2 class="info-title">Years in Operation</h2>
           <p class="info-text" id="orgAgeDisplay">Loading...</p>
         </div>
@@ -136,22 +131,28 @@
 
         const ngo = data.data || data;
         
-        // Populate profile information
-        document.getElementById("ngoNameDisplay").textContent = (ngo.org_name || "N/A").toUpperCase();
+        // Populate profile information with null checks
+        const ngoName = document.getElementById("ngoNameDisplay");
+        if (ngoName) ngoName.textContent = (ngo.org_name || "N/A").toUpperCase();
         
         const emailLink = document.getElementById("emailDisplay");
-        emailLink.textContent = ngo.email || "N/A";
-        emailLink.href = `mailto:${ngo.email || ""}`;
+        if (emailLink) {
+          emailLink.textContent = ngo.email || "N/A";
+          emailLink.href = `mailto:${ngo.email || ""}`;
+        }
         
-        document.getElementById("phoneDisplay").textContent = ngo.phone || "N/A";
+        const phoneDisplay = document.getElementById("phoneDisplay");
+        if (phoneDisplay) phoneDisplay.textContent = ngo.phone || "N/A";
         
         const statusBadge = document.getElementById("statusDisplay");
-        statusBadge.textContent = ngo.status ? ngo.status.charAt(0).toUpperCase() + ngo.status.slice(1) : "N/A";
-        statusBadge.style.fontWeight = "600";
-        statusBadge.style.color = ngo.status === "accepted" ? "#27ae60" : ngo.status === "pending" ? "#f39c12" : "#e74c3c";
+        if (statusBadge) {
+          statusBadge.textContent = ngo.status ? ngo.status.charAt(0).toUpperCase() + ngo.status.slice(1) : "N/A";
+          statusBadge.style.fontWeight = "600";
+          statusBadge.style.color = ngo.status === "accepted" ? "#27ae60" : ngo.status === "pending" ? "#f39c12" : "#e74c3c";
+        }
         
-        document.getElementById("orgAgeDisplay").textContent = (ngo.org_age || "N/A") + " years";
-        document.getElementById("createdAtDisplay").textContent = formatDate(ngo.created_at);
+        const orgAge = document.getElementById("orgAgeDisplay");
+        if (orgAge) orgAge.textContent = (ngo.org_age || "N/A") + " years";
 
       } catch (error) {
         console.error("Error loading profile:", error);
